@@ -114,6 +114,11 @@ public class KinematicsToolboxRigidBodyCommand implements Command<KinematicsTool
       return controlFramePose;
    }
 
+   public void setEndEffector(RigidBodyBasics endEffector)
+   {
+      this.endEffector = endEffector;
+   }
+
    @Override
    public Class<KinematicsToolboxRigidBodyMessage> getMessageClass()
    {

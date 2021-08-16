@@ -29,6 +29,7 @@ import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoInteger;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Implementation of the particle-filter based external contact estimator presented here:
@@ -63,6 +64,7 @@ public class ContactParticleFilter
    // If non-empty will consider all rigid bodies
    private final Set<RigidBodyBasics> rigidBodiesToConsiderQueue = new HashSet<>();
    private RigidBodyBasics[] rigidBodiesToConsider;
+   private final List<Predicate<ContactPointParticle>> contactPointFilters = new ArrayList<>();
 
    private final ContactPointParticle[] contactPointParticles = new ContactPointParticle[numberOfParticles];
    private final YoDouble[] contactPointProbabilities = new YoDouble[numberOfParticles];
@@ -237,6 +239,8 @@ public class ContactParticleFilter
          contactPointProjector.projectToSpecificLink(pointToProject, contactPointParticles[i].getContactPointPosition(), contactPointParticles[i].getSurfaceNormal(), rigidBody);
          contactPointParticles[i].update();
       }
+
+      updateGraphics();
    }
 
    public double computeJointspaceDisturbance()
@@ -256,9 +260,20 @@ public class ContactParticleFilter
       double totalWeight = 0.0;
 
       // Evaluate likelihood of each point
+      particleEvaluationLoop:
       for (int i = 0; i < numberOfParticles; i++)
       {
          ContactPointParticle contactPoint = contactPointParticles[i];
+
+         for (int j = 0; j < contactPointFilters.size(); j++)
+         {
+            if (contactPointFilters.get(j).test(contactPoint))
+            {
+               contactPointProbabilities[i].set(0.0);
+               continue particleEvaluationLoop;
+            }
+         }
+
          DMatrixRMaj contactPointJacobian = contactPoint.computeContactJacobian();
 
          for (int j = 0; j < contactPointJacobian.getNumCols(); j++)
@@ -335,21 +350,12 @@ public class ContactParticleFilter
          contactPointParticles[i].getContactPointPosition().changeFrame(ReferenceFrame.getWorldFrame());
          contactPointParticles[i].getSurfaceNormal().changeFrame(ReferenceFrame.getWorldFrame());
 
-         if (showParticles.getValue())
-         {
-            yoContactPointPositions[i].set(contactPointParticles[i].getContactPointPosition());
-            yoScaledSurfaceNormal[i].set(contactPointParticles[i].getSurfaceNormal());
-            yoScaledSurfaceNormal[i].scale(contactPointProbabilities[i].getDoubleValue());
-         }
-         else
-         {
-            yoContactPointPositions[i].setToNaN();
-         }
-
-//         yoContactPointPositions[i].set(contactPointParticles[i].getContactPointPosition());
+         //         yoContactPointPositions[i].set(contactPointParticles[i].getContactPointPosition());
 //         yoScaledSurfaceNormal[i].set(contactPointParticles[i].getSurfaceNormal());
 //         yoScaledSurfaceNormal[i].scale(contactPointProbabilities[i].getDoubleValue());
       }
+
+      updateGraphics();
 
       FramePoint3D averageParticlePosition = averageProjectedParticle.getContactPointPosition();
       averageParticlePosition.setToZero(ReferenceFrame.getWorldFrame());
@@ -383,6 +389,23 @@ public class ContactParticleFilter
 
       hasConverged.set(checkTerminationConditions());
       firstTick = false;
+   }
+
+   private void updateGraphics()
+   {
+      for (int i = 0; i < numberOfParticles; i++)
+      {
+         if (showParticles.getValue())
+         {
+            yoContactPointPositions[i].set(contactPointParticles[i].getContactPointPosition());
+            yoScaledSurfaceNormal[i].set(contactPointParticles[i].getSurfaceNormal());
+            yoScaledSurfaceNormal[i].scale(contactPointProbabilities[i].getDoubleValue());
+         }
+         else
+         {
+            yoContactPointPositions[i].setToNaN();
+         }
+      }
    }
 
    public void computeEstimatedForceAtAveragePoint()
@@ -423,6 +446,7 @@ public class ContactParticleFilter
       {
          contactingBodyHistogram.get(contactPointParticles[i].getRigidBody()).increment();
       }
+
       for (int i = 0; i < contactPointParticles.length; i++)
       {
          RigidBodyBasics rigidBody = contactPointParticles[i].getRigidBody();
@@ -547,6 +571,16 @@ public class ContactParticleFilter
       maximumProbabilityParticle.set(maxProbability);
       errorOfMaximumProbabilityParticle.set(distanceOfMaxProbability);
       closestParticleProbability.set(contactPointProbabilities[indexClosestParticle].getValue());
+   }
+
+   public void addContactPointFilter(Predicate<ContactPointParticle> contactPointFilter)
+   {
+      this.contactPointFilters.add(contactPointFilter);
+   }
+
+   public void clearContactPointFilters()
+   {
+      contactPointFilters.clear();
    }
 
    public FramePoint3D getEstimatedContactPosition()

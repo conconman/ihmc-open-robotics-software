@@ -51,7 +51,7 @@ public class ContactParticleFilter
 
    private final JointBasics[] joints;
    private final int dofs;
-   private final ExternalTorqueEstimator externalTorqueEstimator;
+   private final ExternalTorqueEstimatorInterface externalTorqueEstimator;
    private final DMatrixRMaj systemJacobian;
    private final DMatrixRMaj jointNoiseVariance;
    private final DMatrixRMaj jointNoiseVarianceInv;
@@ -119,14 +119,26 @@ public class ContactParticleFilter
                                 YoGraphicsListRegistry graphicsListRegistry,
                                 YoRegistry parentRegistry)
    {
+      this(joints, dt, new ExternalTorqueEstimator(joints, dt, dynamicMatrixUpdater, null), collidables, graphicsListRegistry, parentRegistry);
+   }
+
+   public ContactParticleFilter(JointBasics[] joints,
+                                double dt,
+                                ExternalTorqueEstimatorInterface externalTorqueEstimator,
+                                List<Collidable> collidables,
+                                YoGraphicsListRegistry graphicsListRegistry,
+                                YoRegistry parentRegistry)
+   {
       this.joints = joints;
-      this.externalTorqueEstimator = new ExternalTorqueEstimator(joints, dt, dynamicMatrixUpdater, registry);
+      this.externalTorqueEstimator = externalTorqueEstimator;
       this.dofs = Arrays.stream(joints).mapToInt(JointReadOnly::getDegreesOfFreedom).sum();
       this.systemJacobian = new DMatrixRMaj(estimationVariables, dofs);
       this.jointNoiseVariance = CommonOps_DDRM.identity(dofs);
       this.jointNoiseVarianceInv = CommonOps_DDRM.identity(dofs);
       this.contactPointProjector = new MeshSurfaceProjector(collidables);
       this.averageProjectedParticle = new ContactPointParticle("averageParticle", joints);
+
+      registry.addChild(externalTorqueEstimator.getYoRegistry());
 
       for (int i = 0; i < numberOfParticles; i++)
       {

@@ -24,17 +24,17 @@ cd java
 curl -L https://github.com/bytedeco/javacpp/releases/download/$JAVACPP_VERSION/javacpp-platform-$JAVACPP_VERSION-bin.zip -o javacpp-platform-$JAVACPP_VERSION-bin.zip
 unzip -j javacpp-platform-$JAVACPP_VERSION-bin.zip
 
-java -jar javacpp.jar us/ihmc/bytedeco/mapsenseWrapper/presets/VisualOdometryInfoMapper.java
+java -jar javacpp.jar us/ihmc/perception/visualOdometry/presets/VisualOdometryInfoMapper.java
 # This will generate the jni shared library and place it into the classpath resources dir
 
-java -jar javacpp.jar us/ihmc/bytedeco/mapsenseWrapper/VisualOdometry.java -d ../../../resources/mapsenseWrapper/linux-x86_64
+java -jar javacpp.jar us/ihmc/perception/visualOdometry/VisualOdometry.java -d ../../../resources/visualOdometry/linux-x86_64
 
 # Clean old generated Java code
-rm -rf ../../../generated-java/*
+rm -rf ../../../generated-java/us/ihmc/perception/visualOdometry
 
 # Copy newly generated Java into generated-java
-mkdir -p ../../../generated-java/us/ihmc/bytedeco/mapsenseWrapper
-cp -r us/ihmc/bytedeco/mapsenseWrapper/VisualOdometry.java ../../../generated-java/us/ihmc/bytedeco/mapsenseWrapper
+mkdir -p ../../../generated-java/us/ihmc/perception/visualOdometry
+cp -r us/ihmc/perception/visualOdometry/VisualOdometry.java ../../../generated-java/us/ihmc/perception/visualOdometry
 
 # Run ldd on <libwrapper-name>.so to find required .so file names.
-cp ../lib/libvisual-odometry.so ../../../resources/mapsenseWrapper/linux-x86_64
+cp ../lib/libvisual-odometry.so ../../../resources/visualOdometry/linux-x86_64

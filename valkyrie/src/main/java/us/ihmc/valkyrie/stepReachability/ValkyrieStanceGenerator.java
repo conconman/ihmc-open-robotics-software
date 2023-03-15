@@ -2,7 +2,7 @@ package us.ihmc.valkyrie.stepReachability;
 
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.drcRobot.RobotTarget;
-import us.ihmc.avatar.reachabilityMap.footstep.HumanoidStepReachabilityCalculator;
+import us.ihmc.avatar.reachabilityMap.footstep.HumanoidStanceGenerator;
 import us.ihmc.robotics.partNames.HumanoidJointNameMap;
 import us.ihmc.robotics.partNames.LegJointName;
 import us.ihmc.robotics.physics.RobotCollisionModel;
@@ -12,7 +12,7 @@ import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.valkyrie.ValkyrieFootstepPlannerCollisionModel;
 import us.ihmc.valkyrie.ValkyrieRobotModel;
 
-public class ValkyrieStepReachabilityCalculator extends HumanoidStepReachabilityCalculator
+public class ValkyrieStanceGenerator extends HumanoidStanceGenerator
 {
    /**
     * Note on naming convention: {Joint}LimitReduction means reduce the range by that amount. So if
@@ -26,14 +26,14 @@ public class ValkyrieStepReachabilityCalculator extends HumanoidStepReachability
    private static final double hipRollLimitReduction = 0.2;
    private static final double hipYawLimitReduction = 0.2;
 
-   public ValkyrieStepReachabilityCalculator() throws Exception
+   public ValkyrieStanceGenerator() throws Exception
    {
       super();
    }
 
    public static void main(String[] args) throws Exception
    {
-      new ValkyrieStepReachabilityCalculator();
+      new ValkyrieStanceGenerator();
    }
 
    @Override

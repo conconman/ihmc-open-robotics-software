@@ -3,13 +3,12 @@ package us.ihmc.atlas.stepReachability;
 import us.ihmc.atlas.AtlasRobotModel;
 import us.ihmc.atlas.AtlasRobotVersion;
 import us.ihmc.atlas.parameters.AtlasKinematicsCollisionModel;
-import us.ihmc.atlas.parameters.AtlasSimulationCollisionModel;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
-import us.ihmc.avatar.reachabilityMap.footstep.HumanoidStepReachabilityCalculator;
+import us.ihmc.avatar.reachabilityMap.footstep.HumanoidStanceGenerator;
 import us.ihmc.robotics.partNames.HumanoidJointNameMap;
 import us.ihmc.robotics.physics.RobotCollisionModel;
 
-public class AtlasStepReachabilityCalculator extends HumanoidStepReachabilityCalculator
+public class AtlasStepReachabilityCalculator extends HumanoidStanceGenerator
 {
    public AtlasStepReachabilityCalculator() throws Exception
    {

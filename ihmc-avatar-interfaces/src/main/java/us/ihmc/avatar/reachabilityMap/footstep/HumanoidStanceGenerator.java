@@ -2,6 +2,7 @@ package us.ihmc.avatar.reachabilityMap.footstep;
 
 import controller_msgs.msg.dds.CapturabilityBasedStatus;
 import controller_msgs.msg.dds.RobotConfigurationData;
+import gnu.trove.list.array.TDoubleArrayList;
 import org.jfree.util.LogTarget;
 import toolbox_msgs.msg.dds.KinematicsToolboxCenterOfMassMessage;
 import toolbox_msgs.msg.dds.KinematicsToolboxConfigurationMessage;
@@ -20,6 +21,7 @@ import us.ihmc.communication.controllerAPI.CommandInputManager;
 import us.ihmc.communication.controllerAPI.StatusMessageOutputManager;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
 import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.shape.primitives.interfaces.*;
 import us.ihmc.euclid.transform.RigidBodyTransform;
@@ -74,7 +76,7 @@ public abstract class HumanoidStanceGenerator
 {
    private enum Mode
    {
-      HAND_POSE, GENERATE_SINGLE_STANCE
+      HAND_POSE, GENERATE_STANCE
    }
 
    private static final Mode mode = Mode.HAND_POSE;
@@ -173,6 +175,27 @@ public abstract class HumanoidStanceGenerator
       {
          case HAND_POSE:
             testHandPose();
+            break;
+
+         case GENERATE_STANCE:
+
+            double nominalStanceWidth = 0.24;
+
+            /* Default standing */
+            generateStance(0.0, nominalStanceWidth, 0.0);
+
+            /* Wide stance */
+            generateStance(0.0, 0.4, 0.0);
+
+            /* Nominal step with left foot forward */
+            generateStance(0.2, nominalStanceWidth, 0.0);
+
+            /* Default stance width but left foot turned outward */
+            generateStance(0.0, nominalStanceWidth, Math.toRadians(30.0));
+
+            /* Foot forward and turned inward */
+            generateStance(0.2, nominalStanceWidth, Math.toRadians(-30.0));
+
             break;
 
          default:
@@ -275,6 +298,21 @@ public abstract class HumanoidStanceGenerator
       {
          throw new RuntimeException(KinematicsToolboxController.class.getSimpleName() + " did not manage to initialize.");
       }
+   }
+
+   /**
+    * Solve for a whole-body configuration where the right foot is at the origin facing forward (zero yaw orientation) and
+    * the left foot has the offset passed in.
+    *
+    * Recommended objectives to try, feel free to use other ones:
+    * - Center of mass, constrained only in XY, in the middle of the feet
+    * - Chest orientation with 0 roll, 0 pitch, and a yaw that's halfway between the two foot orientations
+    * - Foot objectives should match the provided offsets
+    * - Arm objectives, not sure if they're needed, maybe try without at first. Could try adding a low-weight objective for each arm joint angle, given the values in OptimusInitialSetup.
+    */
+   private void generateStance(double xOffset, double yOffset, double yawOffset) throws Exception
+   {
+
    }
 
    private void runKinematicsToolboxController() throws BlockingSimulationRunner.SimulationExceededMaximumTimeException
@@ -498,8 +536,8 @@ public abstract class HumanoidStanceGenerator
       {
          Graphics3DObject linkGraphics = robot.getLink(collidable.getRigidBody().getName()).getLinkGraphics();
 
-         if (linkGraphics != null)
-            linkGraphics.combine(getGraphics(collidable));
+//         if (linkGraphics != null)
+//            linkGraphics.combine(getGraphics(collidable));
       }
    }
 }

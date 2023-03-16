@@ -78,14 +78,10 @@ public abstract class HumanoidStanceGenerator
 
    private static final Mode mode = Mode.GENERATE_STANCE;
 
-   private static final double GROUNDHEIGHT = 0.1;
+   private static double xFootCenterOnOrigion = 0;
+   private static double yFootCenterOnOrigion = 0;
 
-   private static double xLeftFootCenterOnOrigion = 0;
-   private static double yLeftFootCenterOnOrigion = 0;
-
-   private static double xRightFootCenterOnOrigion = 0;
-   private static double yRightFootCenterOnOrigion = 0;
-
+   private static RobotSide robotSide = RobotSide.LEFT;
 
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
    private static final MaterialDefinition ghostMaterial = new MaterialDefinition(ColorDefinitions.Yellow().derive(0, 1, 1, 0.25));
@@ -185,17 +181,16 @@ public abstract class HumanoidStanceGenerator
 
          case GENERATE_STANCE:
 
-            // This centers the left foot at the orgin, making it easier to manipute since the foot is at the origin
-            centerRightFoot();
+            // This centers the left foot at the origin, making it easier to manipulate since the foot is at the origin
+            centerStanceFoot(robotSide);
 
             //TODO would need to set this up to check which foot and go from there for centering
 
             double xFootPosition = 0.0;
-            double yFootPosition = 0.0;
-            double zFootPosition = 0.0 + GROUNDHEIGHT;
+            double yFootPosition = 0.24;
 
             /* Default standing */
-            generateFootStance(xFootPosition, yFootPosition, zFootPosition);
+            generateFootStance(xFootPosition, yFootPosition);
 
             /* Wide stance */
 //            generateStance(0.0, 0.4, 0.0);
@@ -218,17 +213,20 @@ public abstract class HumanoidStanceGenerator
       ThreadTools.sleepForever();
    }
 
-   private void centerLeftFoot()
+   private void centerStanceFoot(RobotSide robotSide)
    {
-      //Hard coded values aren't great, but it may be the only way to set specific foot at origin
-      xLeftFootCenterOnOrigion = 0.0153;
-      yLeftFootCenterOnOrigion = -0.1152;
-   }
+      // We can switch these positive and negative values if we want to center the manipulation foot
+      if (RobotSide.RIGHT == robotSide)
+      {
+         xFootCenterOnOrigion = 0.0;
+         yFootCenterOnOrigion = -0.12;
+      }
+      else
+      {
+         xFootCenterOnOrigion = -0.0;
+         yFootCenterOnOrigion = 0.12;
 
-   private void centerRightFoot()
-   {
-      xRightFootCenterOnOrigion = -0.0153;
-      yRightFootCenterOnOrigion = 0.1152;
+      }
    }
 
    protected abstract DRCRobotModel getRobotModel();
@@ -248,7 +246,7 @@ public abstract class HumanoidStanceGenerator
       double stanceYaw = Math.toRadians(5.0);
 
       /* Create an object representing the robot's whole joint configuration when standing at that stance */
-      FullHumanoidRobotModel initialFullRobotModel = createFullRobotModelAtInitialConfiguration(getRobotModel(), GROUNDHEIGHT, stancePosition, stanceYaw);
+      FullHumanoidRobotModel initialFullRobotModel = createFullRobotModelAtInitialConfiguration(getRobotModel(), 0.0, stancePosition, stanceYaw);
 
       /* Extract RobotConfigurationData, a ROS message used in the inverse kinematics */
       RobotConfigurationData robotConfigurationData = extractRobotConfigurationData(initialFullRobotModel);
@@ -335,14 +333,14 @@ public abstract class HumanoidStanceGenerator
     * - Foot objectives should match the provided offsets
     * - Arm objectives, not sure if they're needed, maybe try without at first. Could try adding a low-weight objective for each arm joint angle, given the values in OptimusInitialSetup.
     */
-   private void generateFootStance(double xFootPosition, double yFootPosition, double zFootPosition) throws Exception
+   private void generateFootStance(double xFootPosition, double yFootPosition) throws Exception
    {
       /* Pick random ground height and x, y, yaw for stance */
-      Point2D stancePosition = new Point2D(xRightFootCenterOnOrigion, yRightFootCenterOnOrigion);
+      Point2D stancePosition = new Point2D(xFootCenterOnOrigion, yFootCenterOnOrigion);
       double stanceYaw = Math.toRadians(0);
 
       /* Create an object representing the robot's whole joint configuration when standing at that stance */
-      FullHumanoidRobotModel initialFullRobotModel = createFullRobotModelAtInitialConfiguration(getRobotModel(), GROUNDHEIGHT, stancePosition, stanceYaw);
+      FullHumanoidRobotModel initialFullRobotModel = createFullRobotModelAtInitialConfiguration(getRobotModel(), 0.0, stancePosition, stanceYaw);
 
       /* Extract RobotConfigurationData, a ROS message used in the inverse kinematics */
       RobotConfigurationData robotConfigurationData = extractRobotConfigurationData(initialFullRobotModel);
@@ -350,17 +348,17 @@ public abstract class HumanoidStanceGenerator
       /* Create an objective for where the left hand should be */
       KinematicsToolboxRigidBodyMessage leftFootObjective = new KinematicsToolboxRigidBodyMessage();
       /* Set the hash code of the left hand link, which is how the IK knows that this is a right hand objective */
-      leftFootObjective.setEndEffectorHashCode(initialFullRobotModel.getFoot(RobotSide.RIGHT).hashCode());
+      leftFootObjective.setEndEffectorHashCode(initialFullRobotModel.getFoot(robotSide).hashCode());
       /* Desired left hand position */
-      leftFootObjective.getDesiredPositionInWorld().set(xFootPosition, yFootPosition, zFootPosition);
+      leftFootObjective.getDesiredPositionInWorld().set(xFootPosition, yFootPosition, 0.0);
       /* Weight of the left hand objective */
       leftFootObjective.getLinearWeightMatrix().setXWeight(20.0);
       leftFootObjective.getLinearWeightMatrix().setYWeight(20.0);
       leftFootObjective.getLinearWeightMatrix().setZWeight(20.0);
       /* Tell the solver to ignore orientation of the left hand. So only position is controller */
-      leftFootObjective.getAngularSelectionMatrix().setXSelected(false);
-      leftFootObjective.getAngularSelectionMatrix().setYSelected(false);
-      leftFootObjective.getAngularSelectionMatrix().setZSelected(false);
+//      leftFootObjective.getAngularSelectionMatrix().setXSelected(false);
+//      leftFootObjective.getAngularSelectionMatrix().setYSelected(false);
+//      leftFootObjective.getAngularSelectionMatrix().setZSelected(false);
       /* Submit objective */
       commandInputManager.submitMessage(leftFootObjective);
 
@@ -390,9 +388,9 @@ public abstract class HumanoidStanceGenerator
       snapGhostToFullRobotModel(initialFullRobotModel);
       toolboxController.updateRobotConfigurationData(robotConfigurationData);
 
-      /* This object, CapturabilityBasedStatus, specifies which feet are in contact. Here we say that both the left and right foot are in contact. The IK solver will in turn keep the feet locked in place. */
-      CapturabilityBasedStatus capturabilityBasedStatus = createCapturabilityBasedStatus(initialFullRobotModel, getRobotModel(), true, true);
-      toolboxController.updateCapturabilityBasedStatus(capturabilityBasedStatus);
+//      /* This object, CapturabilityBasedStatus, specifies which feet are in contact. Here we say that both the left and right foot are in contact. The IK solver will in turn keep the feet locked in place. */
+//      CapturabilityBasedStatus capturabilityBasedStatus = createCapturabilityBasedStatus(initialFullRobotModel, getRobotModel(), true, true);
+//      toolboxController.updateCapturabilityBasedStatus(capturabilityBasedStatus);
 
       runKinematicsToolboxController();
 

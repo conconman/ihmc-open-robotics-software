@@ -78,10 +78,10 @@ public abstract class HumanoidStanceGenerator
 
    private static final Mode mode = Mode.GENERATE_STANCE;
 
-   private static double xFootCenterOnOrigion = 0;
-   private static double yFootCenterOnOrigion = 0;
+   private static double xFootCenterOnOrigin = 0;
+   private static double yFootCenterOnOrigin = 0;
 
-   private static RobotSide robotSide = RobotSide.LEFT;
+   private static final RobotSide robotSide = RobotSide.LEFT;
 
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
    private static final MaterialDefinition ghostMaterial = new MaterialDefinition(ColorDefinitions.Yellow().derive(0, 1, 1, 0.25));
@@ -98,7 +98,7 @@ public abstract class HumanoidStanceGenerator
    private final YoGraphicsListRegistry yoGraphicsListRegistry;
    private final HumanoidKinematicsToolboxController toolboxController;
    private final KinematicsPlanningToolboxOptimizationSettings optimizationSettings;
-   private SolutionQualityConvergenceDetector solutionQualityConvergenceDetector;
+   private final SolutionQualityConvergenceDetector solutionQualityConvergenceDetector;
 
    private final YoBoolean initializationSucceeded;
    private final YoInteger numberOfIterations;
@@ -175,56 +175,53 @@ public abstract class HumanoidStanceGenerator
 
       switch (mode)
       {
-         case HAND_POSE:
-            testHandPose();
-            break;
-
-         case GENERATE_STANCE:
+         case HAND_POSE -> testHandPose();
+         case GENERATE_STANCE ->
+         {
 
             // This centers the left foot at the origin, making it easier to manipulate since the foot is at the origin
-            centerStanceFoot(robotSide);
+            centerStanceFoot();
 
             //TODO would need to set this up to check which foot and go from there for centering
 
             double xFootPosition = 0.0;
             double yFootPosition = 0.24;
+            double yawFoot = 0.0;
 
             /* Default standing */
-            generateFootStance(xFootPosition, yFootPosition);
+            generateFootStance(xFootPosition, yFootPosition, Math.toRadians(yawFoot));
+         }
 
-            /* Wide stance */
+         /* Wide stance */
 //            generateStance(0.0, 0.4, 0.0);
 
-            /* Nominal step with left foot forward */
+         /* Nominal step with left foot forward */
 //            generateStance(0.2, nominalStanceWidth, 0.0);
 
-            /* Default stance width but left foot turned outward */
+         /* Default stance width but left foot turned outward */
 //            generateStance(0.0, nominalStanceWidth, Math.toRadians(30.0));
 
-            /* Foot forward and turned inward */
+         /* Foot forward and turned inward */
 //            generateStance(0.2, nominalStanceWidth, Math.toRadians(-30.0));
 
-            break;
-
-         default:
-            throw new RuntimeException(mode + " is not implemented yet!");
+         default -> throw new RuntimeException(mode + " is not implemented yet!");
       }
 
       ThreadTools.sleepForever();
    }
 
-   private void centerStanceFoot(RobotSide robotSide)
+   private void centerStanceFoot()
    {
       // We can switch these positive and negative values if we want to center the manipulation foot
       if (RobotSide.RIGHT == robotSide)
       {
-         xFootCenterOnOrigion = 0.0;
-         yFootCenterOnOrigion = -0.12;
+         xFootCenterOnOrigin = 0.0;
+         yFootCenterOnOrigin = -0.12;
       }
       else
       {
-         xFootCenterOnOrigion = -0.0;
-         yFootCenterOnOrigion = 0.12;
+         xFootCenterOnOrigin = -0.0;
+         yFootCenterOnOrigin = 0.12;
 
       }
    }
@@ -326,21 +323,19 @@ public abstract class HumanoidStanceGenerator
    /**
     * Solve for a whole-body configuration where the right foot is at the origin facing forward (zero yaw orientation) and
     * the left foot has the offset passed in.
-    *
     * Recommended objectives to try, feel free to use other ones:
     * - Center of mass, constrained only in XY, in the middle of the feet
     * - Chest orientation with 0 roll, 0 pitch, and a yaw that's halfway between the two foot orientations
     * - Foot objectives should match the provided offsets
     * - Arm objectives, not sure if they're needed, maybe try without at first. Could try adding a low-weight objective for each arm joint angle, given the values in OptimusInitialSetup.
     */
-   private void generateFootStance(double xFootPosition, double yFootPosition) throws Exception
+   private void generateFootStance(double xFootPosition, double yFootPosition, double yawFoot) throws Exception
    {
       /* Pick random ground height and x, y, yaw for stance */
-      Point2D stancePosition = new Point2D(xFootCenterOnOrigion, yFootCenterOnOrigion);
-      double stanceYaw = Math.toRadians(0);
+      Point2D stancePosition = new Point2D(xFootCenterOnOrigin, yFootCenterOnOrigin);
 
       /* Create an object representing the robot's whole joint configuration when standing at that stance */
-      FullHumanoidRobotModel initialFullRobotModel = createFullRobotModelAtInitialConfiguration(getRobotModel(), 0.0, stancePosition, stanceYaw);
+      FullHumanoidRobotModel initialFullRobotModel = createFullRobotModelAtInitialConfiguration(getRobotModel(), 0.0, stancePosition, 0.0);
 
       /* Extract RobotConfigurationData, a ROS message used in the inverse kinematics */
       RobotConfigurationData robotConfigurationData = extractRobotConfigurationData(initialFullRobotModel);
@@ -356,9 +351,9 @@ public abstract class HumanoidStanceGenerator
       leftFootObjective.getLinearWeightMatrix().setYWeight(20.0);
       leftFootObjective.getLinearWeightMatrix().setZWeight(20.0);
       /* Tell the solver to ignore orientation of the left hand. So only position is controller */
-//      leftFootObjective.getAngularSelectionMatrix().setXSelected(false);
-//      leftFootObjective.getAngularSelectionMatrix().setYSelected(false);
-//      leftFootObjective.getAngularSelectionMatrix().setZSelected(false);
+      leftFootObjective.getAngularSelectionMatrix().setXSelected(false);
+      leftFootObjective.getAngularSelectionMatrix().setYSelected(false);
+      leftFootObjective.getAngularSelectionMatrix().setZSelected(false);
       /* Submit objective */
       commandInputManager.submitMessage(leftFootObjective);
 

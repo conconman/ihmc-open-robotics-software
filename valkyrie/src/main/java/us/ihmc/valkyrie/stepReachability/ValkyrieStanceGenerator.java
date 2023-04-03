@@ -28,18 +28,13 @@ public class ValkyrieStanceGenerator extends HumanoidStanceGenerator
 
    public ValkyrieStanceGenerator() throws Exception
    {
-      super();
+      super(new ValkyrieRobotModel(RobotTarget.SCS),
+              "ihmc-open-robotics-software/valkyrie/src/main/resources");
    }
 
    public static void main(String[] args) throws Exception
    {
       new ValkyrieStanceGenerator();
-   }
-
-   @Override
-   protected DRCRobotModel getRobotModel()
-   {
-      return new ValkyrieRobotModel(RobotTarget.SCS);
    }
 
    @Override
@@ -88,11 +83,5 @@ public class ValkyrieStanceGenerator extends HumanoidStanceGenerator
    protected RobotCollisionModel getRobotCollisionModel(HumanoidJointNameMap jointMap)
    {
       return new ValkyrieFootstepPlannerCollisionModel(jointMap);
-   }
-
-   @Override
-   protected String getResourcesDirectory()
-   {
-      return "ihmc-open-robotics-software/valkyrie/src/main/resources";
    }
 }

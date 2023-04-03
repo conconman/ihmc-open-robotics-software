@@ -12,24 +12,13 @@ public class AtlasStepReachabilityCalculator extends HumanoidStanceGenerator
 {
    public AtlasStepReachabilityCalculator() throws Exception
    {
-      super();
+      super(new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS),
+              "ihmc-open-robotics-software/atlas/src/main/resources");
    }
 
    public static void main(String[] args) throws Exception
    {
       new AtlasStepReachabilityCalculator();
-   }
-
-   @Override
-   protected DRCRobotModel getRobotModel()
-   {
-      return new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS);
-   }
-
-   @Override
-   protected String getResourcesDirectory()
-   {
-      return "ihmc-open-robotics-software/atlas/src/main/resources";
    }
 
    @Override

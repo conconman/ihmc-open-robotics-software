@@ -1,10 +1,13 @@
 package us.ihmc.avatar.reachabilityMap.footstep;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import controller_msgs.msg.dds.CapturabilityBasedStatus;
 import controller_msgs.msg.dds.RobotConfigurationData;
-import toolbox_msgs.msg.dds.KinematicsToolboxCenterOfMassMessage;
-import toolbox_msgs.msg.dds.KinematicsToolboxConfigurationMessage;
-import toolbox_msgs.msg.dds.KinematicsToolboxRigidBodyMessage;
+import toolbox_msgs.msg.dds.*;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.jointAnglesWriter.JointAnglesWriter;
 import us.ihmc.avatar.networkProcessor.kinematicsPlanningToolboxModule.KinematicsPlanningToolboxOptimizationSettings;
@@ -14,11 +17,13 @@ import us.ihmc.avatar.networkProcessor.kinematicsToolboxModule.KinematicsToolbox
 import us.ihmc.avatar.networkProcessor.kinematicsToolboxModule.KinematicsToolboxController;
 import us.ihmc.avatar.networkProcessor.kinematicsToolboxModule.KinematicsToolboxModule;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.ContactableBodiesFactory;
+import us.ihmc.commons.nio.FileTools;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.communication.controllerAPI.CommandInputManager;
 import us.ihmc.communication.controllerAPI.StatusMessageOutputManager;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
 import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.shape.primitives.interfaces.*;
 import us.ihmc.euclid.transform.RigidBodyTransform;
@@ -31,6 +36,7 @@ import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.idl.IDLSequence;
+import us.ihmc.idl.serializers.extra.JSONSerializer;
 import us.ihmc.log.LogTools;
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
@@ -62,6 +68,12 @@ import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoInteger;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -73,13 +85,14 @@ public abstract class HumanoidStanceGenerator
 {
    private enum Mode
    {
-      HAND_POSE, GENERATE_STANCE
+      HAND_POSE, GENERATE_STANCE, STANCE_SWEEP
    }
 
    private static final Mode mode = Mode.GENERATE_STANCE;
 
-   private static double xFootCenterOnOrigin = 0;
-   private static double yFootCenterOnOrigin = 0;
+   private static double xFootCenterOnOrigin = 0.0;
+   private static double yFootCenterOnOrigin = 0.0;
+   private static double footBodyFixedFrameHeight = 0.0;
 
    private static final RobotSide robotSide = RobotSide.LEFT;
 
@@ -92,6 +105,9 @@ public abstract class HumanoidStanceGenerator
    {
       simulationTestingParameters.setDataBufferSize(1 << 16);
    }
+
+   private final DRCRobotModel robotModel;
+   private final String resourcePath;
 
    private final CommandInputManager commandInputManager;
    private final YoRegistry mainRegistry;
@@ -111,8 +127,11 @@ public abstract class HumanoidStanceGenerator
    private final HumanoidFloatingRootJointRobot ghost;
    private final RobotController toolboxUpdater;
 
-   public HumanoidStanceGenerator() throws Exception
+   public HumanoidStanceGenerator(DRCRobotModel robotModelFromSubclass, String resourceString) throws Exception
    {
+      this.robotModel = robotModelFromSubclass;
+      this.resourcePath = resourceString;
+
       mainRegistry = new YoRegistry("main");
       initializationSucceeded = new YoBoolean("initializationSucceeded", mainRegistry);
       numberOfIterations = new YoInteger("numberOfIterations", mainRegistry);
@@ -120,9 +139,6 @@ public abstract class HumanoidStanceGenerator
       yoGraphicsListRegistry = new YoGraphicsListRegistry();
       optimizationSettings = new KinematicsPlanningToolboxOptimizationSettings();
       solutionQualityConvergenceDetector = new SolutionQualityConvergenceDetector(optimizationSettings, mainRegistry);
-
-      DRCRobotModel robotModel = getRobotModel();
-      DRCRobotModel ghostRobotModel = getRobotModel();
 
       imposeJointLimitRestrictions(robotModel);
 
@@ -145,6 +161,12 @@ public abstract class HumanoidStanceGenerator
       RobotCollisionModel collisionModel = getRobotCollisionModel(robotModel.getJointMap());
       toolboxController.setCollisionModel(collisionModel);
 
+      HumanoidReferenceFrames referenceFrames = new HumanoidReferenceFrames(desiredFullRobotModel);
+      referenceFrames.updateFrames();
+      FramePoint3D footBodyFixedOriginInSoleFrame = new FramePoint3D(desiredFullRobotModel.getFoot(RobotSide.LEFT).getBodyFixedFrame());
+      footBodyFixedOriginInSoleFrame.changeFrame(referenceFrames.getSoleFrame(RobotSide.LEFT));
+      footBodyFixedFrameHeight = footBodyFixedOriginInSoleFrame.getZ();
+
       robot = robotModel.createHumanoidFloatingRootJointRobot(false);
       toolboxUpdater = createToolboxUpdater();
       robot.setController(toolboxUpdater);
@@ -155,10 +177,10 @@ public abstract class HumanoidStanceGenerator
       addKinematicsCollisionGraphics(desiredFullRobotModel, robot, collisionModel);
 
       // Yellow initial body
-      RobotDefinition robotDefinition = ghostRobotModel.getRobotDefinition();
+      RobotDefinition robotDefinition = robotModel.getRobotDefinition();
       robotDefinition.setName("Ghost");
       RobotDefinitionTools.setRobotDefinitionMaterial(robotDefinition, ghostMaterial);
-      ghost = ghostRobotModel.createHumanoidFloatingRootJointRobot(false);
+      ghost = robotModel.createHumanoidFloatingRootJointRobot(false);
       ghost.setDynamic(false);
       ghost.setGravity(0);
       hideGhost();
@@ -178,33 +200,74 @@ public abstract class HumanoidStanceGenerator
          case HAND_POSE -> testHandPose();
          case GENERATE_STANCE ->
          {
-
-            // This centers the left foot at the origin, making it easier to manipulate since the foot is at the origin
+            // This centers the stance foot at the origin
             centerStanceFoot();
-
-            //TODO would need to set this up to check which foot and go from there for centering
-
-            double xFootPosition = 0.0;
-            double yFootPosition = 0.24;
-            double yawFoot = 0.0;
+            List<KinematicsToolboxOutputStatus> solutionList = new ArrayList<>();
+            List<StanceConfiguration> stanceList = new ArrayList<>();
 
             /* Default standing */
-            generateFootStance(xFootPosition, yFootPosition, Math.toRadians(yawFoot));
+            StanceConfiguration defaultStanding = new StanceConfiguration(0.0, 0.24, 0.0);
+            stanceList.add(defaultStanding);
+            generateFootStance(defaultStanding, solutionList);
+
+            /* Wide stance */
+            StanceConfiguration wideStance = new StanceConfiguration(0.0, 0.4, 0.0);
+            stanceList.add(wideStance);
+            generateFootStance(wideStance, solutionList);
+
+            /* Nominal step with left foot forward */
+            StanceConfiguration footForward = new StanceConfiguration(0.2, 0.24, 0.0);
+            stanceList.add(footForward);
+            generateFootStance(footForward, solutionList);
+
+            /* Default stance width but left foot turned outward */
+            StanceConfiguration turnedOutward = new StanceConfiguration(0.0, 0.24, 30.0);
+            stanceList.add(turnedOutward);
+            generateFootStance(turnedOutward, solutionList);
+
+            /* Foot forward and turned inward */
+            StanceConfiguration forwardAndTurnedInward = new StanceConfiguration(0.2, 0.24, -30.0);
+            stanceList.add(forwardAndTurnedInward);
+            generateFootStance(forwardAndTurnedInward, solutionList);
+
+            /* Log all IK output solutions */
+            setupJSONPathThenSave(solutionList, stanceList);
          }
+         case STANCE_SWEEP ->
+         {
+            double minimumX = -0.3;
+            double maximumX = 0.3;
+            double minimumY = 0.1;
+            double maximumY = 0.4;
+            double minimumYaw = Math.toRadians(-45.0);
+            double maximumYaw = Math.toRadians(45.0);
 
-         /* Wide stance */
-//            generateStance(0.0, 0.4, 0.0);
+            double xIncrement = 0.1;
+            double yIncrement = 0.1;
+            double yawIncrement = Math.toRadians(15.0);
 
-         /* Nominal step with left foot forward */
-//            generateStance(0.2, nominalStanceWidth, 0.0);
+            List<KinematicsToolboxOutputStatus> solutionList = new ArrayList<>();
+            List<StanceConfiguration> stanceList = new ArrayList<>();
 
-         /* Default stance width but left foot turned outward */
-//            generateStance(0.0, nominalStanceWidth, Math.toRadians(30.0));
+            double epsilon = 1e-3;
+            for (double x = minimumX; x <= maximumX + epsilon; x += xIncrement)
+            {
+               for (double y = minimumY; y <= maximumY + epsilon; y += yIncrement)
+               {
+                  for (double yaw = minimumYaw; yaw <= maximumYaw + epsilon; yaw += yawIncrement)
+                  {
+                     // call generate foot stance
+                     // add stance to stanceList
+                  }
+               }
+            }
 
-         /* Foot forward and turned inward */
-//            generateStance(0.2, nominalStanceWidth, Math.toRadians(-30.0));
 
-         default -> throw new RuntimeException(mode + " is not implemented yet!");
+         }
+         default ->
+         {
+            throw new RuntimeException(mode + " is not implemented yet!");
+         }
       }
 
       ThreadTools.sleepForever();
@@ -212,7 +275,7 @@ public abstract class HumanoidStanceGenerator
 
    private void centerStanceFoot()
    {
-      // We can switch these positive and negative values if we want to center the manipulation foot
+      // Switch these positive and negative values to center the other foot
       if (RobotSide.RIGHT == robotSide)
       {
          xFootCenterOnOrigin = 0.0;
@@ -222,13 +285,8 @@ public abstract class HumanoidStanceGenerator
       {
          xFootCenterOnOrigin = -0.0;
          yFootCenterOnOrigin = 0.12;
-
       }
    }
-
-   protected abstract DRCRobotModel getRobotModel();
-
-   protected abstract String getResourcesDirectory();
 
    protected void imposeJointLimitRestrictions(DRCRobotModel robotModel)
    {
@@ -243,7 +301,7 @@ public abstract class HumanoidStanceGenerator
       double stanceYaw = Math.toRadians(5.0);
 
       /* Create an object representing the robot's whole joint configuration when standing at that stance */
-      FullHumanoidRobotModel initialFullRobotModel = createFullRobotModelAtInitialConfiguration(getRobotModel(), 0.0, stancePosition, stanceYaw);
+      FullHumanoidRobotModel initialFullRobotModel = createFullRobotModelAtInitialConfiguration(robotModel, 0.0, stancePosition, stanceYaw);
 
       /* Extract RobotConfigurationData, a ROS message used in the inverse kinematics */
       RobotConfigurationData robotConfigurationData = extractRobotConfigurationData(initialFullRobotModel);
@@ -309,7 +367,7 @@ public abstract class HumanoidStanceGenerator
       toolboxController.updateRobotConfigurationData(robotConfigurationData);
 
       /* This object, CapturabilityBasedStatus, specifies which feet are in contact. Here we say that both the left and right foot are in contact. The IK solver will in turn keep the feet locked in place. */
-      CapturabilityBasedStatus capturabilityBasedStatus = createCapturabilityBasedStatus(initialFullRobotModel, getRobotModel(), true, true);
+      CapturabilityBasedStatus capturabilityBasedStatus = createCapturabilityBasedStatus(initialFullRobotModel, robotModel, true, true);
       toolboxController.updateCapturabilityBasedStatus(capturabilityBasedStatus);
 
       runKinematicsToolboxController();
@@ -318,44 +376,58 @@ public abstract class HumanoidStanceGenerator
       {
          throw new RuntimeException(KinematicsToolboxController.class.getSimpleName() + " did not manage to initialize.");
       }
+
+      ThreadTools.sleepSeconds(4);
    }
 
-   /**
-    * Solve for a whole-body configuration where the right foot is at the origin facing forward (zero yaw orientation) and
-    * the left foot has the offset passed in.
-    * Recommended objectives to try, feel free to use other ones:
-    * - Center of mass, constrained only in XY, in the middle of the feet
-    * - Chest orientation with 0 roll, 0 pitch, and a yaw that's halfway between the two foot orientations
-    * - Foot objectives should match the provided offsets
-    * - Arm objectives, not sure if they're needed, maybe try without at first. Could try adding a low-weight objective for each arm joint angle, given the values in OptimusInitialSetup.
-    */
-   private void generateFootStance(double xFootPosition, double yFootPosition, double yawFoot) throws Exception
+   private void generateFootStance(StanceConfiguration stanceConfiguration, List<KinematicsToolboxOutputStatus> solutionList) throws Exception
    {
       /* Pick random ground height and x, y, yaw for stance */
       Point2D stancePosition = new Point2D(xFootCenterOnOrigin, yFootCenterOnOrigin);
 
       /* Create an object representing the robot's whole joint configuration when standing at that stance */
-      FullHumanoidRobotModel initialFullRobotModel = createFullRobotModelAtInitialConfiguration(getRobotModel(), 0.0, stancePosition, 0.0);
+      FullHumanoidRobotModel initialFullRobotModel = createFullRobotModelAtInitialConfiguration(robotModel, 0.0, stancePosition, 0.0);
 
       /* Extract RobotConfigurationData, a ROS message used in the inverse kinematics */
       RobotConfigurationData robotConfigurationData = extractRobotConfigurationData(initialFullRobotModel);
 
-      /* Create an objective for where the left hand should be */
+      /* Create an objective for where the left foot should be */
       KinematicsToolboxRigidBodyMessage leftFootObjective = new KinematicsToolboxRigidBodyMessage();
-      /* Set the hash code of the left hand link, which is how the IK knows that this is a right hand objective */
+      /* Set the hash code of the left foot link, which is how the IK knows that this is a right foot objective */
       leftFootObjective.setEndEffectorHashCode(initialFullRobotModel.getFoot(robotSide).hashCode());
-      /* Desired left hand position */
-      leftFootObjective.getDesiredPositionInWorld().set(xFootPosition, yFootPosition, 0.0);
-      /* Weight of the left hand objective */
+      /* Desired left foot position */
+      leftFootObjective.getDesiredPositionInWorld().set(stanceConfiguration.getX(), stanceConfiguration.getY(), footBodyFixedFrameHeight);
+      leftFootObjective.getDesiredOrientationInWorld().setToYawOrientation(Math.toRadians(stanceConfiguration.getYaw()));
+
+      /* Weight of the left foot objective */
       leftFootObjective.getLinearWeightMatrix().setXWeight(20.0);
       leftFootObjective.getLinearWeightMatrix().setYWeight(20.0);
       leftFootObjective.getLinearWeightMatrix().setZWeight(20.0);
-      /* Tell the solver to ignore orientation of the left hand. So only position is controller */
-      leftFootObjective.getAngularSelectionMatrix().setXSelected(false);
-      leftFootObjective.getAngularSelectionMatrix().setYSelected(false);
-      leftFootObjective.getAngularSelectionMatrix().setZSelected(false);
+
+      leftFootObjective.getAngularWeightMatrix().setXWeight(20.0);
+      leftFootObjective.getAngularWeightMatrix().setYWeight(20.0);
+      leftFootObjective.getAngularWeightMatrix().setZWeight(20.0);
       /* Submit objective */
       commandInputManager.submitMessage(leftFootObjective);
+
+      /* Create an objective for where the right foot should be */
+      KinematicsToolboxRigidBodyMessage rightFootObjective = new KinematicsToolboxRigidBodyMessage();
+      /* Set the hash code of the right foot link, which is how the IK knows that this is a right hand objective */
+      rightFootObjective.setEndEffectorHashCode(initialFullRobotModel.getFoot(robotSide.getOppositeSide()).hashCode());
+      /* Desired right foot position */
+      rightFootObjective.getDesiredPositionInWorld().set(0.0, 0.0, footBodyFixedFrameHeight);
+      /* Weight of the right foot objective */
+      rightFootObjective.getLinearWeightMatrix().setXWeight(20.0);
+      rightFootObjective.getLinearWeightMatrix().setYWeight(20.0);
+      rightFootObjective.getLinearWeightMatrix().setZWeight(20.0);
+
+      rightFootObjective.getAngularWeightMatrix().setXWeight(20.0);
+      rightFootObjective.getAngularWeightMatrix().setYWeight(20.0);
+      rightFootObjective.getAngularWeightMatrix().setZWeight(20.0);
+      /* Submit objective */
+      commandInputManager.submitMessage(rightFootObjective);
+
+      // TODO add objective for chest to have zero orientation to prevent leaning backward/forward
 
       /* Create an objective for where the Center of Mass should be */
       KinematicsToolboxCenterOfMassMessage centerOfMassObjective = new KinematicsToolboxCenterOfMassMessage();
@@ -383,16 +455,60 @@ public abstract class HumanoidStanceGenerator
       snapGhostToFullRobotModel(initialFullRobotModel);
       toolboxController.updateRobotConfigurationData(robotConfigurationData);
 
-//      /* This object, CapturabilityBasedStatus, specifies which feet are in contact. Here we say that both the left and right foot are in contact. The IK solver will in turn keep the feet locked in place. */
-//      CapturabilityBasedStatus capturabilityBasedStatus = createCapturabilityBasedStatus(initialFullRobotModel, getRobotModel(), true, true);
-//      toolboxController.updateCapturabilityBasedStatus(capturabilityBasedStatus);
-
       runKinematicsToolboxController();
 
       if (!initializationSucceeded.getBooleanValue())
       {
          throw new RuntimeException(KinematicsToolboxController.class.getSimpleName() + " did not manage to initialize.");
       }
+
+      solutionList.add(toolboxController.getSolution());
+   }
+
+   private void setupJSONPathThenSave(List<KinematicsToolboxOutputStatus> solutionList, List<StanceConfiguration> stanceConfigurations) throws Exception
+   {
+      DateTimeFormatter justGetDate = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+      LocalDateTime localDate = LocalDateTime.now();
+
+      // Format filename
+      String date = justGetDate.format(localDate).replace("/", "-");
+      String rootUserPath = System.getProperty("user.home") + "/.ihmc/logs/";
+      String fullFilePath = rootUserPath + date + "-HumanoidStanceGenerator.json";
+
+      // Get JSON data
+      saveStanceToJSONFile(fullFilePath, solutionList, stanceConfigurations);
+   }
+
+   private void saveStanceToJSONFile(String file, List<KinematicsToolboxOutputStatus> outputStatusList, List<StanceConfiguration> stanceConfigurations) throws Exception
+   {
+      FileTools.ensureFileExists(new File(file).toPath());
+
+      JsonFactory jsonFactory = new JsonFactory();
+      ObjectMapper objectMapper = new ObjectMapper(jsonFactory);
+      ArrayNode rootNode = objectMapper.createArrayNode();
+
+      JSONSerializer<KinematicsToolboxOutputStatus> serializer = new JSONSerializer<>(new KinematicsToolboxOutputStatusPubSubType());
+
+      for (int i = 0; i < outputStatusList.size(); i++)
+      {
+         ObjectNode stanceAndSolution = objectMapper.createObjectNode();
+         JsonNode outputStatusJSONNode = objectMapper.readTree(serializer.serializeToString(outputStatusList.get(i)));
+
+         stanceAndSolution.put("x", stanceConfigurations.get(i).getX());
+         stanceAndSolution.put("y", stanceConfigurations.get(i).getY());
+         stanceAndSolution.put("yaw", stanceConfigurations.get(i).getYaw());
+         stanceAndSolution.put("ik_solution", outputStatusJSONNode);
+
+         rootNode.add(stanceAndSolution);
+      }
+
+      FileOutputStream outputStream = new FileOutputStream(file);
+      PrintStream printStream = new PrintStream(outputStream);
+
+      objectMapper.writerWithDefaultPrettyPrinter().writeValue(printStream, rootNode);
+
+      outputStream.close();
+      printStream.close();
    }
 
    private void runKinematicsToolboxController() throws BlockingSimulationRunner.SimulationExceededMaximumTimeException
@@ -618,6 +734,35 @@ public abstract class HumanoidStanceGenerator
 
 //         if (linkGraphics != null)
 //            linkGraphics.combine(getGraphics(collidable));
+      }
+   }
+
+   private static class StanceConfiguration
+   {
+      private final double x;
+      private final double y;
+      private final double yaw;
+
+      public StanceConfiguration(double x, double y, double yaw)
+      {
+         this.x = x;
+         this.y = y;
+         this.yaw = yaw;
+      }
+
+      public double getX()
+      {
+         return x;
+      }
+
+      public double getY()
+      {
+         return y;
+      }
+
+      public double getYaw()
+      {
+         return yaw;
       }
    }
 }

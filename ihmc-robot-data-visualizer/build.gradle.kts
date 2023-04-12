@@ -18,7 +18,7 @@ mainDependencies {
    api("com.martiansoftware:jsap:2.1")
    api("net.sourceforge.jmatio:jmatio:1.0")
 
-   api("us.ihmc:euclid:0.19.1")
+   api("us.ihmc:euclid:0.20.0-alpha3")
    api("us.ihmc:ihmc-video-codecs:2.1.6")
    api("us.ihmc:simulation-construction-set:0.23.2")
    api("us.ihmc:ihmc-javafx-toolkit:17-0.22.2")

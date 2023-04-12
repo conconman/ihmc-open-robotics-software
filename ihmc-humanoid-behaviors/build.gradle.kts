@@ -24,7 +24,7 @@ mainDependencies {
    api("org.postgresql:postgresql:42.2.5")
 
    api("us.ihmc:ihmc-native-library-loader:2.0.2")
-   api("us.ihmc:euclid:0.19.1")
+   api("us.ihmc:euclid:0.20.0-alpha3")
    api("us.ihmc:simulation-construction-set:0.23.2")
    api("us.ihmc:ihmc-manipulation-planning:source")
    api("us.ihmc:ihmc-robot-models:source")

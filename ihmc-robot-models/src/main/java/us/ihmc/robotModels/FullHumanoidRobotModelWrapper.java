@@ -69,7 +69,9 @@ public class FullHumanoidRobotModelWrapper extends FullRobotModelWrapper impleme
 
    public FullHumanoidRobotModelWrapper(RigidBodyBasics elevator, boolean enforceUniqueReferenceFrames)
    {
-      super(elevator, enforceUniqueReferenceFrames);
+      super(elevator);
+      if (enforceUniqueReferenceFrames)
+         enforceUniqueReferenceFrames();
    }
 
    protected void setupHumanoidJointNameMap(HumanoidJointNameMap jointNameMap)

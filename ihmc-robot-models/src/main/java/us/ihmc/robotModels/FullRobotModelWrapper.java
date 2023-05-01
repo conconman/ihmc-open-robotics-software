@@ -65,7 +65,6 @@ public class FullRobotModelWrapper implements FullRobotModel
    private final RigidBodyBasics rootBody;
    private final OneDoFJointBasics[] oneDoFJoints;
    private final Map<String, OneDoFJointBasics> jointNameToOneDoFJointMap;
-   private final boolean enforceUniqueReferenceFrames;
 
    private final double totalMass;
 
@@ -86,9 +85,11 @@ public class FullRobotModelWrapper implements FullRobotModel
 
    public FullRobotModelWrapper(FullRobotModelWrapper other)
    {
-      this(other.elevator, other.enforceUniqueReferenceFrames);
+      this(other.elevator);
       if (other.jointNameMap != null)
          setupJointNameMap(other.jointNameMap);
+      if (other.getElevator().getBodyFixedFrame().getNameRestrictionLevel() == FrameNameRestrictionLevel.FRAME_NAME)
+         enforceUniqueReferenceFrames();
 
       if (other.imuDefinitions != null)
       {
@@ -144,27 +145,23 @@ public class FullRobotModelWrapper implements FullRobotModel
       }
    }
 
-   public FullRobotModelWrapper(RobotDefinition robotDefinition, JointNameMap<?> jointNameMap, boolean enforceUniqueReferenceFrames)
+   public FullRobotModelWrapper(RobotDefinition robotDefinition, JointNameMap<?> jointNameMap)
    {
-      this(robotDefinition.newInstance(ReferenceFrame.getWorldFrame()), enforceUniqueReferenceFrames);
+      this(robotDefinition.newInstance(ReferenceFrame.getWorldFrame()));
       setupJointNameMap(jointNameMap);
       setupRobotDefinition(robotDefinition);
    }
 
-   public FullRobotModelWrapper(RobotDescription robotDescription, JointNameMap<?> jointNameMap, boolean enforceUniqueReferenceFrames)
+   public FullRobotModelWrapper(RobotDescription robotDescription, JointNameMap<?> jointNameMap)
    {
-      this(instantiateRobot(robotDescription, ReferenceFrame.getWorldFrame()), enforceUniqueReferenceFrames);
+      this(instantiateRobot(robotDescription, ReferenceFrame.getWorldFrame()));
       setupJointNameMap(jointNameMap);
       setupRobotDescription(robotDescription);
    }
 
-   public FullRobotModelWrapper(RigidBodyBasics elevator, boolean enforceUniqueReferenceFrames)
+   public FullRobotModelWrapper(RigidBodyBasics elevator)
    {
       this.elevator = elevator;
-      this.enforceUniqueReferenceFrames = enforceUniqueReferenceFrames;
-
-      if (enforceUniqueReferenceFrames)
-         elevator.getBodyFixedFrame().setNameRestrictionLevel(FrameNameRestrictionLevel.FRAME_NAME);
 
       if (elevator.getChildrenJoints().size() != 1)
          throw new IllegalArgumentException("Unexpected number of root joints: " + elevator.getChildrenJoints());
@@ -354,6 +351,11 @@ public class FullRobotModelWrapper implements FullRobotModel
                break;
          }
       }
+   }
+
+   public void enforceUniqueReferenceFrames()
+   {
+      getElevator().getBodyFixedFrame().setNameRestrictionLevel(FrameNameRestrictionLevel.FRAME_NAME);
    }
 
    @Override

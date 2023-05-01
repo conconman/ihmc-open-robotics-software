@@ -66,7 +66,9 @@ public class FullQuadrupedRobotModelWrapper extends FullRobotModelWrapper implem
 
    public FullQuadrupedRobotModelWrapper(RobotDefinition robotDefinition, QuadrupedJointNameMap jointNameMap, boolean enforceUniqueReferenceFrames)
    {
-      super(robotDefinition.newInstance(ReferenceFrame.getWorldFrame()), enforceUniqueReferenceFrames);
+      super(robotDefinition.newInstance(ReferenceFrame.getWorldFrame()));
+      if (enforceUniqueReferenceFrames)
+         enforceUniqueReferenceFrames();
       setupQuadrupedJointNameMap(jointNameMap);
       setupRobotDefinition(robotDefinition);
    }
@@ -78,7 +80,9 @@ public class FullQuadrupedRobotModelWrapper extends FullRobotModelWrapper implem
 
    public FullQuadrupedRobotModelWrapper(RobotDescription robotDescription, QuadrupedJointNameMap jointNameMap, boolean enforceUniqueReferenceFrames)
    {
-      super(instantiateRobot(robotDescription, ReferenceFrame.getWorldFrame()), enforceUniqueReferenceFrames);
+      super(instantiateRobot(robotDescription, ReferenceFrame.getWorldFrame()));
+      if (enforceUniqueReferenceFrames)
+         enforceUniqueReferenceFrames();
       setupQuadrupedJointNameMap(jointNameMap);
       setupRobotDescription(robotDescription);
    }

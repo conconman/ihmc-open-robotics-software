@@ -292,14 +292,6 @@ public class OpenCLManager
       setKernelArgument(kernel, argumentIndex, intPointerSize, intPointer);
    }
 
-   /**
-    * You can't pass booleans to OpenCL kernels, so we use an int.
-    */
-   public void setKernelArgument(_cl_kernel kernel, int argumentIndex, OpenCLBooleanParameter booleanParameter)
-   {
-      setKernelArgument(kernel, argumentIndex, intPointerSize, booleanParameter.getIntPointer());
-   }
-
    private void setKernelArgument(_cl_kernel kernel, int argumentIndex, long argumentSize, Pointer bufferObject)
    {
       /* Set OpenCL kernel argument */

@@ -443,7 +443,9 @@ public class DualBlackflyCamera
       ImageMessageFormat.COLOR_JPEG_BGR8.packMessageFormat(imageMessage);
       imageMessage.getPosition().set(ousterToBlackflyTransfrom.getTranslation());
       imageMessage.getOrientation().set(ousterToBlackflyTransfrom.getRotation());
-      ros2ImagePublisher.publish(imageMessage);
+
+      if (!destroyed)
+         ros2ImagePublisher.publish(imageMessage);
 
       // Close pointers
       jpegImageBytePointer.close();
@@ -482,11 +484,13 @@ public class DualBlackflyCamera
          // TODO: Maybe publish a separate image for ArUco marker debugging sometime.
          // arUcoMarkerDetection.drawDetectedMarkers(blackflySourceImage.getBytedecoOpenCVMat());
          // arUcoMarkerDetection.drawRejectedPoints(blackflySourceImage.getBytedecoOpenCVMat());
-         arUcoMarkerPublisher.update();
+         if (!destroyed)
+            arUcoMarkerPublisher.update();
 
          detectableSceneNodesSubscription.update(); // Receive overridden poses from operator
          ArUcoSceneTools.updateLibraryPosesFromDetectionResults(arUcoMarkerDetection, predefinedSceneNodeLibrary);
-         detectableSceneObjectsPublisher.publish(predefinedSceneNodeLibrary.getDetectableSceneNodes(), ros2Helper, ROS2IOTopicQualifier.STATUS);
+         if (!destroyed)
+            detectableSceneObjectsPublisher.publish(predefinedSceneNodeLibrary.getDetectableSceneNodes(), ros2Helper, ROS2IOTopicQualifier.STATUS);
       }
       // TODO: left behavior?
    }

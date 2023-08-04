@@ -170,7 +170,7 @@ public class RDXBallAndArrowPosePlacement implements RenderableProvider
       placedNotification.set();
    }
 
-   public boolean renderPlaceGoalButton()
+   public boolean renderImGuiWidgets()
    {
       boolean placementStarted = false;
 

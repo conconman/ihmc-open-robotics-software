@@ -99,7 +99,7 @@ public class RDXBuildingExplorationBehaviorUI extends RDXBehaviorUIInterface
    @Override
    public void renderTreeNodeImGuiWidgets()
    {
-      goalAffordance.renderPlaceGoalButton();
+      goalAffordance.renderImGuiWidgets();
       ImGui.sameLine();
       ImGui.text(areGraphicsEnabled() ? "Showing graphics." : "Graphics hidden.");
       parameterTuner.renderImGuiWidgets();

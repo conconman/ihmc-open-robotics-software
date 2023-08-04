@@ -23,6 +23,8 @@ import java.util.function.Consumer;
 
 public class RDXBallAndArrowGoalFootstepPlacement extends RDXBallAndArrowPosePlacement implements RenderableProvider
 {
+   private boolean modeNewlyActivated = false;
+
    private ROS2SyncedRobotModel syncedRobot;
    private RDXFootstepGraphic leftGoalFootstepGraphic;
    private RDXFootstepGraphic rightGoalFootstepGraphic;
@@ -76,8 +78,17 @@ public class RDXBallAndArrowGoalFootstepPlacement extends RDXBallAndArrowPosePla
       }
    }
 
+   public boolean pollIsModeNewlyActivated()
+   {
+      boolean modeNewlyActivatedReturn = modeNewlyActivated;
+      modeNewlyActivated = false;
+      return modeNewlyActivatedReturn;
+   }
+
    private void updateGoalFootstepGraphics(Pose3DReadOnly goalPose)
    {
+      modeNewlyActivated = true;
+
       // If placing position, set graphic orientation to match robot's orientation
       if (isPlacingPosition())
       {

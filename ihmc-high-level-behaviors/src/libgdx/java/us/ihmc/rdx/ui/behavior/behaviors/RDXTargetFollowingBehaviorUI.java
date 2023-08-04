@@ -12,7 +12,6 @@ import us.ihmc.avatar.drcRobot.ROS2SyncedRobotModel;
 import us.ihmc.behaviors.targetFollowing.TargetFollowingBehavior;
 import us.ihmc.behaviors.targetFollowing.TargetFollowingBehaviorParameters;
 import us.ihmc.behaviors.tools.BehaviorHelper;
-import us.ihmc.behaviors.tools.BehaviorTools;
 import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -32,8 +31,6 @@ import us.ihmc.utilities.ros.publisher.RosTopicPublisher;
 
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static us.ihmc.behaviors.targetFollowing.TargetFollowingBehaviorAPI.*;
 
 public class RDXTargetFollowingBehaviorUI extends RDXBehaviorUIInterface
 {
@@ -137,7 +134,7 @@ public class RDXTargetFollowingBehaviorUI extends RDXBehaviorUIInterface
    @Override
    public void renderTreeNodeImGuiWidgets()
    {
-      manualTargetAffordance.renderPlaceGoalButton();
+      manualTargetAffordance.renderImGuiWidgets();
       ImGui.sameLine();
       ImGui.text(areGraphicsEnabled() ? "Showing graphics." : "Graphics hidden.");
       ImGui.checkbox(labels.get("Publish test loop"), publishTestLoop);

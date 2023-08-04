@@ -57,7 +57,11 @@ public class ImGuiPanel extends ImGuiPanelSizeHandler
 
       for (ImGuiPanel child : children)
       {
-         child.renderMenuItem(indent + "\t");
+         if (ImGui.beginMenu(panelName + " Children"))
+         {
+            child.renderMenuItem(indent + "\t");
+            ImGui.endMenu();
+         }
       }
    }
 

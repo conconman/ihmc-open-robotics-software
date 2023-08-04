@@ -20,6 +20,8 @@ import java.util.function.Consumer;
  */
 public class ImGuiStoredPropertySetDoubleWidget implements ImGuiStoredPropertySetWidget
 {
+   private static final double DEFAULT_MIN = 0.1;
+   private static final double DEFAULT_MAX = 10.0;
    private final ImGuiUniqueLabelMap labels = new ImGuiUniqueLabelMap(getClass());
    private final String label;
    private final double min;
@@ -87,40 +89,7 @@ public class ImGuiStoredPropertySetDoubleWidget implements ImGuiStoredPropertySe
                                              String unitString,
                                              Runnable onParametersUpdatedCallback)
    {
-      this(storedPropertySet, key, step, stepFast, format, unitString, onParametersUpdatedCallback, false);
-   }
-
-   public ImGuiStoredPropertySetDoubleWidget(StoredPropertySetBasics storedPropertySet,
-                                             DoubleStoredPropertyKey key,
-                                             double step,
-                                             double stepFast,
-                                             String format,
-                                             String unitString,
-                                             Runnable onParametersUpdatedCallback,
-                                             boolean enforceInputWidget)
-   {
-      this.key = key;
-      this.min = key.getLowerBound();
-      this.max = key.getUpperBound();
-      this.format = format;
-      this.unitString = unitString;
-      this.onParametersUpdatedCallback = onParametersUpdatedCallback;
-      label = labels.get(unitString, key.getTitleCasedName());
-      fancyPrefixLabel = key.getTitleCasedName() + ":";
-
-      Consumer<ImDouble> widgetRenderer;
-      if (!enforceInputWidget && key.hasLowerBound() && key.hasUpperBound())
-      {
-         widgetRenderer = this::renderSliderWithMinMaxAndFormatFancy;
-      }
-      else
-      {
-         this.step = step;
-         this.stepFast = stepFast;
-         widgetRenderer = this::renderInputWithStepAndStepFastFancy;
-      }
-
-      imDoubleWrapper = new ImDoubleWrapper(storedPropertySet, key, widgetRenderer);
+      this(storedPropertySet, key, step, stepFast, DEFAULT_MIN, DEFAULT_MAX, format, unitString, onParametersUpdatedCallback, false);
    }
 
    public ImGuiStoredPropertySetDoubleWidget(StoredPropertySetBasics storedPropertySet,

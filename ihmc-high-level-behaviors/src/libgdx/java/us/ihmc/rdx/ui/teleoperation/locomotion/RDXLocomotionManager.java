@@ -224,12 +224,20 @@ public class RDXLocomotionManager
 
       if (walkPathControlRing.getBecomesModifiedNotification().poll())
       {
-         legControlMode = RDXLegControlMode.PATH_CONTROL_RING;
+         legControlMode = RDXLegControlMode.CONTROL_RING;
       }
-
-      if (manualFootstepPlacement.pollIsModeNewlyActivated())
+      else if (manualFootstepPlacement.pollIsModeNewlyActivated())
       {
          legControlMode = RDXLegControlMode.MANUAL_FOOTSTEP_PLACEMENT;
+      }
+      else if (ballAndArrowMidFeetPosePlacement.pollIsModeNewlyActivated())
+      {
+         legControlMode = RDXLegControlMode.GOAL_PLANNING;
+      }
+      else if (legControlMode == RDXLegControlMode.SINGLE_SUPPORT_FOOT_POSING || legControlMode == RDXLegControlMode.DISABLED)
+      {
+         interactableFootstepPlan.clear();
+         bodyPathPlanGraphic.clear();
       }
 
       if (legControlMode != RDXLegControlMode.SINGLE_SUPPORT_FOOT_POSING)
@@ -240,7 +248,7 @@ public class RDXLocomotionManager
          }
       }
 
-      if (legControlMode != RDXLegControlMode.PATH_CONTROL_RING)
+      if (legControlMode != RDXLegControlMode.CONTROL_RING)
       {
          walkPathControlRing.delete();
       }
@@ -248,12 +256,6 @@ public class RDXLocomotionManager
       if (legControlMode != RDXLegControlMode.MANUAL_FOOTSTEP_PLACEMENT)
       {
          manualFootstepPlacement.exitPlacement();
-      }
-
-      if (legControlMode == RDXLegControlMode.SINGLE_SUPPORT_FOOT_POSING || legControlMode == RDXLegControlMode.DISABLED)
-      {
-         interactableFootstepPlan.clear();
-         bodyPathPlanGraphic.clear();
       }
 
       manualFootstepPlacement.update();
@@ -334,9 +336,7 @@ public class RDXLocomotionManager
       ImGui.endDisabled();
 
       manualFootstepPlacement.renderImGuiWidgets();
-
-      if (ballAndArrowMidFeetPosePlacement.renderPlaceGoalButton())
-         legControlMode = RDXLegControlMode.PATH_CONTROL_RING;
+      ballAndArrowMidFeetPosePlacement.renderImGuiWidgets();
 
       ImGui.separator();
       walkPathControlRing.renderImGuiWidgets();

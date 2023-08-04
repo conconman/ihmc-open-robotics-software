@@ -123,6 +123,41 @@ public class ImGuiStoredPropertySetDoubleWidget implements ImGuiStoredPropertySe
       imDoubleWrapper = new ImDoubleWrapper(storedPropertySet, key, widgetRenderer);
    }
 
+   public ImGuiStoredPropertySetDoubleWidget(StoredPropertySetBasics storedPropertySet,
+                                             DoubleStoredPropertyKey key,
+                                             double step,
+                                             double stepFast,
+                                             double min,
+                                             double max,
+                                             String unitString,
+                                             String format,
+                                             Runnable onParametersUpdatedCallback,
+                                             boolean enforceInputWidget)
+   {
+      this.key = key;
+      this.min = min;
+      this.max = max;
+      this.unitString = unitString;
+      this.format = format;
+      this.onParametersUpdatedCallback = onParametersUpdatedCallback;
+      label = labels.get(unitString, key.getTitleCasedName());
+      fancyPrefixLabel = key.getTitleCasedName() + ":";
+
+      Consumer<ImDouble> widgetRenderer;
+      if (!enforceInputWidget && key.hasLowerBound() && key.hasUpperBound())
+      {
+         widgetRenderer = this::renderSliderWithMinMaxAndFormatFancy;
+      }
+      else
+      {
+         this.step = step;
+         this.stepFast = stepFast;
+         widgetRenderer = this::renderInputWithStepAndStepFastFancy;
+      }
+
+      imDoubleWrapper = new ImDoubleWrapper(storedPropertySet, key, widgetRenderer);
+   }
+
    @Override
    public void renderImGuiWidget()
    {

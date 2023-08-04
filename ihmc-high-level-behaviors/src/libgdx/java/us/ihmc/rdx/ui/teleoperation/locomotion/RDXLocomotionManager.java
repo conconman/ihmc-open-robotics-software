@@ -36,6 +36,7 @@ import us.ihmc.rdx.ui.footstepPlanner.RDXFootstepPlanning;
 import us.ihmc.rdx.ui.graphics.RDXBodyPathPlanGraphic;
 import us.ihmc.rdx.ui.graphics.RDXFootstepPlanGraphic;
 import us.ihmc.rdx.ui.teleoperation.RDXLegControlMode;
+import us.ihmc.rdx.ui.teleoperation.RDXTeleoperationParameters;
 import us.ihmc.rdx.vr.RDXVRContext;
 import us.ihmc.robotics.geometry.FramePlanarRegionsList;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
@@ -164,12 +165,13 @@ public class RDXLocomotionManager
       bodyPathPlanningParametersTuner.create(bodyPathPlannerParameters, false);
       swingFootPlanningParametersTuner.create(swingFootPlannerParameters, false);
 
+      swingTimeSlider = locomotionParametersTuner.createDoubleInput(RDXLocomotionParameters.swingTime, 0.04, 0.1, 0.2, 1.5, "", "%.2f");
+      transferTimeSlider = locomotionParametersTuner.createDoubleInput(RDXLocomotionParameters.transferTime, 0.04, 0.1, 0.3, 1.5, "", "%.2f");
+
       assumeFlatGroundCheckbox = locomotionParametersTuner.createBooleanCheckbox(RDXLocomotionParameters.assumeFlatGround);
       areFootstepsAdjustableCheckbox = locomotionParametersTuner.createBooleanCheckbox(RDXLocomotionParameters.areFootstepsAdjustable);
       planSwingTrajectoriesCheckbox = locomotionParametersTuner.createBooleanCheckbox(RDXLocomotionParameters.planSwingTrajectories);
       replanSwingTrajectoriesOnChangeCheckbox = locomotionParametersTuner.createBooleanCheckbox(RDXLocomotionParameters.replanSwingTrajectoriesOnChange);
-      swingTimeSlider = locomotionParametersTuner.createDoubleSlider(RDXLocomotionParameters.swingTime, 0.3, 1.5);
-      transferTimeSlider = locomotionParametersTuner.createDoubleSlider(RDXLocomotionParameters.transferTime, 0.3, 1.5);
 
       ballAndArrowMidFeetPosePlacement.create(Color.YELLOW, syncedRobot);
       baseUI.getPrimary3DPanel().addImGui3DViewInputProcessor(ballAndArrowMidFeetPosePlacement::processImGui3DViewInput);

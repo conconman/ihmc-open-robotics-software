@@ -162,10 +162,12 @@ public class ImGuiStoredPropertySetTuner extends ImGuiPanel
    public ImGuiStoredPropertySetDoubleWidget createDoubleInput(DoubleStoredPropertyKey doubleKey,
                                                                double step,
                                                                double stepFast,
+                                                               double min,
+                                                               double max,
                                                                String unitString,
                                                                String format)
    {
-      return new ImGuiStoredPropertySetDoubleWidget(storedPropertySet, doubleKey, step, stepFast, format, unitString, onParametersUpdatedCallback, true);
+      return new ImGuiStoredPropertySetDoubleWidget(storedPropertySet, doubleKey, step, stepFast, min, max, unitString, format, onParametersUpdatedCallback, true);
    }
 
    public ImGuiStoredPropertySetDoubleWidget createDoubleSlider(DoubleStoredPropertyKey key, double min, double max)

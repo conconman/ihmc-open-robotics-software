@@ -15,8 +15,6 @@ import us.ihmc.behaviors.tools.interfaces.LogToolsLogger;
 import us.ihmc.behaviors.tools.walkingController.ControllerStatusTracker;
 import us.ihmc.behaviors.tools.yo.YoVariableClientHelper;
 import us.ihmc.commons.FormattingTools;
-import us.ihmc.footstepPlanning.AStarBodyPathPlannerParametersBasics;
-import us.ihmc.footstepPlanning.graphSearch.parameters.FootstepPlannerParametersBasics;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.rdx.imgui.ImGuiPanel;
@@ -34,7 +32,6 @@ import us.ihmc.rdx.ui.interactable.RDXChestOrientationSlider;
 import us.ihmc.rdx.ui.interactable.RDXPelvisHeightSlider;
 import us.ihmc.rdx.ui.teleoperation.locomotion.RDXLocomotionManager;
 import us.ihmc.rdx.ui.teleoperation.locomotion.RDXLocomotionParameters;
-import us.ihmc.rdx.ui.visualizers.RDXVisualizer;
 import us.ihmc.rdx.vr.RDXVRContext;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.geometry.YawPitchRollAxis;
@@ -46,7 +43,6 @@ import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.tools.gui.YoAppearanceTools;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -111,7 +107,7 @@ public class RDXTeleoperationManager extends ImGuiPanel
    private final SideDependentList<double[]> doorAvoidanceArms = new SideDependentList<>();
    private final ImString tempImGuiText = new ImString(1000);
    private final boolean interactablesAvailable;
-   private ImGuiStoredPropertySetDoubleWidget trajectoryTimeSlider;
+   private ImGuiStoredPropertySetDoubleWidget trajectoryTimeInput;
 
    /** This tracker should be shared with the sub-managers to keep the state consistent. */
    private final ControllerStatusTracker controllerStatusTracker;
@@ -194,7 +190,7 @@ public class RDXTeleoperationManager extends ImGuiPanel
 
       teleoperationParametersTuner.create(teleoperationParameters);
 
-      trajectoryTimeSlider = teleoperationParametersTuner.createDoubleInput(RDXTeleoperationParameters.trajectoryTime, 0.1, 0.5, "s", "%.2f");
+      trajectoryTimeInput = teleoperationParametersTuner.createDoubleInput(RDXTeleoperationParameters.trajectoryTime, 0.25, 1.0, 0.5, 10.0, "", "%.2f");
 
       if (interactablesAvailable)
       {
@@ -420,7 +416,7 @@ public class RDXTeleoperationManager extends ImGuiPanel
       chestPitchSlider.renderImGuiWidgets();
       chestYawSlider.renderImGuiWidgets();
 
-      trajectoryTimeSlider.renderImGuiWidget();
+      trajectoryTimeInput.renderImGuiWidget();
 
       ImGui.separator();
 

@@ -164,8 +164,8 @@ public class RDXLocomotionManager
       bodyPathPlanningParametersTuner.create(bodyPathPlannerParameters, false);
       swingFootPlanningParametersTuner.create(swingFootPlannerParameters, false);
 
-      swingTimeSlider = locomotionParametersTuner.createDoubleInput(RDXLocomotionParameters.swingTime, 0.04, 0.1, 0.2, 1.5, "", "%.2f");
-      transferTimeSlider = locomotionParametersTuner.createDoubleInput(RDXLocomotionParameters.transferTime, 0.04, 0.1, 0.3, 1.5, "", "%.2f");
+      swingTimeSlider = locomotionParametersTuner.createDoubleInput(RDXLocomotionParameters.swingTime, 0.05, 0.25, 0.2, 1.5, "", "%.2f");
+      transferTimeSlider = locomotionParametersTuner.createDoubleInput(RDXLocomotionParameters.transferTime, 0.05, 0.25, 0.3, 1.5, "", "%.2f");
 
       assumeFlatGroundCheckbox = locomotionParametersTuner.createBooleanCheckbox(RDXLocomotionParameters.assumeFlatGround);
       areFootstepsAdjustableCheckbox = locomotionParametersTuner.createBooleanCheckbox(RDXLocomotionParameters.areFootstepsAdjustable);

@@ -20,8 +20,6 @@ import java.util.function.Consumer;
  */
 public class ImGuiStoredPropertySetDoubleWidget implements ImGuiStoredPropertySetWidget
 {
-   private static final double DEFAULT_MIN = 0.1;
-   private static final double DEFAULT_MAX = 10.0;
    private final ImGuiUniqueLabelMap labels = new ImGuiUniqueLabelMap(getClass());
    private final String label;
    private final double min;
@@ -89,7 +87,7 @@ public class ImGuiStoredPropertySetDoubleWidget implements ImGuiStoredPropertySe
                                              String unitString,
                                              Runnable onParametersUpdatedCallback)
    {
-      this(storedPropertySet, key, step, stepFast, DEFAULT_MIN, DEFAULT_MAX, format, unitString, onParametersUpdatedCallback, false);
+      this(storedPropertySet, key, step, stepFast, key.getLowerBound(), key.getUpperBound(), format, unitString, onParametersUpdatedCallback, false);
    }
 
    public ImGuiStoredPropertySetDoubleWidget(StoredPropertySetBasics storedPropertySet,

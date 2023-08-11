@@ -72,6 +72,7 @@ public class RDXLocomotionManager
    private final RDXBodyPathPlanGraphic bodyPathPlanGraphic = new RDXBodyPathPlanGraphic();
 
    private final SideDependentList<RDXInteractableFoot> interactableFeet = new SideDependentList<>();
+   private final Notification ballAndArrowPlacement = new Notification();
    private final RDXBallAndArrowGoalFootstepPlacement ballAndArrowMidFeetPosePlacement = new RDXBallAndArrowGoalFootstepPlacement();
    private final RDXInteractableFootstepPlan interactableFootstepPlan = new RDXInteractableFootstepPlan();
    private final RDXFootstepPlanning footstepPlanning;
@@ -115,6 +116,8 @@ public class RDXLocomotionManager
       teleoperationPanel.addChild(footstepPlanningParametersTuner);
       teleoperationPanel.addChild(bodyPathPlanningParametersTuner);
       teleoperationPanel.addChild(swingFootPlanningParametersTuner);
+
+      ballAndArrowMidFeetPosePlacement.registerBallAndArrowListener(ballAndArrowPlacement);
 
       footstepPlanning = new RDXFootstepPlanning(robotModel,
                                                  syncedRobot,
@@ -230,7 +233,7 @@ public class RDXLocomotionManager
       {
          legControlMode = RDXLegControlMode.MANUAL_FOOTSTEP_PLACEMENT;
       }
-      else if (ballAndArrowMidFeetPosePlacement.pollIsModeNewlyActivated())
+      else if (ballAndArrowPlacement.poll())
       {
          legControlMode = RDXLegControlMode.GOAL_PLANNING;
       }

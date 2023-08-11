@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g3d.RenderableProvider;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
 import us.ihmc.avatar.drcRobot.ROS2SyncedRobotModel;
+import us.ihmc.commons.thread.Notification;
 import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.geometry.interfaces.Pose3DReadOnly;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
@@ -19,15 +20,15 @@ import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SegmentDependentList;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class RDXBallAndArrowGoalFootstepPlacement extends RDXBallAndArrowPosePlacement implements RenderableProvider
 {
-   private boolean modeNewlyActivated = false;
-
    private ROS2SyncedRobotModel syncedRobot;
    private RDXFootstepGraphic leftGoalFootstepGraphic;
    private RDXFootstepGraphic rightGoalFootstepGraphic;
+   private final List<Notification> ballAndArrowListeners = new ArrayList<>();
    private final FramePose3D leftFootstepGoalPose = new FramePose3D();
    private final FramePose3D rightFootstepGoalPose = new FramePose3D();
    private final RigidBodyTransform goalToWorldTransform = new RigidBodyTransform();
@@ -55,6 +56,11 @@ public class RDXBallAndArrowGoalFootstepPlacement extends RDXBallAndArrowPosePla
       halfIdealFootstepWidth = syncedRobot.getRobotModel().getFootstepPlannerParameters().getIdealFootstepWidth() / 2;
    }
 
+   public void registerBallAndArrowListener(Notification ballAndArrowListener)
+   {
+      ballAndArrowListeners.add(ballAndArrowListener);
+   }
+
    @Override
    public void processImGui3DViewInput(ImGui3DViewInput input)
    {
@@ -78,16 +84,12 @@ public class RDXBallAndArrowGoalFootstepPlacement extends RDXBallAndArrowPosePla
       }
    }
 
-   public boolean pollIsModeNewlyActivated()
-   {
-      boolean modeNewlyActivatedReturn = modeNewlyActivated;
-      modeNewlyActivated = false;
-      return modeNewlyActivatedReturn;
-   }
-
    private void updateGoalFootstepGraphics(Pose3DReadOnly goalPose)
    {
-      modeNewlyActivated = true;
+      for (Notification ballAndArrow : ballAndArrowListeners)
+      {
+         ballAndArrow.set();
+      }
 
       // If placing position, set graphic orientation to match robot's orientation
       if (isPlacingPosition())

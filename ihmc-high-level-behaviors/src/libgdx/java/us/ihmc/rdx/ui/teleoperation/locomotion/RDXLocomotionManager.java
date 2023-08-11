@@ -65,8 +65,8 @@ public class RDXLocomotionManager
    private ImGuiStoredPropertySetBooleanWidget assumeFlatGroundCheckbox;
    private ImGuiStoredPropertySetBooleanWidget planSwingTrajectoriesCheckbox;
    private ImGuiStoredPropertySetBooleanWidget replanSwingTrajectoriesOnChangeCheckbox;
-   private ImGuiStoredPropertySetDoubleWidget swingTimeSlider;
-   private ImGuiStoredPropertySetDoubleWidget transferTimeSlider;
+   private ImGuiStoredPropertySetDoubleWidget swingTimeInput;
+   private ImGuiStoredPropertySetDoubleWidget transferTimeInput;
 
    private final RDXFootstepPlanGraphic footstepsSentToControllerGraphic;
    private final RDXBodyPathPlanGraphic bodyPathPlanGraphic = new RDXBodyPathPlanGraphic();
@@ -162,8 +162,8 @@ public class RDXLocomotionManager
       bodyPathPlanningParametersTuner.create(bodyPathPlannerParameters, false);
       swingFootPlanningParametersTuner.create(swingFootPlannerParameters, false);
 
-      swingTimeSlider = locomotionParametersTuner.createDoubleInput(RDXLocomotionParameters.swingTime, 0.05, 0.25, 0.2, 1.5, "", "%.2f");
-      transferTimeSlider = locomotionParametersTuner.createDoubleInput(RDXLocomotionParameters.transferTime, 0.05, 0.25, 0.3, 1.5, "", "%.2f");
+      swingTimeInput = locomotionParametersTuner.createDoubleInput(RDXLocomotionParameters.swingTime, 0.05, 0.25, 0.2, 1.5, "", "%.2f");
+      transferTimeInput = locomotionParametersTuner.createDoubleInput(RDXLocomotionParameters.transferTime, 0.05, 0.25, 0.3, 1.5, "", "%.2f");
 
       assumeFlatGroundCheckbox = locomotionParametersTuner.createBooleanCheckbox(RDXLocomotionParameters.assumeFlatGround);
       areFootstepsAdjustableCheckbox = locomotionParametersTuner.createBooleanCheckbox(RDXLocomotionParameters.areFootstepsAdjustable);
@@ -295,8 +295,8 @@ public class RDXLocomotionManager
       ImGui.sameLine();
       ImGui.text("Leg Mode: " + legControlMode.name());
 
-      swingTimeSlider.renderImGuiWidget();
-      transferTimeSlider.renderImGuiWidget();
+      swingTimeInput.renderImGuiWidget();
+      transferTimeInput.renderImGuiWidget();
 
       ImGui.separator();
       ImGui.text("Walking Options:");

@@ -188,7 +188,13 @@ public class RDXTeleoperationManager extends ImGuiPanel
 
       teleoperationParametersTuner.create(teleoperationParameters);
 
-      trajectoryTimeInput = teleoperationParametersTuner.createDoubleInput(RDXTeleoperationParameters.trajectoryTime, 0.25, 1.0, 0.5, 10.0, "", "%.2f");
+      trajectoryTimeInput = teleoperationParametersTuner.createDoubleInput(RDXTeleoperationParameters.trajectoryTime,
+                                                                           0.25,
+                                                                           1.0,
+                                                                           RDXTeleoperationParameters.trajectoryTime.getLowerBound(),
+                                                                           RDXTeleoperationParameters.trajectoryTime.getUpperBound(),
+                                                                           "",
+                                                                           "%.2f");
 
       if (interactablesAvailable)
       {

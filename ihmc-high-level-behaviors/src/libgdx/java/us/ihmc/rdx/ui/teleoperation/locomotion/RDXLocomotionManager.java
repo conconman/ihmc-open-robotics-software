@@ -162,8 +162,20 @@ public class RDXLocomotionManager
       bodyPathPlanningParametersTuner.create(bodyPathPlannerParameters, false);
       swingFootPlanningParametersTuner.create(swingFootPlannerParameters, false);
 
-      swingTimeInput = locomotionParametersTuner.createDoubleInput(RDXLocomotionParameters.swingTime, 0.05, 0.25, 0.2, 1.5, "", "%.2f");
-      transferTimeInput = locomotionParametersTuner.createDoubleInput(RDXLocomotionParameters.transferTime, 0.05, 0.25, 0.3, 1.5, "", "%.2f");
+      swingTimeInput = locomotionParametersTuner.createDoubleInput(RDXLocomotionParameters.swingTime,
+                                                                   0.05,
+                                                                   0.25,
+                                                                   RDXLocomotionParameters.swingTime.getLowerBound(),
+                                                                   RDXLocomotionParameters.swingTime.getUpperBound(),
+                                                                   "",
+                                                                   "%.2f");
+      transferTimeInput = locomotionParametersTuner.createDoubleInput(RDXLocomotionParameters.transferTime,
+                                                                      0.05,
+                                                                      0.25,
+                                                                      RDXLocomotionParameters.transferTime.getLowerBound(),
+                                                                      RDXLocomotionParameters.transferTime.getUpperBound(),
+                                                                      "",
+                                                                      "%.2f");
 
       assumeFlatGroundCheckbox = locomotionParametersTuner.createBooleanCheckbox(RDXLocomotionParameters.assumeFlatGround);
       areFootstepsAdjustableCheckbox = locomotionParametersTuner.createBooleanCheckbox(RDXLocomotionParameters.areFootstepsAdjustable);

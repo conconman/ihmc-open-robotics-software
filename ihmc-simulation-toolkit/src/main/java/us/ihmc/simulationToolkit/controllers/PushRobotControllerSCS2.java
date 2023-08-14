@@ -7,9 +7,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.log.LogTools;
+import us.ihmc.mecano.spatial.Wrench;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.stateMachine.core.StateTransitionCondition;
 import us.ihmc.scs2.SimulationConstructionSet2;
@@ -88,9 +91,7 @@ public class PushRobotControllerSCS2 implements Controller
       pushDelay = new YoDouble(jointNameToApplyForce + "_pushDelay", registry);
 
       pushableRobot.getControllerManager().addController(this);
-
-      pushTimeSwitch.set(Double.NEGATIVE_INFINITY);
-      pushForceMagnitude.set(0.0);
+      initialize();
    }
 
    public YoGraphicDefinition getForceVizDefinition()
@@ -115,6 +116,20 @@ public class PushRobotControllerSCS2 implements Controller
       return definition;
    }
 
+   @Override
+   public void initialize()
+   {
+      pushCondition = null;
+      pushTimeSwitch.set(Double.NEGATIVE_INFINITY);
+      pushForceMagnitude.set(0.0);
+      pushDuration.set(0.0);
+      pushNumber.set(0);
+      scheduledPushAction.set(null);
+      isBeingPushed.set(false);
+      delayedPushs.clear();
+      pushDelay.set(0.0);
+   }
+
    public int getPushNumber()
    {
       return pushNumber.getIntegerValue();
@@ -132,9 +147,9 @@ public class PushRobotControllerSCS2 implements Controller
 
    public void setPushForceDirection(Vector3DReadOnly direction)
    {
-      System.out.println("pushDirection "+pushDirection);
+      LogTools.info("pushDirection " + pushDirection);
       pushDirection.set(direction);
-      System.out.println("pushDirection "+pushDirection);
+      LogTools.info("pushDirection "+pushDirection);
    }
 
    public void setPushDelay(double delay)
@@ -173,15 +188,13 @@ public class PushRobotControllerSCS2 implements Controller
    {
       hasForceBeenApplied = true;
       this.pushCondition = pushCondition;
-//      setPushDuration(duration);
-//      System.out.println("pushDuration " + pushDuration);
+
+      LogTools.info("Setting push parameters: direction=" + direction + ", duration=" + duration + " , magnitude=" + magnitude + " , delay=" + timeDelay);
+
       setPushForceDirection(direction);
       setPushDuration(duration);
-//      System.out.println("pushDirection "+pushDirection);
       setPushForceMagnitude(magnitude);
-//      System.out.println("pushForceMagnitude "+pushForceMagnitude);
       setPushDelay(timeDelay);
-//      System.out.println("pushDelay "+pushDelay);
       applyForce();
    }
 
@@ -215,10 +228,7 @@ public class PushRobotControllerSCS2 implements Controller
       pushNumber.increment();
    }
 
-   @Override
-   public void initialize()
-   {
-   }
+   int counter = 0;
 
    @Override
    public void doControl()
@@ -237,7 +247,7 @@ public class PushRobotControllerSCS2 implements Controller
             pushCondition = null;
          }
       }
-      
+
 //      System.out.println("pushDuration " + pushDuration);
 //      System.out.println("pushDirection "+pushDirection);
 //      System.out.println("pushForceMagnitude "+pushForceMagnitude);
@@ -264,6 +274,13 @@ public class PushRobotControllerSCS2 implements Controller
          forceVector.set(0.0, 0.0, 0.0);
       }
 
+      // explicitly changing frames of forcePoint
+//      Wrench wrench = new Wrench(forcePoint.getWrench().getBodyFrame(), forcePoint.getFrame().getRootFrame());
+//      wrench.getLinearPart().set(forceVector);
+//      wrench.changeFrame(forcePoint.getFrame());
+//      forcePoint.getWrench().set(wrench);
+
+      // original code
       forcePoint.getWrench().getLinearPart().setMatchingFrame(forcePoint.getFrame().getRootFrame(), forceVector);
    }
 

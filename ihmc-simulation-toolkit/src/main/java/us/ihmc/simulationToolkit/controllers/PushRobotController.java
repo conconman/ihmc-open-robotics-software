@@ -75,9 +75,7 @@ public class PushRobotController implements RobotController
 
       pushableRobot.getJoint(jointNameToApplyForce).addExternalForcePoint(forcePoint);
       pushableRobot.setController(this);
-
-      pushTimeSwitch.set(Double.NEGATIVE_INFINITY);
-      pushForceMagnitude.set(0.0);
+      initialize();
 
       forceVisualizer = new YoGraphicVector(jointNameToApplyForce
             + "_pushForce", forcePoint.getYoPosition(), forcePoint.getYoForce(), visualScale, YoAppearance.DarkBlue());
@@ -183,6 +181,9 @@ public class PushRobotController implements RobotController
    @Override
    public void initialize()
    {
+      pushCondition = null;
+      pushTimeSwitch.set(Double.NEGATIVE_INFINITY);
+      pushForceMagnitude.set(0.0);
    }
 
    @Override

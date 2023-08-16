@@ -837,7 +837,7 @@ public class ConvexPolygonToolsTest
          {
             assertTrue(intersection[0].distance(arbitraryLineSegment.intersectionWith(lineSegmentThatDefinesThePolygon)) < epsilon);
             assertTrue(intersection[1].distance(arbitraryLineSegment.intersectionWith(lineSegmentThatDefinesThePolygon)) < epsilon);
-            assertFalse(intersection[0].epsilonEquals(intersection[1], epsilon));
+            assertFalse(intersection[0].epsilonEquals(intersection[1], epsilon), "Mesasge _ " + i);
          }
          else
             fail();

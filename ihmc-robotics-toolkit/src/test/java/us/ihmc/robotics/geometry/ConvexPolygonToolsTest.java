@@ -760,8 +760,8 @@ public class ConvexPolygonToolsTest
          }
          else if (expectedIntersectionWithSparePolygon.length == 1)
          {// Still broken even if comment out this...
-//            assertEquals(1, actualIntersectionWithSparePolygon.getNumberOfVertices());
-//            assertTrue(expectedIntersectionWithSparePolygon[0].epsilonEquals(actualIntersectionWithSparePolygon.getVertex(0), epsilon));
+            assertEquals(1, actualIntersectionWithSparePolygon.getNumberOfVertices());
+            assertTrue(expectedIntersectionWithSparePolygon[0].epsilonEquals(actualIntersectionWithSparePolygon.getVertex(0), epsilon));
          }
          else if (expectedIntersectionWithSparePolygon.length == 2)
          {

@@ -751,8 +751,9 @@ public class ConvexPolygonToolsTest
          Point2DBasics[] expectedIntersectionWithSparePolygon = sparePolygon.intersectionWith(new LineSegment2D(polygonWithOnePoint0,
                                                                                                                 polygonWithOnePoint1));
          ConvexPolygon2D actualIntersectionWithSparePolygon = new ConvexPolygon2D();
+         ConvexPolygon2D spareOfTheSparePolygon = new ConvexPolygon2D();
          boolean success = convexPolygonTools.computeIntersectionOfPolygons(sparePolygon, polygonWithTwoPoints, actualIntersectionWithSparePolygon);
-         assertEquals(convexPolygonTools.doPolygonsIntersect(sparePolygon, polygonWithTwoPoints), success);
+         assertEquals(convexPolygonTools.computeIntersectionOfPolygons(sparePolygon, polygonWithTwoPoints, spareOfTheSparePolygon), success, "Index : " + i);
 
          if (expectedIntersectionWithSparePolygon == null)
          { // We do go in here so thats good
@@ -819,9 +820,9 @@ public class ConvexPolygonToolsTest
          }
          else if (polygonIntersection.getNumberOfVertices() == 2)
          {// This is also broken now
-//            assertEqualsInEitherOrder(sparePolygon.intersectionWith(lineSegmentThatDefinesThePolygon)[0],
-//                                      sparePolygon.intersectionWith(lineSegmentThatDefinesThePolygon)[1], polygonIntersection.getVertex(0),
-//                                      polygonIntersection.getVertex(1));
+            assertEqualsInEitherOrder(sparePolygon.intersectionWith(lineSegmentThatDefinesThePolygon)[0],
+                                      sparePolygon.intersectionWith(lineSegmentThatDefinesThePolygon)[1], polygonIntersection.getVertex(0),
+                                      polygonIntersection.getVertex(1));
          }
          else
             fail();

@@ -2,6 +2,7 @@ package us.ihmc.behaviors.sequence;
 
 import behavior_msgs.msg.dds.ActionSequenceUpdateMessage;
 import us.ihmc.behaviors.sequence.actions.*;
+import us.ihmc.behaviors.sequence.actions.footstep.FootstepPlanActionState;
 
 import java.util.List;
 

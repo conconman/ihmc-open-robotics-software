@@ -8,7 +8,6 @@ import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.communication.ROS2Tools;
 import us.ihmc.perception.sceneGraph.ros2.ROS2SceneGraph;
 import us.ihmc.pubsub.DomainFactory.PubSubImplementation;
-import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
 import us.ihmc.ros2.ROS2Node;
 import us.ihmc.tools.thread.Throttler;
 
@@ -21,7 +20,6 @@ public class BehaviorActionSequenceModule
    private final ROS2Node ros2Node;
    private final ROS2ControllerHelper ros2ControllerHelper;
    private final ROS2SceneGraph sceneGraph;
-   private final ReferenceFrameLibrary referenceFrameLibrary;
    private final Throttler throttler = new Throttler();
    private final double PERIOD = Conversions.hertzToSeconds(30.0);
    private final BehaviorActionSequence sequence;
@@ -31,12 +29,8 @@ public class BehaviorActionSequenceModule
    {
       ros2Node = ROS2Tools.createROS2Node(PubSubImplementation.FAST_RTPS, "behavior_action_sequence");
       ros2ControllerHelper = new ROS2ControllerHelper(ros2Node, robotModel);
-
       sceneGraph = new ROS2SceneGraph(ros2ControllerHelper);
-      referenceFrameLibrary = new ReferenceFrameLibrary();
-      referenceFrameLibrary.addDynamicCollection(sceneGraph.asNewDynamicReferenceFrameCollection());
-
-      sequence = new BehaviorActionSequence(robotModel, ros2ControllerHelper, referenceFrameLibrary);
+      sequence = new BehaviorActionSequence(robotModel, ros2ControllerHelper);
 
       Runtime.getRuntime().addShutdownHook(new Thread(this::destroy, "Shutdown"));
       ThreadTools.startAThread(this::actionThread, "ActionThread");

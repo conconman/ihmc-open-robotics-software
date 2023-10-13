@@ -16,7 +16,6 @@ import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
-import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.tools.Timer;
@@ -44,7 +43,6 @@ public class HandPoseActionExecutor extends BehaviorActionExecutor
 
    public HandPoseActionExecutor(BehaviorActionSequence sequence,
                                  ROS2ControllerHelper ros2ControllerHelper,
-                                 ReferenceFrameLibrary referenceFrameLibrary,
                                  DRCRobotModel robotModel,
                                  ROS2SyncedRobotModel syncedRobot,
                                  SideDependentList<ROS2HandWrenchCalculator> handWrenchCalculators)
@@ -55,14 +53,14 @@ public class HandPoseActionExecutor extends BehaviorActionExecutor
       this.syncedRobot = syncedRobot;
       this.handWrenchCalculators = handWrenchCalculators;
 
-      state = new HandPoseActionState(referenceFrameLibrary);
+      state = new HandPoseActionState(syncedRobot);
       definition = state.getDefinition();
 
       for (RobotSide side : RobotSide.values)
       {
          armIKSolvers.put(side, new ArmIKSolver(side, robotModel, syncedRobot.getFullRobotModel()));
       }
-      rootCalculator = new IKRootCalculator(ros2ControllerHelper, syncedRobot.getFullRobotModel(), referenceFrameLibrary);
+      rootCalculator = new IKRootCalculator(ros2ControllerHelper, syncedRobot);
    }
 
    @Override

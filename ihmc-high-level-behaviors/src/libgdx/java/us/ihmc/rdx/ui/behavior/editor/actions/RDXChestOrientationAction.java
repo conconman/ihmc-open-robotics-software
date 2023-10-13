@@ -7,6 +7,7 @@ import com.badlogic.gdx.utils.Pool;
 import imgui.ImGui;
 import imgui.flag.ImGuiMouseButton;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
+import us.ihmc.avatar.drcRobot.ROS2SyncedRobotModel;
 import us.ihmc.behaviors.sequence.BehaviorActionSequence;
 import us.ihmc.behaviors.sequence.actions.ChestOrientationActionDefinition;
 import us.ihmc.behaviors.sequence.actions.ChestOrientationActionState;
@@ -30,7 +31,6 @@ import us.ihmc.robotics.interaction.MouseCollidable;
 import us.ihmc.robotics.physics.Collidable;
 import us.ihmc.robotics.physics.RobotCollisionModel;
 import us.ihmc.robotics.referenceFrames.ModifiableReferenceFrame;
-import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
 import us.ihmc.tools.thread.Throttler;
 
 import java.util.ArrayList;
@@ -38,6 +38,8 @@ import java.util.List;
 
 public class RDXChestOrientationAction extends RDXBehaviorAction
 {
+   private final ROS2SyncedRobotModel syncedRobot;
+
    private final ChestOrientationActionState state;
    private final ChestOrientationActionDefinition definition;
    private final ImGuiUniqueLabelMap labels = new ImGuiUniqueLabelMap(getClass());
@@ -62,19 +64,20 @@ public class RDXChestOrientationAction extends RDXBehaviorAction
    private final Throttler throttler = new Throttler().setFrequency(10.0);
    private boolean wasConcurrent = false;
 
-   public RDXChestOrientationAction(RDXBehaviorActionSequenceEditor editor,
+   public RDXChestOrientationAction(ROS2SyncedRobotModel syncedRobot,
+                                    RDXBehaviorActionSequenceEditor editor,
                                     RDX3DPanel panel3D,
                                     DRCRobotModel robotModel,
                                     FullHumanoidRobotModel syncedFullRobotModel,
                                     RobotCollisionModel selectionCollisionModel,
-                                    ReferenceFrameLibrary referenceFrameLibrary,
                                     ROS2PublishSubscribeAPI ros2)
    {
       super(editor);
 
+      this.syncedRobot = syncedRobot;
       this.ros2 = ros2;
 
-      state = new ChestOrientationActionState(referenceFrameLibrary);
+      state = new ChestOrientationActionState(syncedRobot);
       definition = state.getDefinition();
 
       poseGizmo = new RDXSelectablePose3DGizmo(ReferenceFrame.getWorldFrame(), definition.getChestToParentTransform());
@@ -88,7 +91,6 @@ public class RDXChestOrientationAction extends RDXBehaviorAction
                                                          definition::setHoldPoseInWorldLater,
                                                          imBoolean -> ImGui.checkbox(labels.get("Hold pose in world later"), imBoolean));
       parentFrameComboBox = new ImGuiReferenceFrameLibraryCombo("Parent frame",
-                                                                referenceFrameLibrary,
                                                                 definition::getParentFrameName,
                                                                 definition::setParentFrameName);
       yawWidget = new ImDoubleWrapper(definition.getRotation()::getYaw, definition::setYaw,
@@ -179,7 +181,7 @@ public class RDXChestOrientationAction extends RDXBehaviorAction
       ImGui.sameLine();
       executeWithNextActionWrapper.renderImGuiWidget();
       holdPoseInWorldLaterWrapper.renderImGuiWidget();
-      parentFrameComboBox.render();
+      parentFrameComboBox.render(syncedRobot.getReferenceFrames().getCommonReferenceFrames());
       ImGui.pushItemWidth(80.0f);
       yawWidget.renderImGuiWidget();
       ImGui.sameLine();

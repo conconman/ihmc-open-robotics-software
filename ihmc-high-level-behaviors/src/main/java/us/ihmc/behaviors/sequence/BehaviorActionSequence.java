@@ -10,16 +10,15 @@ import us.ihmc.avatar.drcRobot.ROS2SyncedRobotModel;
 import us.ihmc.avatar.networkProcessor.footstepPlanningModule.FootstepPlanningModuleLauncher;
 import us.ihmc.avatar.ros2.ROS2ControllerHelper;
 import us.ihmc.behaviors.sequence.actions.*;
+import us.ihmc.behaviors.sequence.actions.footstep.FootstepPlanActionExecutor;
 import us.ihmc.behaviors.tools.ROS2HandWrenchCalculator;
 import us.ihmc.behaviors.tools.walkingController.WalkingFootstepTracker;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.communication.IHMCROS2Input;
 import us.ihmc.communication.ROS2Tools;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.footstepPlanning.FootstepPlanningModule;
 import us.ihmc.footstepPlanning.graphSearch.parameters.FootstepPlannerParametersBasics;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.ros2.ROS2Topic;
@@ -66,7 +65,6 @@ public class BehaviorActionSequence
 
    private final DRCRobotModel robotModel;
    private final ROS2ControllerHelper ros2;
-   private final ReferenceFrameLibrary referenceFrameLibrary;
    private final ROS2SyncedRobotModel syncedRobot;
    private final WalkingFootstepTracker footstepTracker;
    private final SideDependentList<ROS2HandWrenchCalculator> handWrenchCalculators = new SideDependentList<>();
@@ -93,11 +91,10 @@ public class BehaviorActionSequence
    private ActionExecutionStatusMessage nothingExecutingStatusMessage = new ActionExecutionStatusMessage();
    private final ActionsExecutionStatusMessage actionsExecutionStatusMessage = new ActionsExecutionStatusMessage();
 
-   public BehaviorActionSequence(DRCRobotModel robotModel, ROS2ControllerHelper ros2, ReferenceFrameLibrary referenceFrameLibrary)
+   public BehaviorActionSequence(DRCRobotModel robotModel, ROS2ControllerHelper ros2)
    {
       this.robotModel = robotModel;
       this.ros2 = ros2;
-      this.referenceFrameLibrary = referenceFrameLibrary;
 
       syncedRobot = new ROS2SyncedRobotModel(robotModel, ros2.getROS2NodeInterface());
       footstepTracker = new WalkingFootstepTracker(ros2.getROS2NodeInterface(), robotModel.getSimpleRobotName());
@@ -107,24 +104,10 @@ public class BehaviorActionSequence
       footstepPlannerParameters = robotModel.getFootstepPlannerParameters();
       walkingControllerParameters = robotModel.getWalkingControllerParameters();
 
-      addCommonFrames(referenceFrameLibrary, syncedRobot);
-
       updateSubscription = ros2.subscribe(SEQUENCE_COMMAND_TOPIC);
       manuallyExecuteSubscription = ros2.subscribe(MANUALLY_EXECUTE_NEXT_ACTION_TOPIC);
       automaticExecutionSubscription = ros2.subscribe(AUTOMATIC_EXECUTION_COMMAND_TOPIC);
       executionNextIndexSubscription = ros2.subscribe(EXECUTION_NEXT_INDEX_COMMAND_TOPIC);
-   }
-
-   public static void addCommonFrames(ReferenceFrameLibrary referenceFrameLibrary, ROS2SyncedRobotModel syncedRobot)
-   {
-
-      referenceFrameLibrary.add(ReferenceFrame.getWorldFrame());
-      referenceFrameLibrary.add(syncedRobot.getReferenceFrames().getChestFrame());
-      referenceFrameLibrary.add(syncedRobot.getReferenceFrames().getMidFeetUnderPelvisFrame());
-      referenceFrameLibrary.add(syncedRobot.getReferenceFrames().getPelvisFrame());
-      referenceFrameLibrary.add(syncedRobot.getReferenceFrames().getPelvisZUpFrame());
-      referenceFrameLibrary.add(syncedRobot.getReferenceFrames().getMidFeetZUpFrame());
-      referenceFrameLibrary.add(syncedRobot.getReferenceFrames().getMidFootZUpGroundFrame());
    }
 
    public void update()
@@ -143,7 +126,7 @@ public class BehaviorActionSequence
          }
          for (ChestOrientationActionStateMessage message : latestUpdateMessage.getChestOrientationActions())
          {
-            ChestOrientationActionExecutor action = new ChestOrientationActionExecutor(this, ros2, syncedRobot, referenceFrameLibrary);
+            ChestOrientationActionExecutor action = new ChestOrientationActionExecutor(this, ros2, syncedRobot);
             action.getState().fromMessage(message);
             actionArray[message.getActionState().getActionIndex()] = action;
          }
@@ -153,7 +136,6 @@ public class BehaviorActionSequence
                                                                                ros2,
                                                                                syncedRobot,
                                                                                footstepTracker,
-                                                                               referenceFrameLibrary,
                                                                                walkingControllerParameters);
             action.getState().fromMessage(message);
             actionArray[message.getActionState().getActionIndex()] = action;
@@ -166,7 +148,7 @@ public class BehaviorActionSequence
          }
          for (HandPoseActionStateMessage message : latestUpdateMessage.getHandPoseActions())
          {
-            HandPoseActionExecutor action = new HandPoseActionExecutor(this, ros2, referenceFrameLibrary, robotModel, syncedRobot, handWrenchCalculators);
+            HandPoseActionExecutor action = new HandPoseActionExecutor(this, ros2, robotModel, syncedRobot, handWrenchCalculators);
             action.getState().fromMessage(message);
             actionArray[message.getActionState().getActionIndex()] = action;
          }
@@ -178,7 +160,7 @@ public class BehaviorActionSequence
          }
          for (PelvisHeightPitchActionStateMessage message : latestUpdateMessage.getPelvisHeightActions())
          {
-            PelvisHeightPitchActionExecutor action = new PelvisHeightPitchActionExecutor(this, ros2, referenceFrameLibrary, syncedRobot);
+            PelvisHeightPitchActionExecutor action = new PelvisHeightPitchActionExecutor(this, ros2, syncedRobot);
             action.getState().fromMessage(message);
             actionArray[message.getActionState().getActionIndex()] = action;
          }
@@ -196,8 +178,7 @@ public class BehaviorActionSequence
                                                                footstepTracker,
                                                                footstepPlanner,
                                                                footstepPlannerParameters,
-                                                               walkingControllerParameters,
-                                                               referenceFrameLibrary);
+                                                               walkingControllerParameters);
             action.getState().fromMessage(message);
             actionArray[message.getActionState().getActionIndex()] = action;
          }

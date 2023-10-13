@@ -25,12 +25,6 @@ public class HandWrenchActionExecutor extends BehaviorActionExecutor
    }
 
    @Override
-   public void update()
-   {
-      super.update();
-   }
-
-   @Override
    public void triggerActionExecution()
    {
       HandWrenchTrajectoryMessage handWrenchTrajectoryMessage = new HandWrenchTrajectoryMessage();

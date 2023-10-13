@@ -1,15 +1,14 @@
 package us.ihmc.behaviors.sequence;
 
 import behavior_msgs.msg.dds.BodyPartPoseStatusMessage;
+import us.ihmc.avatar.drcRobot.ROS2SyncedRobotModel;
 import us.ihmc.communication.IHMCROS2Input;
 import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.ros2.ROS2PublishSubscribeAPI;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
-import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.referenceFrames.ModifiableReferenceFrame;
-import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
 
 /**
  * The IKRootCalculator class is responsible for computing and setting the root reference frame
@@ -19,8 +18,7 @@ public class IKRootCalculator
 {
    private final IHMCROS2Input<BodyPartPoseStatusMessage> chestPoseStatusSubscription;
    private final IHMCROS2Input<BodyPartPoseStatusMessage> pelvisPoseStatusSubscription;
-   private final FullHumanoidRobotModel syncedRobot;
-   private final ReferenceFrameLibrary referenceFrameLibrary;
+   private final ROS2SyncedRobotModel syncedRobot;
    private BodyPartPoseStatusMessage chestPoseStatusMessage;
    private BodyPartPoseStatusMessage pelvisPoseStatusMessage;
    private ModifiableReferenceFrame latestChestFrame;
@@ -29,10 +27,9 @@ public class IKRootCalculator
    private ReferenceFrame concurrentCombinedPelvisAndChestFrame;
    private ReferenceFrame rootReferenceFrame;
 
-   public IKRootCalculator(ROS2PublishSubscribeAPI ros2, FullHumanoidRobotModel syncedRobot, ReferenceFrameLibrary referenceFrameLibrary)
+   public IKRootCalculator(ROS2PublishSubscribeAPI ros2, ROS2SyncedRobotModel syncedRobot)
    {
       this.syncedRobot = syncedRobot;
-      this.referenceFrameLibrary = referenceFrameLibrary;
 
       chestPoseStatusSubscription = ros2.subscribe(BehaviorActionSequence.CHEST_POSE_STATUS);
       pelvisPoseStatusSubscription = ros2.subscribe(BehaviorActionSequence.PELVIS_POSE_VARIATION_STATUS);
@@ -63,7 +60,8 @@ public class IKRootCalculator
       if (chestPoseStatusMessage != null)
       {
          boolean isChestCurrentAndConcurrent = chestPoseStatusMessage.getCurrentAndConcurrent();
-         latestChestFrame = new ModifiableReferenceFrame(referenceFrameLibrary.findFrameByName(chestPoseStatusMessage.getParentFrameNameAsString()));
+         latestChestFrame = new ModifiableReferenceFrame(null);
+//         latestChestFrame = new ModifiableReferenceFrame(referenceFrameLibrary.findFrameByName(chestPoseStatusMessage.getParentFrameNameAsString()));
          latestChestFrame.update(transformToParent -> MessageTools.toEuclid(chestPoseStatusMessage.getTransformToParent(), transformToParent));
          if (isChestCurrentAndConcurrent)
             concurrentChestFrame = latestChestFrame;
@@ -74,15 +72,17 @@ public class IKRootCalculator
       if (pelvisPoseStatusMessage != null)
       {
          boolean isPelvisCurrentAndConcurrent = pelvisPoseStatusMessage.getCurrentAndConcurrent();
-         FramePose3D pelvisFramePoseVariation = new FramePose3D(referenceFrameLibrary.findFrameByName(pelvisPoseStatusMessage.getParentFrameNameAsString()),
+         FramePose3D pelvisFramePoseVariation = new FramePose3D(null,
                                                                 MessageTools.toEuclid(pelvisPoseStatusMessage.getTransformToParent()));
+//         FramePose3D pelvisFramePoseVariation = new FramePose3D(referenceFrameLibrary.findFrameByName(pelvisPoseStatusMessage.getParentFrameNameAsString()),
+//                                                                MessageTools.toEuclid(pelvisPoseStatusMessage.getTransformToParent()));
          if (concurrentChestFrame != null)
          {
             latestCombinedPelvisAndChestFrame = new ModifiableReferenceFrame(concurrentChestFrame.getReferenceFrame().getParent());
             latestCombinedPelvisAndChestFrame.update(transformToParent -> copyTransform(concurrentChestFrame.getTransformToParent(), transformToParent));
          }
          else
-            latestCombinedPelvisAndChestFrame = new ModifiableReferenceFrame(syncedRobot.getChest()
+            latestCombinedPelvisAndChestFrame = new ModifiableReferenceFrame(syncedRobot.getFullRobotModel().getChest()
                                                                                         .getParentJoint()
                                                                                         .getFrameAfterJoint());
          latestCombinedPelvisAndChestFrame.update(transformToParent -> updateIKChestTransform(latestCombinedPelvisAndChestFrame,
@@ -95,7 +95,7 @@ public class IKRootCalculator
       }
 
       if (concurrentCombinedPelvisAndChestFrame == null)
-         rootReferenceFrame = concurrentChestFrame == null ? syncedRobot.getChest().getParentJoint().getFrameAfterJoint() : concurrentChestFrame.getReferenceFrame();
+         rootReferenceFrame = concurrentChestFrame == null ? syncedRobot.getFullRobotModel().getChest().getParentJoint().getFrameAfterJoint() : concurrentChestFrame.getReferenceFrame();
       else
          rootReferenceFrame = concurrentCombinedPelvisAndChestFrame;
    }

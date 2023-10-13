@@ -22,6 +22,7 @@ import us.ihmc.sensorProcessing.frames.CommonReferenceFrameIds;
 import us.ihmc.sensorProcessing.parameters.HumanoidRobotSensorInformation;
 import us.ihmc.tools.containers.ContainerTools;
 
+import java.util.Collection;
 import java.util.EnumMap;
 
 public class HumanoidReferenceFrames implements CommonHumanoidReferenceFrames
@@ -460,6 +461,16 @@ public class HumanoidReferenceFrames implements CommonHumanoidReferenceFrames
    public TLongObjectHashMap<ReferenceFrame> getReferenceFrameDefaultHashIds()
    {
       return nameBasedHashCodeToReferenceFrameMap;
+   }
+
+   public Collection<ReferenceFrame> getCommonReferenceFrames()
+   {
+      return nameBasedHashCodeToReferenceFrameMap.valueCollection();
+   }
+
+   public ReferenceFrame getCommonReferenceFrame(CommonReferenceFrameIds referenceFrameIds)
+   {
+      return nameBasedHashCodeToReferenceFrameMap.get(referenceFrameIds.getHashId());
    }
 
    public ReferenceFrame getLidarSensorFrame()

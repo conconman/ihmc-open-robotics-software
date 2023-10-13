@@ -7,6 +7,7 @@ import com.badlogic.gdx.utils.Pool;
 import imgui.ImGui;
 import imgui.flag.ImGuiMouseButton;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
+import us.ihmc.avatar.drcRobot.ROS2SyncedRobotModel;
 import us.ihmc.behaviors.sequence.BehaviorActionSequence;
 import us.ihmc.behaviors.sequence.actions.PelvisHeightPitchActionDefinition;
 import us.ihmc.behaviors.sequence.actions.PelvisHeightPitchActionState;
@@ -32,7 +33,6 @@ import us.ihmc.robotics.interaction.MouseCollidable;
 import us.ihmc.robotics.physics.Collidable;
 import us.ihmc.robotics.physics.RobotCollisionModel;
 import us.ihmc.robotics.referenceFrames.ModifiableReferenceFrame;
-import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
 import us.ihmc.tools.thread.Throttler;
 
 import java.util.ArrayList;
@@ -40,6 +40,8 @@ import java.util.List;
 
 public class RDXPelvisHeightPitchAction extends RDXBehaviorAction
 {
+   private final ROS2SyncedRobotModel syncedRobot;
+
    private final PelvisHeightPitchActionState state;
    private final PelvisHeightPitchActionDefinition definition;
    private final ImGuiUniqueLabelMap labels = new ImGuiUniqueLabelMap(getClass());
@@ -63,27 +65,28 @@ public class RDXPelvisHeightPitchAction extends RDXBehaviorAction
    private final Throttler throttler = new Throttler().setFrequency(10.0);
    private boolean wasConcurrent = false;
 
-   public RDXPelvisHeightPitchAction(RDXBehaviorActionSequenceEditor editor,
+   public RDXPelvisHeightPitchAction(ROS2SyncedRobotModel syncedRobot,
+                                     RDXBehaviorActionSequenceEditor editor,
                                      RDX3DPanel panel3D,
                                      DRCRobotModel robotModel,
                                      FullHumanoidRobotModel syncedFullRobotModel,
                                      RobotCollisionModel selectionCollisionModel,
-                                     ReferenceFrameLibrary referenceFrameLibrary,
                                      ROS2PublishSubscribeAPI ros2)
    {
       super(editor);
 
+      this.syncedRobot = syncedRobot;
+
       this.ros2 = ros2;
       this.syncedFullRobotModel = syncedFullRobotModel;
 
-      state = new PelvisHeightPitchActionState(referenceFrameLibrary);
+      state = new PelvisHeightPitchActionState(syncedRobot);
       definition = state.getDefinition();
 
       poseGizmo = new RDXSelectablePose3DGizmo(ReferenceFrame.getWorldFrame(), definition.getPelvisToParentTransform());
       poseGizmo.create(panel3D);
 
       parentFrameComboBox = new ImGuiReferenceFrameLibraryCombo("Parent frame",
-                                                                referenceFrameLibrary,
                                                                 definition::getParentFrameName,
                                                                 definition::setParentFrameName);
       heightWidget = new ImDoubleWrapper(definition::getHeight,
@@ -183,7 +186,7 @@ public class RDXPelvisHeightPitchAction extends RDXBehaviorAction
    {
       ImGui.sameLine();
       executeWithNextActionWrapper.renderImGuiWidget();
-      parentFrameComboBox.render();
+      parentFrameComboBox.render(syncedRobot.getReferenceFrames().getCommonReferenceFrames());
       ImGui.pushItemWidth(80.0f);
       heightWidget.renderImGuiWidget();
       pitchWidget.renderImGuiWidget();

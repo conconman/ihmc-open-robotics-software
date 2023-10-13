@@ -6,6 +6,7 @@ import com.badlogic.gdx.utils.Pool;
 import imgui.ImGui;
 import imgui.type.ImBoolean;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
+import us.ihmc.avatar.drcRobot.ROS2SyncedRobotModel;
 import us.ihmc.behaviors.sequence.actions.WalkActionDefinition;
 import us.ihmc.behaviors.sequence.actions.WalkActionState;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -22,12 +23,13 @@ import us.ihmc.rdx.ui.gizmo.RDXSelectablePathControlRingGizmo;
 import us.ihmc.rdx.ui.graphics.RDXFootstepGraphic;
 import us.ihmc.rdx.ui.graphics.RDXFootstepPlanGraphic;
 import us.ihmc.rdx.vr.RDXVRContext;
-import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 
 public class RDXWalkAction extends RDXBehaviorAction
 {
+   private final ROS2SyncedRobotModel syncedRobot;
+
    private final WalkActionState state;
    private final WalkActionDefinition definition;
    private final RDXFootstepPlanGraphic footstepPlanGraphic;
@@ -41,14 +43,16 @@ public class RDXWalkAction extends RDXBehaviorAction
    private final ImDoubleWrapper transferDurationWidget;
    private final RDX3DPanelTooltip tooltip;
 
-   public RDXWalkAction(RDXBehaviorActionSequenceEditor editor,
+   public RDXWalkAction(ROS2SyncedRobotModel syncedRobot,
+                        RDXBehaviorActionSequenceEditor editor,
                         RDX3DPanel panel3D,
-                        DRCRobotModel robotModel,
-                        ReferenceFrameLibrary referenceFrameLibrary)
+                        DRCRobotModel robotModel)
    {
       super(editor);
 
-      state = new WalkActionState(referenceFrameLibrary, robotModel.getFootstepPlannerParameters());
+      this.syncedRobot = syncedRobot;
+
+      state = new WalkActionState(syncedRobot, robotModel.getFootstepPlannerParameters());
       definition = state.getDefinition();
 
       footstepPlannerGoalGizmo = new RDXSelectablePathControlRingGizmo(ReferenceFrame.getWorldFrame(), definition.getGoalToParentTransform(), getSelected());
@@ -56,7 +60,6 @@ public class RDXWalkAction extends RDXBehaviorAction
       footstepPlanGraphic = new RDXFootstepPlanGraphic(robotModel.getContactPointParameters().getControllerFootGroundContactPoints());
 
       parentFrameComboBox = new ImGuiReferenceFrameLibraryCombo("Parent frame",
-                                                                referenceFrameLibrary,
                                                                 definition::getParentFrameName,
                                                                 definition::setParentFrameName);
       swingDurationWidget = new ImDoubleWrapper(definition::getSwingDuration,
@@ -176,7 +179,7 @@ public class RDXWalkAction extends RDXBehaviorAction
    @Override
    protected void renderImGuiWidgetsInternal()
    {
-      parentFrameComboBox.render();
+      parentFrameComboBox.render(syncedRobot.getReferenceFrames().getCommonReferenceFrames());
       if (ImGui.button(labels.get("Plan")))
       {
          // TODO: Plan preview message

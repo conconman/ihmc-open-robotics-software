@@ -1,4 +1,4 @@
-package us.ihmc.behaviors.sequence.actions;
+package us.ihmc.behaviors.sequence.actions.footstep;
 
 import behavior_msgs.msg.dds.FootstepPlanActionDefinitionMessage;
 import behavior_msgs.msg.dds.FootstepPlanActionFootstepDefinitionMessage;

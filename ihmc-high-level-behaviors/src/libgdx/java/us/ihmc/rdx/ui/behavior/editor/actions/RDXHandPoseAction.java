@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.Pool;
 import imgui.ImGui;
 import imgui.flag.ImGuiMouseButton;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
+import us.ihmc.avatar.drcRobot.ROS2SyncedRobotModel;
 import us.ihmc.behaviors.sequence.BehaviorActionSequence;
 import us.ihmc.behaviors.sequence.IKRootCalculator;
 import us.ihmc.behaviors.sequence.actions.HandPoseActionDefinition;
@@ -45,7 +46,6 @@ import us.ihmc.robotics.partNames.HumanoidJointNameMap;
 import us.ihmc.robotics.physics.Collidable;
 import us.ihmc.robotics.physics.RobotCollisionModel;
 import us.ihmc.robotics.referenceFrames.ModifiableReferenceFrame;
-import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
@@ -60,6 +60,8 @@ import java.util.List;
 
 public class RDXHandPoseAction extends RDXBehaviorAction
 {
+   private final ROS2SyncedRobotModel syncedRobot;
+
    public static final String GOOD_QUALITY_COLOR = "0x4B61D1";
    public static final String BAD_QUALITY_COLOR = "0xD14B4B";
    private final HandPoseActionState state;
@@ -89,17 +91,19 @@ public class RDXHandPoseAction extends RDXBehaviorAction
    private final RDX3DPanelTooltip tooltip;
    private final IKRootCalculator rootCalculator;
 
-   public RDXHandPoseAction(RDXBehaviorActionSequenceEditor editor,
+   public RDXHandPoseAction(ROS2SyncedRobotModel syncedRobot,
+                            RDXBehaviorActionSequenceEditor editor,
                             RDX3DPanel panel3D,
                             DRCRobotModel robotModel,
                             FullHumanoidRobotModel syncedFullRobotModel,
                             RobotCollisionModel selectionCollisionModel,
-                            ReferenceFrameLibrary referenceFrameLibrary,
                             ROS2ControllerPublishSubscribeAPI ros2)
    {
       super(editor);
 
-      state = new HandPoseActionState(referenceFrameLibrary);
+      this.syncedRobot = syncedRobot;
+
+      state = new HandPoseActionState(syncedRobot);
       definition = state.getDefinition();
 
       poseGizmo = new RDXSelectablePose3DGizmo(ReferenceFrame.getWorldFrame(), definition.getPalmTransformToParent(), getSelected());
@@ -174,7 +178,6 @@ public class RDXHandPoseAction extends RDXBehaviorAction
       }
 
       parentFrameComboBox = new ImGuiReferenceFrameLibraryCombo("Parent frame",
-                                                                referenceFrameLibrary,
                                                                 definition::getPalmParentFrameName,
                                                                 definition::setPalmParentFrameName);
 
@@ -183,7 +186,7 @@ public class RDXHandPoseAction extends RDXBehaviorAction
 
       leftHandJointAnglesStatusSubscription = ros2.subscribe(BehaviorActionSequence.LEFT_HAND_POSE_JOINT_ANGLES_STATUS);
       rightHandJointAnglesStatusSubscription = ros2.subscribe(BehaviorActionSequence.RIGHT_HAND_POSE_JOINT_ANGLES_STATUS);
-      rootCalculator = new IKRootCalculator(ros2, syncedFullRobotModel, referenceFrameLibrary);
+      rootCalculator = new IKRootCalculator(ros2, syncedRobot);
    }
 
    @Override
@@ -276,7 +279,7 @@ public class RDXHandPoseAction extends RDXBehaviorAction
       {
          holdPoseInWorldLaterWrapper.renderImGuiWidget();
       }
-      parentFrameComboBox.render();
+      parentFrameComboBox.render(syncedRobot.getReferenceFrames().getCommonReferenceFrames());
       ImGui.pushItemWidth(80.0f);
       trajectoryDurationWidget.renderImGuiWidget();
       ImGui.popItemWidth();

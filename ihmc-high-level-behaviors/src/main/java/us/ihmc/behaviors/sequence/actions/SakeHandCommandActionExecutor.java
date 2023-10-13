@@ -28,12 +28,6 @@ public class SakeHandCommandActionExecutor extends BehaviorActionExecutor
    }
 
    @Override
-   public void update()
-   {
-      super.update();
-   }
-
-   @Override
    public void triggerActionExecution()
    {
       SakeHandDesiredCommandMessage message = new SakeHandDesiredCommandMessage();

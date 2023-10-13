@@ -18,12 +18,6 @@ public class WaitDurationActionExecutor extends BehaviorActionExecutor
    }
 
    @Override
-   public void update()
-   {
-      super.update();
-   }
-
-   @Override
    public void triggerActionExecution()
    {
       executionTimer.reset();

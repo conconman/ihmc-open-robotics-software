@@ -7,18 +7,16 @@ import imgui.ImGui;
 import imgui.type.ImString;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.drcRobot.ROS2SyncedRobotModel;
-import us.ihmc.behaviors.sequence.BehaviorActionSequence;
 import us.ihmc.commons.thread.Notification;
-import us.ihmc.rdx.imgui.RDXPanel;
 import us.ihmc.rdx.imgui.ImGuiTools;
 import us.ihmc.rdx.imgui.ImGuiUniqueLabelMap;
+import us.ihmc.rdx.imgui.RDXPanel;
 import us.ihmc.rdx.input.ImGui3DViewInput;
 import us.ihmc.rdx.sceneManager.RDXSceneLevel;
 import us.ihmc.rdx.ui.RDX3DPanel;
 import us.ihmc.rdx.ui.RDXBaseUI;
 import us.ihmc.rdx.vr.RDXVRContext;
 import us.ihmc.robotics.physics.RobotCollisionModel;
-import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
 import us.ihmc.ros2.ROS2Node;
 import us.ihmc.tools.io.WorkspaceResourceDirectory;
 import us.ihmc.tools.io.WorkspaceResourceFile;
@@ -49,7 +47,6 @@ public class RDXBehaviorActionSequenceUI
    private ROS2Node ros2Node;
    private ROS2SyncedRobotModel syncedRobot;
    private RobotCollisionModel selectionCollisionModel;
-   private ReferenceFrameLibrary referenceFrameLibrary;
    private final ImString newSequenceName = new ImString(256);
    private final ArrayList<RDXAvailableActionSequence> availableSequences = new ArrayList<>();
    private final RDXBehaviorActionSequenceEditor editor = new RDXBehaviorActionSequenceEditor();
@@ -61,8 +58,7 @@ public class RDXBehaviorActionSequenceUI
                       DRCRobotModel robotModel,
                       ROS2Node ros2Node,
                       ROS2SyncedRobotModel syncedRobot,
-                      RobotCollisionModel selectionCollisionModel,
-                      ReferenceFrameLibrary referenceFrameLibrary)
+                      RobotCollisionModel selectionCollisionModel)
    {
       this.behaviorSequenceStorageDirectory = behaviorSequenceStorageDirectory;
       this.baseUI = baseUI;
@@ -71,9 +67,6 @@ public class RDXBehaviorActionSequenceUI
       this.ros2Node = ros2Node;
       this.syncedRobot = syncedRobot;
       this.selectionCollisionModel = selectionCollisionModel;
-      this.referenceFrameLibrary = referenceFrameLibrary;
-
-      BehaviorActionSequence.addCommonFrames(referenceFrameLibrary, syncedRobot);
 
       reindexSequences();
    }
@@ -122,7 +115,7 @@ public class RDXBehaviorActionSequenceUI
                   destroyCurrentEditor();
 
                   editor.changeFileToLoadFrom(availableSequenceFile.getSequenceFile());
-                  editor.create(baseUI, panel3D, robotModel, ros2Node, syncedRobot, selectionCollisionModel, referenceFrameLibrary);
+                  editor.create(baseUI, panel3D, robotModel, ros2Node, syncedRobot, selectionCollisionModel);
                   editor.loadActionsFromFile();
                }
                fileMenuShouldClose.set();
@@ -136,7 +129,7 @@ public class RDXBehaviorActionSequenceUI
             destroyCurrentEditor();
 
             editor.createNewSequence(newSequenceName.get(), behaviorSequenceStorageDirectory);
-            editor.create(baseUI, panel3D, robotModel, ros2Node, syncedRobot, selectionCollisionModel, referenceFrameLibrary);
+            editor.create(baseUI, panel3D, robotModel, ros2Node, syncedRobot, selectionCollisionModel);
             editor.saveToFile();
             availableSequences.add(new RDXAvailableActionSequence(editor.getWorkspaceFile()));
          }

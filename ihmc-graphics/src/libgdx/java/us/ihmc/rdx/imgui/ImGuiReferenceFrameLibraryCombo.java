@@ -3,8 +3,9 @@ package us.ihmc.rdx.imgui;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import org.apache.commons.lang3.ArrayUtils;
-import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 
+import java.util.Collection;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
@@ -19,30 +20,27 @@ public class ImGuiReferenceFrameLibraryCombo
 {
    private final ImGuiUniqueLabelMap labels = new ImGuiUniqueLabelMap(getClass());
    private final String comboName;
-   private final ReferenceFrameLibrary referenceFrameLibrary;
    private final Supplier<String> currentFrameNameGetter;
    private final Consumer<String> currentFrameNameSetter;
    private final SortedSet<String> referenceFrameLibraryNames = new TreeSet<>();
    /** Stores a history of all frames that were ever here. */
    private final SortedSet<String> selectableReferenceFrameNames = new TreeSet<>();
-   private int selectedFrameIndex = -1;
    private transient String[] selectableReferenceFrameNameArray = new String[0];
 
    public ImGuiReferenceFrameLibraryCombo(String comboName,
-                                          ReferenceFrameLibrary referenceFrameLibrary,
                                           Supplier<String> currentFrameNameGetter,
                                           Consumer<String> currentFrameNameSetter)
    {
       this.comboName = comboName;
-      this.referenceFrameLibrary = referenceFrameLibrary;
       this.currentFrameNameGetter = currentFrameNameGetter;
       this.currentFrameNameSetter = currentFrameNameSetter;
    }
 
-   public void render()
+   public void render(Collection<ReferenceFrame> referenceFrames)
    {
       referenceFrameLibraryNames.clear();
-      referenceFrameLibrary.getAllFrameNames(referenceFrameLibraryNames::add);
+      for (ReferenceFrame referenceFrame : referenceFrames)
+         referenceFrameLibraryNames.add(referenceFrame.getName());
 
       selectableReferenceFrameNames.add(currentFrameNameGetter.get());
       selectableReferenceFrameNames.addAll(referenceFrameLibraryNames);
@@ -50,7 +48,7 @@ public class ImGuiReferenceFrameLibraryCombo
       selectableReferenceFrameNameArray = selectableReferenceFrameNames.toArray(selectableReferenceFrameNameArray);
 
       // Make sure current frame is selected
-      selectedFrameIndex = ArrayUtils.indexOf(selectableReferenceFrameNameArray, currentFrameNameGetter.get());
+      int selectedFrameIndex = ArrayUtils.indexOf(selectableReferenceFrameNameArray, currentFrameNameGetter.get());
 
       if (ImGui.beginCombo(labels.get(comboName), selectableReferenceFrameNameArray[selectedFrameIndex]))
       {

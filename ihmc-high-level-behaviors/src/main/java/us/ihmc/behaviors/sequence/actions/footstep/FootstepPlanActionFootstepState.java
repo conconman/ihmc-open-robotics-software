@@ -1,29 +1,31 @@
-package us.ihmc.behaviors.sequence.actions;
+package us.ihmc.behaviors.sequence.actions.footstep;
 
 import behavior_msgs.msg.dds.FootstepPlanActionFootstepStateMessage;
+import us.ihmc.avatar.drcRobot.ROS2SyncedRobotModel;
 import us.ihmc.robotics.referenceFrames.DetachableReferenceFrame;
-import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
 
 public class FootstepPlanActionFootstepState
 {
+   private final ROS2SyncedRobotModel syncedRobot;
    private final FootstepPlanActionState footstepPlan;
    private final FootstepPlanActionFootstepDefinition definition;
    private final DetachableReferenceFrame soleFrame;
    private int index = -1;
 
-   public FootstepPlanActionFootstepState(ReferenceFrameLibrary referenceFrameLibrary,
+   public FootstepPlanActionFootstepState(ROS2SyncedRobotModel syncedRobot,
                                           FootstepPlanActionState footstepPlan,
                                           FootstepPlanActionFootstepDefinition definition)
    {
+      this.syncedRobot = syncedRobot;
       this.footstepPlan = footstepPlan;
       this.definition = definition;
 
-      soleFrame = new DetachableReferenceFrame(referenceFrameLibrary, definition.getSoleToPlanFrameTransform());
+      soleFrame = new DetachableReferenceFrame(definition.getSoleToPlanFrameTransform());
    }
 
    public void update()
    {
-      soleFrame.update(footstepPlan.getDefinition().getParentFrameName());
+      soleFrame.update(footstepPlan.getDefinition().getParentFrameName(), syncedRobot.getReferenceFrames().getCommonReferenceFrames());
    }
 
    public void toMessage(FootstepPlanActionFootstepStateMessage message)

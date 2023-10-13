@@ -1,27 +1,29 @@
-package us.ihmc.behaviors.sequence.actions;
+package us.ihmc.behaviors.sequence.actions.footstep;
 
 import behavior_msgs.msg.dds.FootstepPlanActionFootstepStateMessage;
 import behavior_msgs.msg.dds.FootstepPlanActionStateMessage;
+import us.ihmc.avatar.drcRobot.ROS2SyncedRobotModel;
 import us.ihmc.behaviors.sequence.BehaviorActionState;
 import us.ihmc.commons.lists.RecyclingArrayList;
 import us.ihmc.robotics.lists.RecyclingArrayListTools;
-import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
+import us.ihmc.robotics.referenceFrames.DetachableReferenceFrame;
 
 public class FootstepPlanActionState extends BehaviorActionState
 {
+   private ROS2SyncedRobotModel syncedRobot;
    private final FootstepPlanActionDefinition definition = new FootstepPlanActionDefinition();
-   private final ReferenceFrameLibrary referenceFrameLibrary;
    private int numberOfAllocatedFootsteps = 0;
    private final RecyclingArrayList<FootstepPlanActionFootstepState> footsteps;
+   private final DetachableReferenceFrame parentFrame;
 
-   public FootstepPlanActionState(ReferenceFrameLibrary referenceFrameLibrary)
+   public FootstepPlanActionState(ROS2SyncedRobotModel syncedRobot)
    {
-      this.referenceFrameLibrary = referenceFrameLibrary;
-
+      this.syncedRobot = syncedRobot;
       footsteps = new RecyclingArrayList<>(() ->
-         new FootstepPlanActionFootstepState(referenceFrameLibrary,
+         new FootstepPlanActionFootstepState(syncedRobot,
                                              this,
                                              RecyclingArrayListTools.getUnsafe(definition.getFootsteps(), numberOfAllocatedFootsteps++)));
+      parentFrame = new DetachableReferenceFrame();
    }
 
    @Override
@@ -35,7 +37,9 @@ public class FootstepPlanActionState extends BehaviorActionState
          footsteps.get(i).update();
       }
 
-      setCanExecute(referenceFrameLibrary.containsFrame(definition.getParentFrameName()));
+      parentFrame.update(definition.getParentFrameName(), syncedRobot.getReferenceFrames().getCommonReferenceFrames());
+
+      setCanExecute(parentFrame.isChildOfWorld());
    }
 
    public void toMessage(FootstepPlanActionStateMessage message)
@@ -73,5 +77,10 @@ public class FootstepPlanActionState extends BehaviorActionState
    public FootstepPlanActionDefinition getDefinition()
    {
       return definition;
+   }
+
+   public DetachableReferenceFrame getParentFrame()
+   {
+      return parentFrame;
    }
 }

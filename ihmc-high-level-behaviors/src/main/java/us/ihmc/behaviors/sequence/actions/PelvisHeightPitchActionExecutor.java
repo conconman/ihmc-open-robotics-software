@@ -13,7 +13,6 @@ import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
 import us.ihmc.tools.Timer;
 
 public class PelvisHeightPitchActionExecutor extends BehaviorActionExecutor
@@ -35,7 +34,6 @@ public class PelvisHeightPitchActionExecutor extends BehaviorActionExecutor
 
    public PelvisHeightPitchActionExecutor(BehaviorActionSequence sequence,
                                           ROS2ControllerHelper ros2ControllerHelper,
-                                          ReferenceFrameLibrary referenceFrameLibrary,
                                           ROS2SyncedRobotModel syncedRobot)
    {
       super(sequence);
@@ -43,14 +41,8 @@ public class PelvisHeightPitchActionExecutor extends BehaviorActionExecutor
       this.ros2ControllerHelper = ros2ControllerHelper;
       this.syncedRobot = syncedRobot;
 
-      state = new PelvisHeightPitchActionState(referenceFrameLibrary);
+      state = new PelvisHeightPitchActionState(syncedRobot);
       definition = state.getDefinition();
-   }
-
-   @Override
-   public void update()
-   {
-      super.update();
    }
 
    @Override

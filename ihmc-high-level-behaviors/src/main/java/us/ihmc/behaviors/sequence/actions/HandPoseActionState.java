@@ -1,24 +1,26 @@
 package us.ihmc.behaviors.sequence.actions;
 
 import behavior_msgs.msg.dds.HandPoseActionStateMessage;
+import us.ihmc.avatar.drcRobot.ROS2SyncedRobotModel;
 import us.ihmc.behaviors.sequence.BehaviorActionState;
 import us.ihmc.robotics.referenceFrames.DetachableReferenceFrame;
-import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
 
 public class HandPoseActionState extends BehaviorActionState
 {
+   private final ROS2SyncedRobotModel syncedRobot;
    private final HandPoseActionDefinition definition = new HandPoseActionDefinition();
    private final DetachableReferenceFrame palmFrame;
 
-   public HandPoseActionState(ReferenceFrameLibrary referenceFrameLibrary)
+   public HandPoseActionState(ROS2SyncedRobotModel syncedRobot)
    {
-      palmFrame = new DetachableReferenceFrame(referenceFrameLibrary, definition.getPalmTransformToParent());
+      this.syncedRobot = syncedRobot;
+      palmFrame = new DetachableReferenceFrame(definition.getPalmTransformToParent());
    }
 
    @Override
    public void update()
    {
-      palmFrame.update(definition.getPalmParentFrameName());
+      palmFrame.update(definition.getPalmParentFrameName(), syncedRobot.getReferenceFrames().getCommonReferenceFrames());
       setCanExecute(palmFrame.isChildOfWorld());
    }
 

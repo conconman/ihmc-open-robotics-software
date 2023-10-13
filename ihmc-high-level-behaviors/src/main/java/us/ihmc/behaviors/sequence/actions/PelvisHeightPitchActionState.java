@@ -1,24 +1,26 @@
 package us.ihmc.behaviors.sequence.actions;
 
 import behavior_msgs.msg.dds.PelvisHeightPitchActionStateMessage;
+import us.ihmc.avatar.drcRobot.ROS2SyncedRobotModel;
 import us.ihmc.behaviors.sequence.BehaviorActionState;
 import us.ihmc.robotics.referenceFrames.DetachableReferenceFrame;
-import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
 
 public class PelvisHeightPitchActionState extends BehaviorActionState
 {
+   private final ROS2SyncedRobotModel syncedRobot;
    private final PelvisHeightPitchActionDefinition definition = new PelvisHeightPitchActionDefinition();
    private final DetachableReferenceFrame pelvisFrame;
 
-   public PelvisHeightPitchActionState(ReferenceFrameLibrary referenceFrameLibrary)
+   public PelvisHeightPitchActionState(ROS2SyncedRobotModel syncedRobot)
    {
-      pelvisFrame = new DetachableReferenceFrame(referenceFrameLibrary, definition.getPelvisToParentTransform());
+      this.syncedRobot = syncedRobot;
+      pelvisFrame = new DetachableReferenceFrame(definition.getPelvisToParentTransform());
    }
 
    @Override
    public void update()
    {
-      pelvisFrame.update(definition.getParentFrameName());
+      pelvisFrame.update(definition.getParentFrameName(), syncedRobot.getReferenceFrames().getCommonReferenceFrames());
       setCanExecute(pelvisFrame.isChildOfWorld());
    }
 

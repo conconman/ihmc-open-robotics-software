@@ -6,9 +6,9 @@ import com.badlogic.gdx.utils.Pool;
 import imgui.ImGui;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.drcRobot.ROS2SyncedRobotModel;
-import us.ihmc.behaviors.sequence.actions.FootstepPlanActionDefinition;
-import us.ihmc.behaviors.sequence.actions.FootstepPlanActionFootstepState;
-import us.ihmc.behaviors.sequence.actions.FootstepPlanActionState;
+import us.ihmc.behaviors.sequence.actions.footstep.FootstepPlanActionDefinition;
+import us.ihmc.behaviors.sequence.actions.footstep.FootstepPlanActionFootstepState;
+import us.ihmc.behaviors.sequence.actions.footstep.FootstepPlanActionState;
 import us.ihmc.commons.lists.RecyclingArrayList;
 import us.ihmc.commons.thread.Notification;
 import us.ihmc.commons.thread.TypedNotification;
@@ -21,14 +21,12 @@ import us.ihmc.rdx.ui.RDXBaseUI;
 import us.ihmc.rdx.ui.behavior.editor.RDXBehaviorAction;
 import us.ihmc.rdx.ui.behavior.editor.RDXBehaviorActionSequenceEditor;
 import us.ihmc.robotics.lists.RecyclingArrayListTools;
-import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
 import us.ihmc.robotics.robotSide.RobotSide;
 
 public class RDXFootstepPlanAction extends RDXBehaviorAction
 {
    private final DRCRobotModel robotModel;
    private final ROS2SyncedRobotModel syncedRobot;
-   private final ReferenceFrameLibrary referenceFrameLibrary;
    private final FootstepPlanActionState state;
    private final FootstepPlanActionDefinition definition;
    private final ImGuiUniqueLabelMap labels = new ImGuiUniqueLabelMap(getClass());
@@ -44,20 +42,17 @@ public class RDXFootstepPlanAction extends RDXBehaviorAction
    public RDXFootstepPlanAction(RDXBehaviorActionSequenceEditor editor,
                                 RDXBaseUI baseUI,
                                 DRCRobotModel robotModel,
-                                ROS2SyncedRobotModel syncedRobot,
-                                ReferenceFrameLibrary referenceFrameLibrary)
+                                ROS2SyncedRobotModel syncedRobot)
    {
       super(editor);
 
       this.robotModel = robotModel;
       this.syncedRobot = syncedRobot;
-      this.referenceFrameLibrary = referenceFrameLibrary;
 
-      state = new FootstepPlanActionState(referenceFrameLibrary);
+      state = new FootstepPlanActionState(syncedRobot);
       definition = state.getDefinition();
 
       parentFrameComboBox = new ImGuiReferenceFrameLibraryCombo("Parent frame",
-                                                                referenceFrameLibrary,
                                                                 definition::getParentFrameName,
                                                                 definition::setParentFrameName);
       swingDurationWidget = new ImDoubleWrapper(definition::getSwingDuration,
@@ -81,7 +76,7 @@ public class RDXFootstepPlanAction extends RDXBehaviorAction
 
       RecyclingArrayListTools.synchronizeSize(footsteps, state.getFootsteps());
 
-      frameIsChildOfWorld = referenceFrameLibrary.containsFrame(definition.getParentFrameName());
+      frameIsChildOfWorld = state.getParentFrame().isChildOfWorld();
       if (frameIsChildOfWorld)
       {
          // Add a footstep to the action data only
@@ -111,7 +106,7 @@ public class RDXFootstepPlanAction extends RDXBehaviorAction
             double aLittleInFront = 0.15;
             newFootstepPose.getPosition().addX(aLittleInFront);
 
-            newFootstepPose.changeFrame(referenceFrameLibrary.findFrameByName(definition.getParentFrameName()));
+            newFootstepPose.changeFrame(state.getParentFrame().getReferenceFrame());
             addedFootstep.getDefinition().getSoleToPlanFrameTransform().set(newFootstepPose);
          }
 
@@ -159,7 +154,7 @@ public class RDXFootstepPlanAction extends RDXBehaviorAction
    @Override
    protected void renderImGuiWidgetsInternal()
    {
-      parentFrameComboBox.render();
+      parentFrameComboBox.render(syncedRobot.getReferenceFrames().getCommonReferenceFrames());
 
       ImGui.pushItemWidth(80.0f);
       swingDurationWidget.renderImGuiWidget();

@@ -1,4 +1,4 @@
-package us.ihmc.behaviors.sequence.actions;
+package us.ihmc.behaviors.sequence.actions.footstep;
 
 import behavior_msgs.msg.dds.ActionExecutionStatusMessage;
 import controller_msgs.msg.dds.FootstepDataListMessage;
@@ -17,7 +17,6 @@ import us.ihmc.footstepPlanning.FootstepDataMessageConverter;
 import us.ihmc.footstepPlanning.FootstepPlan;
 import us.ihmc.footstepPlanning.tools.PlannerTools;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.tools.Timer;
@@ -34,7 +33,6 @@ public class FootstepPlanActionExecutor extends BehaviorActionExecutor
    private final ROS2ControllerHelper ros2ControllerHelper;
    private final ROS2SyncedRobotModel syncedRobot;
    private final WalkingFootstepTracker footstepTracker;
-   private final ReferenceFrameLibrary referenceFrameLibrary;
    private final WalkingControllerParameters walkingControllerParameters;
    private final FramePose3D solePose = new FramePose3D();
    private final FootstepPlan footstepPlanToExecute = new FootstepPlan();
@@ -52,7 +50,6 @@ public class FootstepPlanActionExecutor extends BehaviorActionExecutor
                                      ROS2ControllerHelper ros2ControllerHelper,
                                      ROS2SyncedRobotModel syncedRobot,
                                      WalkingFootstepTracker footstepTracker,
-                                     ReferenceFrameLibrary referenceFrameLibrary,
                                      WalkingControllerParameters walkingControllerParameters)
    {
       super(sequence);
@@ -60,23 +57,16 @@ public class FootstepPlanActionExecutor extends BehaviorActionExecutor
       this.ros2ControllerHelper = ros2ControllerHelper;
       this.syncedRobot = syncedRobot;
       this.footstepTracker = footstepTracker;
-      this.referenceFrameLibrary = referenceFrameLibrary;
       this.walkingControllerParameters = walkingControllerParameters;
 
-      state = new FootstepPlanActionState(referenceFrameLibrary);
+      state = new FootstepPlanActionState(syncedRobot);
       definition = state.getDefinition();
-   }
-
-   @Override
-   public void update()
-   {
-      super.update();
    }
 
    @Override
    public void triggerActionExecution()
    {
-      if (referenceFrameLibrary.containsFrame(state.getDefinition().getParentFrameName()))
+      if (state.getParentFrame().isChildOfWorld())
       {
          footstepPlanToExecute.clear();
          for (FootstepPlanActionFootstepState footstep : state.getFootsteps())

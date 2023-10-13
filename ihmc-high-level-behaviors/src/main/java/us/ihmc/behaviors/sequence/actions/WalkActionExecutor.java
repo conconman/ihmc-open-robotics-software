@@ -22,7 +22,6 @@ import us.ihmc.footstepPlanning.log.FootstepPlannerLogger;
 import us.ihmc.footstepPlanning.tools.FootstepPlannerRejectionReasonReport;
 import us.ihmc.footstepPlanning.tools.PlannerTools;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.tools.Timer;
@@ -57,8 +56,7 @@ public class WalkActionExecutor extends BehaviorActionExecutor
                              WalkingFootstepTracker footstepTracker,
                              FootstepPlanningModule footstepPlanner,
                              FootstepPlannerParametersBasics footstepPlannerParameters,
-                             WalkingControllerParameters walkingControllerParameters,
-                             ReferenceFrameLibrary referenceFrameLibrary)
+                             WalkingControllerParameters walkingControllerParameters)
    {
       super(sequence);
 
@@ -69,7 +67,7 @@ public class WalkActionExecutor extends BehaviorActionExecutor
       this.footstepPlannerParameters = footstepPlannerParameters;
       this.walkingControllerParameters = walkingControllerParameters;
 
-      state = new WalkActionState(referenceFrameLibrary, footstepPlannerParameters);
+      state = new WalkActionState(syncedRobot, footstepPlannerParameters);
       definition = state.getDefinition();
    }
 

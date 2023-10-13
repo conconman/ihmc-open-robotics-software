@@ -9,10 +9,10 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiStyleVar;
-import imgui.ImGui;
 import imgui.internal.flag.ImGuiItemFlags;
 import imgui.type.ImBoolean;
 import org.apache.commons.lang3.mutable.MutableBoolean;
@@ -42,7 +42,6 @@ import us.ihmc.rdx.ui.RDXBaseUI;
 import us.ihmc.rdx.ui.behavior.editor.actions.*;
 import us.ihmc.rdx.vr.RDXVRContext;
 import us.ihmc.robotics.physics.RobotCollisionModel;
-import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SidedObject;
 import us.ihmc.ros2.ROS2Node;
@@ -89,7 +88,6 @@ public class RDXBehaviorActionSequenceEditor
    private DRCRobotModel robotModel;
    private ROS2SyncedRobotModel syncedRobot;
    private RobotCollisionModel selectionCollisionModel;
-   private ReferenceFrameLibrary referenceFrameLibrary;
    private ROS2ControllerHelper ros2ControllerHelper;
    private final TypedNotification<Class<? extends RDXBehaviorAction>> actionToCreate = new TypedNotification<>();
    private RobotSide sideOfNewAction;
@@ -146,15 +144,13 @@ public class RDXBehaviorActionSequenceEditor
                       DRCRobotModel robotModel,
                       ROS2Node ros2Node,
                       ROS2SyncedRobotModel syncedRobot,
-                      RobotCollisionModel selectionCollisionModel,
-                      ReferenceFrameLibrary referenceFrameLibrary)
+                      RobotCollisionModel selectionCollisionModel)
    {
       this.baseUI = baseUI;
       this.panel3D = panel3D;
       this.robotModel = robotModel;
       this.syncedRobot = syncedRobot;
       this.selectionCollisionModel = selectionCollisionModel;
-      this.referenceFrameLibrary = referenceFrameLibrary;
       ros2ControllerHelper = new ROS2ControllerHelper(ros2Node, robotModel);
 
       executionNextIndexStatusSubscription = ros2ControllerHelper.subscribe(BehaviorActionSequence.EXECUTION_NEXT_INDEX_STATUS_TOPIC);
@@ -190,7 +186,6 @@ public class RDXBehaviorActionSequenceEditor
                                                                                 selectionCollisionModel,
                                                                                 baseUI,
                                                                                 panel3D,
-                                                                                referenceFrameLibrary,
                                                                                 ros2ControllerHelper);
             if (action != null)
             {
@@ -288,15 +283,14 @@ public class RDXBehaviorActionSequenceEditor
                                                                                 selectionCollisionModel,
                                                                                 baseUI,
                                                                                 panel3D,
-                                                                                referenceFrameLibrary,
                                                                                 ros2ControllerHelper);
 
          if (newAction instanceof RDXWalkAction walkAction)
          {
             MovingReferenceFrame parentFrame = syncedRobot.getReferenceFrames().getMidFeetZUpFrame();
             walkAction.getDefinition().setParentFrameName(parentFrame.getName());
-            walkAction.getState().getGoalFrame().setToReferenceFrameIncludingParent(parentFrame);
-            walkAction.getState().getGoalFrame().update(findConvenientParentFrameName(walkAction, null));
+            walkAction.getState().getGoalFrame().setToReferenceFrameIncludingParent(parentFrame, syncedRobot.getReferenceFrames().getCommonReferenceFrames());
+            walkAction.getState().getGoalFrame().update(findConvenientParentFrameName(walkAction, null), syncedRobot.getReferenceFrames().getCommonReferenceFrames());
          }
          else if (newAction instanceof RDXHandPoseAction handPoseAction)
          {
@@ -332,12 +326,12 @@ public class RDXBehaviorActionSequenceEditor
             {
                chestOrientationAction.getDefinition().getChestToParentTransform()
                                      .set(nextPreviousChestOrientationAction.getDefinition().getChestToParentTransform());
-               chestOrientationAction.getState().getChestFrame().update(nextPreviousChestOrientationAction.getDefinition().getParentFrameName());
+               chestOrientationAction.getState().getChestFrame().update(nextPreviousChestOrientationAction.getDefinition().getParentFrameName(), syncedRobot.getReferenceFrames().getCommonReferenceFrames());
             }
             else // set to current robot's chest pose
             {
-               chestOrientationAction.getState().getChestFrame().setToReferenceFrameIncludingParent(syncedRobot.getReferenceFrames().getChestFrame());
-               chestOrientationAction.getState().getChestFrame().update(syncedRobot.getReferenceFrames().getPelvisZUpFrame().getName());
+               chestOrientationAction.getState().getChestFrame().setToReferenceFrameIncludingParent(syncedRobot.getReferenceFrames().getChestFrame(), syncedRobot.getReferenceFrames().getCommonReferenceFrames());
+               chestOrientationAction.getState().getChestFrame().update(syncedRobot.getReferenceFrames().getPelvisZUpFrame().getName(), syncedRobot.getReferenceFrames().getCommonReferenceFrames());
             }
          }
          else if (newAction instanceof RDXPelvisHeightPitchAction pelvisHeightPitchAction)
@@ -348,12 +342,12 @@ public class RDXBehaviorActionSequenceEditor
             {
                pelvisHeightPitchAction.getDefinition().getPelvisToParentTransform()
                                       .set(nextPreviousPelvisHeightAction.getDefinition().getPelvisToParentTransform());
-               pelvisHeightPitchAction.getState().getPelvisFrame().update(nextPreviousPelvisHeightAction.getDefinition().getParentFrameName());
+               pelvisHeightPitchAction.getState().getPelvisFrame().update(nextPreviousPelvisHeightAction.getDefinition().getParentFrameName(), syncedRobot.getReferenceFrames().getCommonReferenceFrames());
             }
             else // set to current robot's pelvis pose
             {
-               pelvisHeightPitchAction.getState().getPelvisFrame().setToReferenceFrameIncludingParent(syncedRobot.getReferenceFrames().getPelvisFrame());
-               pelvisHeightPitchAction.getState().getPelvisFrame().update(ReferenceFrame.getWorldFrame().getName());
+               pelvisHeightPitchAction.getState().getPelvisFrame().setToReferenceFrameIncludingParent(syncedRobot.getReferenceFrames().getPelvisFrame(), syncedRobot.getReferenceFrames().getCommonReferenceFrames());
+               pelvisHeightPitchAction.getState().getPelvisFrame().update(ReferenceFrame.getWorldFrame().getName(), syncedRobot.getReferenceFrames().getCommonReferenceFrames());
             }
          }
          else if (newAction instanceof RDXFootstepPlanAction footstepPlanAction)

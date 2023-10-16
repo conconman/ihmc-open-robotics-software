@@ -3,6 +3,7 @@ package us.ihmc.rdx.ui.behavior.editor;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.drcRobot.ROS2SyncedRobotModel;
 import us.ihmc.behaviors.sequence.actions.*;
+import us.ihmc.behaviors.sequence.actions.footstep.FootstepPlanActionDefinition;
 import us.ihmc.communication.ros2.ROS2ControllerPublishSubscribeAPI;
 import us.ihmc.rdx.ui.RDX3DPanel;
 import us.ihmc.rdx.ui.RDXBaseUI;
@@ -46,11 +47,10 @@ public class RDXActionSequenceTools
       }
       if (actionType.equals(ChestOrientationActionDefinition.class.getSimpleName()))
       {
-         return new RDXChestOrientationAction(syncedRobot,
-                                              editor,
+         return new RDXChestOrientationAction(editor,
                                               panel3D,
                                               robotModel,
-                                              syncedRobot.getFullRobotModel(),
+                                              syncedRobot,
                                               selectionCollisionModel,
                                               ros2);
       }
@@ -65,8 +65,7 @@ public class RDXActionSequenceTools
       if (actionType.equals(HandPoseActionDefinition.class.getSimpleName()))
       {
          return robotHasArms ?
-               new RDXHandPoseAction(syncedRobot, editor, panel3D, robotModel, syncedRobot.getFullRobotModel(), selectionCollisionModel, ros2) :
-               null;
+               new RDXHandPoseAction(editor, panel3D, robotModel, syncedRobot, selectionCollisionModel, ros2) : null;
       }
       if (actionType.equals(HandWrenchActionDefinition.class.getSimpleName()))
       {
@@ -74,11 +73,10 @@ public class RDXActionSequenceTools
       }
       if (actionType.equals(PelvisHeightPitchActionDefinition.class.getSimpleName()))
       {
-         return new RDXPelvisHeightPitchAction(syncedRobot,
-                                               editor,
+         return new RDXPelvisHeightPitchAction(editor,
                                                panel3D,
                                                robotModel,
-                                               syncedRobot.getFullRobotModel(),
+                                               syncedRobot,
                                                selectionCollisionModel,
                                                ros2);
       }

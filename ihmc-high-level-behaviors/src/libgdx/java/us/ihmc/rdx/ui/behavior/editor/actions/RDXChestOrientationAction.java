@@ -25,12 +25,11 @@ import us.ihmc.rdx.ui.affordances.RDXInteractableTools;
 import us.ihmc.rdx.ui.behavior.editor.RDXBehaviorAction;
 import us.ihmc.rdx.ui.behavior.editor.RDXBehaviorActionSequenceEditor;
 import us.ihmc.rdx.ui.gizmo.RDXSelectablePose3DGizmo;
-import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.MultiBodySystemMissingTools;
 import us.ihmc.robotics.interaction.MouseCollidable;
 import us.ihmc.robotics.physics.Collidable;
 import us.ihmc.robotics.physics.RobotCollisionModel;
-import us.ihmc.robotics.referenceFrames.ModifiableReferenceFrame;
+import us.ihmc.robotics.referenceFrames.MutableReferenceFrame;
 import us.ihmc.tools.thread.Throttler;
 
 import java.util.ArrayList;
@@ -39,7 +38,6 @@ import java.util.List;
 public class RDXChestOrientationAction extends RDXBehaviorAction
 {
    private final ROS2SyncedRobotModel syncedRobot;
-
    private final ChestOrientationActionState state;
    private final ChestOrientationActionDefinition definition;
    private final ImGuiUniqueLabelMap labels = new ImGuiUniqueLabelMap(getClass());
@@ -52,8 +50,8 @@ public class RDXChestOrientationAction extends RDXBehaviorAction
    private final ImDoubleWrapper trajectoryDurationWidget;
    /** Gizmo is control frame */
    private final RDXSelectablePose3DGizmo poseGizmo;
-   private final ModifiableReferenceFrame graphicFrame = new ModifiableReferenceFrame();
-   private final ModifiableReferenceFrame collisionShapeFrame = new ModifiableReferenceFrame();
+   private final MutableReferenceFrame graphicFrame = new MutableReferenceFrame();
+   private final MutableReferenceFrame collisionShapeFrame = new MutableReferenceFrame();
    private boolean isMouseHovering = false;
    private final ImGui3DViewPickResult pickResult = new ImGui3DViewPickResult();
    private final ArrayList<MouseCollidable> mouseCollidables = new ArrayList<>();
@@ -64,11 +62,10 @@ public class RDXChestOrientationAction extends RDXBehaviorAction
    private final Throttler throttler = new Throttler().setFrequency(10.0);
    private boolean wasConcurrent = false;
 
-   public RDXChestOrientationAction(ROS2SyncedRobotModel syncedRobot,
-                                    RDXBehaviorActionSequenceEditor editor,
+   public RDXChestOrientationAction(RDXBehaviorActionSequenceEditor editor,
                                     RDX3DPanel panel3D,
                                     DRCRobotModel robotModel,
-                                    FullHumanoidRobotModel syncedFullRobotModel,
+                                    ROS2SyncedRobotModel syncedRobot,
                                     RobotCollisionModel selectionCollisionModel,
                                     ROS2PublishSubscribeAPI ros2)
    {
@@ -103,11 +100,11 @@ public class RDXChestOrientationAction extends RDXBehaviorAction
                                                      definition::setTrajectoryDuration,
                                                      imDouble -> ImGuiTools.volatileInputDouble(labels.get("Trajectory duration"), imDouble));
 
-      String chestBodyName = syncedFullRobotModel.getChest().getName();
+      String chestBodyName = syncedRobot.getFullRobotModel().getChest().getName();
       String modelFileName = RDXInteractableTools.getModelFileName(robotModel.getRobotDefinition().getRigidBodyDefinition(chestBodyName));
       highlightModel = new RDXInteractableHighlightModel(modelFileName);
 
-      MultiBodySystemBasics chestOnlySystem = MultiBodySystemMissingTools.createSingleBodySystem(syncedFullRobotModel.getChest());
+      MultiBodySystemBasics chestOnlySystem = MultiBodySystemMissingTools.createSingleBodySystem(syncedRobot.getFullRobotModel().getChest());
       List<Collidable> chestCollidables = selectionCollisionModel.getRobotCollidables(chestOnlySystem);
 
       for (Collidable chestCollidable : chestCollidables)
@@ -129,8 +126,8 @@ public class RDXChestOrientationAction extends RDXBehaviorAction
          if (poseGizmo.getPoseGizmo().getGizmoFrame() != state.getChestFrame().getReferenceFrame())
          {
             poseGizmo.getPoseGizmo().setGizmoFrame(state.getChestFrame().getReferenceFrame());
-            graphicFrame.changeParentFrame(state.getChestFrame().getReferenceFrame());
-            collisionShapeFrame.changeParentFrame(state.getChestFrame().getReferenceFrame());
+            graphicFrame.setParentFrame(state.getChestFrame().getReferenceFrame());
+            collisionShapeFrame.setParentFrame(state.getChestFrame().getReferenceFrame());
          }
 
          poseGizmo.getPoseGizmo().update();

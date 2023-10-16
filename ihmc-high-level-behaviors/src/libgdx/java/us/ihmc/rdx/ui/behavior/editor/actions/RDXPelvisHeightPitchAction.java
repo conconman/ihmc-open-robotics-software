@@ -27,12 +27,11 @@ import us.ihmc.rdx.ui.affordances.RDXInteractableTools;
 import us.ihmc.rdx.ui.behavior.editor.RDXBehaviorAction;
 import us.ihmc.rdx.ui.behavior.editor.RDXBehaviorActionSequenceEditor;
 import us.ihmc.rdx.ui.gizmo.RDXSelectablePose3DGizmo;
-import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.MultiBodySystemMissingTools;
 import us.ihmc.robotics.interaction.MouseCollidable;
 import us.ihmc.robotics.physics.Collidable;
 import us.ihmc.robotics.physics.RobotCollisionModel;
-import us.ihmc.robotics.referenceFrames.ModifiableReferenceFrame;
+import us.ihmc.robotics.referenceFrames.MutableReferenceFrame;
 import us.ihmc.tools.thread.Throttler;
 
 import java.util.ArrayList;
@@ -40,8 +39,6 @@ import java.util.List;
 
 public class RDXPelvisHeightPitchAction extends RDXBehaviorAction
 {
-   private final ROS2SyncedRobotModel syncedRobot;
-
    private final PelvisHeightPitchActionState state;
    private final PelvisHeightPitchActionDefinition definition;
    private final ImGuiUniqueLabelMap labels = new ImGuiUniqueLabelMap(getClass());
@@ -51,34 +48,31 @@ public class RDXPelvisHeightPitchAction extends RDXBehaviorAction
    /** Gizmo is control frame */
    private final RDXSelectablePose3DGizmo poseGizmo;
    private final ImBooleanWrapper executeWithNextActionWrapper;
-   private final ModifiableReferenceFrame graphicFrame = new ModifiableReferenceFrame();
-   private final ModifiableReferenceFrame collisionShapeFrame = new ModifiableReferenceFrame();
+   private final MutableReferenceFrame graphicFrame = new MutableReferenceFrame();
+   private final MutableReferenceFrame collisionShapeFrame = new MutableReferenceFrame();
    private boolean isMouseHovering = false;
    private final ImGui3DViewPickResult pickResult = new ImGui3DViewPickResult();
    private final ArrayList<MouseCollidable> mouseCollidables = new ArrayList<>();
    private final RDXInteractableHighlightModel highlightModel;
    private final ImGuiReferenceFrameLibraryCombo parentFrameComboBox;
    private final RDX3DPanelTooltip tooltip;
-   private final FullHumanoidRobotModel syncedFullRobotModel;
+   private final ROS2SyncedRobotModel syncedRobot;
    private final ROS2PublishSubscribeAPI ros2;
    private final BodyPartPoseStatusMessage pelvisPoseStatus = new BodyPartPoseStatusMessage();
    private final Throttler throttler = new Throttler().setFrequency(10.0);
    private boolean wasConcurrent = false;
 
-   public RDXPelvisHeightPitchAction(ROS2SyncedRobotModel syncedRobot,
-                                     RDXBehaviorActionSequenceEditor editor,
+   public RDXPelvisHeightPitchAction(RDXBehaviorActionSequenceEditor editor,
                                      RDX3DPanel panel3D,
                                      DRCRobotModel robotModel,
-                                     FullHumanoidRobotModel syncedFullRobotModel,
+                                     ROS2SyncedRobotModel syncedRobot,
                                      RobotCollisionModel selectionCollisionModel,
                                      ROS2PublishSubscribeAPI ros2)
    {
       super(editor);
 
-      this.syncedRobot = syncedRobot;
-
       this.ros2 = ros2;
-      this.syncedFullRobotModel = syncedFullRobotModel;
+      this.syncedRobot = syncedRobot;
 
       state = new PelvisHeightPitchActionState(syncedRobot);
       definition = state.getDefinition();
@@ -100,11 +94,11 @@ public class RDXPelvisHeightPitchAction extends RDXBehaviorAction
                                                           definition::setExecuteWithNextAction,
                                                           imBoolean -> ImGui.checkbox(labels.get("Execute with next action"), imBoolean));
 
-      String pelvisBodyName = syncedFullRobotModel.getPelvis().getName();
+      String pelvisBodyName = syncedRobot.getFullRobotModel().getPelvis().getName();
       String modelFileName = RDXInteractableTools.getModelFileName(robotModel.getRobotDefinition().getRigidBodyDefinition(pelvisBodyName));
       highlightModel = new RDXInteractableHighlightModel(modelFileName);
 
-      MultiBodySystemBasics pelvisOnlySystem = MultiBodySystemMissingTools.createSingleBodySystem(syncedFullRobotModel.getPelvis());
+      MultiBodySystemBasics pelvisOnlySystem = MultiBodySystemMissingTools.createSingleBodySystem(syncedRobot.getFullRobotModel().getPelvis());
       List<Collidable> pelvisCollidables = selectionCollisionModel.getRobotCollidables(pelvisOnlySystem);
 
       for (Collidable pelvisCollidable : pelvisCollidables)
@@ -126,8 +120,8 @@ public class RDXPelvisHeightPitchAction extends RDXBehaviorAction
          if (poseGizmo.getPoseGizmo().getGizmoFrame() != state.getPelvisFrame().getReferenceFrame())
          {
             poseGizmo.getPoseGizmo().setGizmoFrame(state.getPelvisFrame().getReferenceFrame());
-            graphicFrame.changeParentFrame(state.getPelvisFrame().getReferenceFrame());
-            collisionShapeFrame.changeParentFrame(state.getPelvisFrame().getReferenceFrame());
+            graphicFrame.setParentFrame(state.getPelvisFrame().getReferenceFrame());
+            collisionShapeFrame.setParentFrame(state.getPelvisFrame().getReferenceFrame());
          }
 
          poseGizmo.getPoseGizmo().update();
@@ -145,7 +139,7 @@ public class RDXPelvisHeightPitchAction extends RDXBehaviorAction
          pelvisPoseStatus.setParentFrameName(definition.getParentFrameName());
 
          // compute transform variation from previous pose
-         FramePose3D currentRobotPelvisPose = new FramePose3D(syncedFullRobotModel.getPelvis().getParentJoint().getFrameAfterJoint());
+         FramePose3D currentRobotPelvisPose = new FramePose3D(syncedRobot.getFullRobotModel().getPelvis().getParentJoint().getFrameAfterJoint());
          if (state.getPelvisFrame().getReferenceFrame().getParent() != currentRobotPelvisPose.getReferenceFrame())
             currentRobotPelvisPose.changeFrame(state.getPelvisFrame().getReferenceFrame().getParent());
          RigidBodyTransform transformVariation = new RigidBodyTransform();

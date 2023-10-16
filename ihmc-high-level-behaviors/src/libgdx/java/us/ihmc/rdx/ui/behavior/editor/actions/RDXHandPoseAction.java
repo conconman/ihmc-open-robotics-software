@@ -38,14 +38,13 @@ import us.ihmc.rdx.ui.affordances.RDXInteractableTools;
 import us.ihmc.rdx.ui.behavior.editor.RDXBehaviorAction;
 import us.ihmc.rdx.ui.behavior.editor.RDXBehaviorActionSequenceEditor;
 import us.ihmc.rdx.ui.gizmo.RDXSelectablePose3DGizmo;
-import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.MultiBodySystemMissingTools;
 import us.ihmc.robotics.interaction.MouseCollidable;
 import us.ihmc.robotics.partNames.ArmJointName;
 import us.ihmc.robotics.partNames.HumanoidJointNameMap;
 import us.ihmc.robotics.physics.Collidable;
 import us.ihmc.robotics.physics.RobotCollisionModel;
-import us.ihmc.robotics.referenceFrames.ModifiableReferenceFrame;
+import us.ihmc.robotics.referenceFrames.MutableReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
@@ -60,18 +59,17 @@ import java.util.List;
 
 public class RDXHandPoseAction extends RDXBehaviorAction
 {
-   private final ROS2SyncedRobotModel syncedRobot;
-
    public static final String GOOD_QUALITY_COLOR = "0x4B61D1";
    public static final String BAD_QUALITY_COLOR = "0xD14B4B";
+   private final ROS2SyncedRobotModel syncedRobot;
    private final HandPoseActionState state;
    private final HandPoseActionDefinition definition;
    private final ImGuiUniqueLabelMap labels = new ImGuiUniqueLabelMap(getClass());
    /** Gizmo is control frame */
    private final RDXSelectablePose3DGizmo poseGizmo;
    private final SideDependentList<String> handNames = new SideDependentList<>();
-   private final ModifiableReferenceFrame graphicFrame = new ModifiableReferenceFrame();
-   private final ModifiableReferenceFrame collisionShapeFrame = new ModifiableReferenceFrame();
+   private final MutableReferenceFrame graphicFrame = new MutableReferenceFrame();
+   private final MutableReferenceFrame collisionShapeFrame = new MutableReferenceFrame();
    private final Color goodQualityColor;
    private final Color badQualityColor;
    private boolean isMouseHovering = false;
@@ -91,11 +89,10 @@ public class RDXHandPoseAction extends RDXBehaviorAction
    private final RDX3DPanelTooltip tooltip;
    private final IKRootCalculator rootCalculator;
 
-   public RDXHandPoseAction(ROS2SyncedRobotModel syncedRobot,
-                            RDXBehaviorActionSequenceEditor editor,
+   public RDXHandPoseAction(RDXBehaviorActionSequenceEditor editor,
                             RDX3DPanel panel3D,
                             DRCRobotModel robotModel,
-                            FullHumanoidRobotModel syncedFullRobotModel,
+                            ROS2SyncedRobotModel syncedRobot,
                             RobotCollisionModel selectionCollisionModel,
                             ROS2ControllerPublishSubscribeAPI ros2)
    {
@@ -134,9 +131,9 @@ public class RDXHandPoseAction extends RDXBehaviorAction
 
       for (RobotSide side : RobotSide.values)
       {
-         handNames.put(side, syncedFullRobotModel.getHand(side).getName());
+         handNames.put(side, syncedRobot.getFullRobotModel().getHand(side).getName());
 
-         RigidBodyTransformReadOnly graphicToControlFrameTransform = HandTransformTools.getHandGraphicToControlFrameTransform(syncedFullRobotModel,
+         RigidBodyTransformReadOnly graphicToControlFrameTransform = HandTransformTools.getHandGraphicToControlFrameTransform(syncedRobot.getFullRobotModel(),
                                                                                                                               robotModel.getUIParameters(),
                                                                                                                               side);
          graphicFrame.update(transformToParent -> transformToParent.set(graphicToControlFrameTransform));
@@ -145,10 +142,10 @@ public class RDXHandPoseAction extends RDXBehaviorAction
          String modelFileName = RDXInteractableTools.getModelFileName(robotModel.getRobotDefinition().getRigidBodyDefinition(handBodyName));
          highlightModels.put(side, new RDXInteractableHighlightModel(modelFileName));
 
-         MultiBodySystemBasics handOnlySystem = MultiBodySystemMissingTools.createSingleBodySystem(syncedFullRobotModel.getHand(side));
+         MultiBodySystemBasics handOnlySystem = MultiBodySystemMissingTools.createSingleBodySystem(syncedRobot.getFullRobotModel().getHand(side));
          List<Collidable> handCollidables = selectionCollisionModel.getRobotCollidables(handOnlySystem);
 
-         RigidBodyTransformReadOnly linkToControlFrameTransform = HandTransformTools.getHandLinkToControlFrameTransform(syncedFullRobotModel, side);
+         RigidBodyTransformReadOnly linkToControlFrameTransform = HandTransformTools.getHandLinkToControlFrameTransform(syncedRobot.getFullRobotModel(), side);
          collisionShapeFrame.update(transformToParent -> transformToParent.set(linkToControlFrameTransform));
 
          for (Collidable handCollidable : handCollidables)
@@ -168,8 +165,8 @@ public class RDXHandPoseAction extends RDXBehaviorAction
             body.getVisualDefinitions().forEach(visual -> visual.setMaterialDefinition(material));
          });
          RigidBodyBasics armOnlyMultiBody
-               = MultiBodySystemMissingTools.getDetachedCopyOfSubtreeWithElevator(syncedFullRobotModel.getChest(),
-                                                                                  syncedFullRobotModel.getArmJoint(side, firstArmJointName));
+               = MultiBodySystemMissingTools.getDetachedCopyOfSubtreeWithElevator(syncedRobot.getFullRobotModel().getChest(),
+                                                                                  syncedRobot.getFullRobotModel().getArmJoint(side, firstArmJointName));
          armMultiBodyGraphics.put(side,
                                   RDXMultiBodySystemFactories.toRDXMultiBodySystem(armOnlyMultiBody, armDefinition, RDXVisualTools.DESIRED_ROBOT_SCALING));
          armMultiBodyGraphics.get(side).getRigidBodiesToHide().add("elevator");
@@ -199,8 +196,8 @@ public class RDXHandPoseAction extends RDXBehaviorAction
          if (poseGizmo.getPoseGizmo().getGizmoFrame() != state.getPalmFrame().getReferenceFrame())
          {
             poseGizmo.getPoseGizmo().setGizmoFrame(state.getPalmFrame().getReferenceFrame());
-            graphicFrame.changeParentFrame(state.getPalmFrame().getReferenceFrame());
-            collisionShapeFrame.changeParentFrame(state.getPalmFrame().getReferenceFrame());
+            graphicFrame.setParentFrame(state.getPalmFrame().getReferenceFrame());
+            collisionShapeFrame.setParentFrame(state.getPalmFrame().getReferenceFrame());
          }
 
          poseGizmo.getPoseGizmo().update();

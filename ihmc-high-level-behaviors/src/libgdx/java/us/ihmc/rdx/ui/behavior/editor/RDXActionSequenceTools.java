@@ -2,6 +2,7 @@ package us.ihmc.rdx.ui.behavior.editor;
 
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.drcRobot.ROS2SyncedRobotModel;
+import us.ihmc.behaviors.sequence.actions.*;
 import us.ihmc.communication.ros2.ROS2ControllerPublishSubscribeAPI;
 import us.ihmc.rdx.ui.RDX3DPanel;
 import us.ihmc.rdx.ui.RDXBaseUI;
@@ -39,11 +40,11 @@ public class RDXActionSequenceTools
                                                      ROS2ControllerPublishSubscribeAPI ros2)
    {
       boolean robotHasArms = robotModel.getRobotVersion().hasArms();
-      if (actionType.equals(RDXArmJointAnglesAction.class.getSimpleName()))
+      if (actionType.equals(ArmJointAnglesActionDefinition.class.getSimpleName()))
       {
          return robotHasArms ? new RDXArmJointAnglesAction(editor, robotModel) : null;
       }
-      if (actionType.equals(RDXChestOrientationAction.class.getSimpleName()))
+      if (actionType.equals(ChestOrientationActionDefinition.class.getSimpleName()))
       {
          return new RDXChestOrientationAction(syncedRobot,
                                               editor,
@@ -53,25 +54,25 @@ public class RDXActionSequenceTools
                                               selectionCollisionModel,
                                               ros2);
       }
-      if (actionType.equals(RDXFootstepPlanAction.class.getSimpleName()))
+      if (actionType.equals(FootstepPlanActionDefinition.class.getSimpleName()))
       {
          return new RDXFootstepPlanAction(editor, baseUI, robotModel, syncedRobot);
       }
-      if (actionType.equals(RDXSakeHandCommandAction.class.getSimpleName()))
+      if (actionType.equals(SakeHandCommandActionDefinition.class.getSimpleName()))
       {
          return robotHasArms ? new RDXSakeHandCommandAction(editor) : null;
       }
-      if (actionType.equals(RDXHandPoseAction.class.getSimpleName()))
+      if (actionType.equals(HandPoseActionDefinition.class.getSimpleName()))
       {
          return robotHasArms ?
                new RDXHandPoseAction(syncedRobot, editor, panel3D, robotModel, syncedRobot.getFullRobotModel(), selectionCollisionModel, ros2) :
                null;
       }
-      if (actionType.equals(RDXHandWrenchAction.class.getSimpleName()))
+      if (actionType.equals(HandWrenchActionDefinition.class.getSimpleName()))
       {
          return robotHasArms ? new RDXHandWrenchAction(editor) : null;
       }
-      if (actionType.equals(RDXPelvisHeightPitchAction.class.getSimpleName()))
+      if (actionType.equals(PelvisHeightPitchActionDefinition.class.getSimpleName()))
       {
          return new RDXPelvisHeightPitchAction(syncedRobot,
                                                editor,
@@ -81,11 +82,11 @@ public class RDXActionSequenceTools
                                                selectionCollisionModel,
                                                ros2);
       }
-      if (actionType.equals(RDXWaitDurationAction.class.getSimpleName()))
+      if (actionType.equals(WaitDurationActionDefinition.class.getSimpleName()))
       {
          return new RDXWaitDurationAction(editor);
       }
-      if (actionType.equals(RDXWalkAction.class.getSimpleName()))
+      if (actionType.equals(WalkActionDefinition.class.getSimpleName()))
       {
          return new RDXWalkAction(syncedRobot, editor, panel3D, robotModel);
       }

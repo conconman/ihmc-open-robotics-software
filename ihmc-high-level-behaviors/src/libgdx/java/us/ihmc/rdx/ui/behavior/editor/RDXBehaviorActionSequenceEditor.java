@@ -236,7 +236,6 @@ public class RDXBehaviorActionSequenceEditor
             for (RDXBehaviorAction behaviorAction : actionSequence)
             {
                ObjectNode actionNode = actionsArrayNode.addObject();
-               actionNode.put("type", behaviorAction.getClass().getSimpleName());
                behaviorAction.getDefinition().saveToFile(actionNode);
                behaviorAction.update();
             }

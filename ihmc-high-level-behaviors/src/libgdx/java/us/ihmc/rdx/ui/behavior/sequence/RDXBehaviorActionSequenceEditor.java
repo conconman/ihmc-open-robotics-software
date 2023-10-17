@@ -215,6 +215,7 @@ public class RDXBehaviorActionSequenceEditor
       if (successfullyLoadedActions.getValue())
       {
          commandNextActionIndex(0);
+         panel3D.getNotificationManager().pushNotification("Loaded action sequence: " + workspaceFile.getFileName());
          return true;
       }
 
@@ -374,6 +375,8 @@ public class RDXBehaviorActionSequenceEditor
 
          int insertionIndex = executionNextIndexStatus == actionSequence.size() ? executionNextIndexStatus : executionNextIndexStatus + 1;
          actionSequence.add(insertionIndex, newAction);
+
+         panel3D.getNotificationManager().pushNotification("Added new " + actionType.getSimpleName());
 
          for (int i = 0; i < actionSequence.size(); i++)
          {

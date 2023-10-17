@@ -340,6 +340,7 @@ public class RDXBehaviorActionSequenceEditor
                chestOrientationAction.getState().getChestFrame().update(syncedRobot.getReferenceFrames().getPelvisZUpFrame().getName(), syncedRobot.getReferenceFrames()
                                                                                                                                                    .getCommonReferenceFrames());
             }
+            chestOrientationAction.getDefinition().setParentFrameName(chestOrientationAction.getReferenceFrame().getName());
          }
          else if (newAction instanceof RDXPelvisHeightPitchAction pelvisHeightPitchAction)
          {
@@ -359,6 +360,7 @@ public class RDXBehaviorActionSequenceEditor
                pelvisHeightPitchAction.getState().getPelvisFrame().update(ReferenceFrame.getWorldFrame().getName(), syncedRobot.getReferenceFrames()
                                                                                                                                .getCommonReferenceFrames());
             }
+            pelvisHeightPitchAction.getDefinition().setParentFrameName(pelvisHeightPitchAction.getReferenceFrame().getName());
          }
          else if (newAction instanceof RDXFootstepPlanAction footstepPlanAction)
          {

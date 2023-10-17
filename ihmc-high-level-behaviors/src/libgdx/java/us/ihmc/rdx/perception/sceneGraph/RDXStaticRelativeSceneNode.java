@@ -28,12 +28,11 @@ public class RDXStaticRelativeSceneNode extends RDXPredefinedRigidBodySceneNode
    }
 
    @Override
-   public void renderImGuiWidgets(SceneGraphModificationQueue modificationQueue, SceneGraph sceneGraph)
+   public void renderImGuiControls(SceneGraphModificationQueue modificationQueue, SceneGraph sceneGraph)
    {
-      super.renderImGuiWidgets(modificationQueue, sceneGraph);
+      super.renderImGuiControls(modificationQueue, sceneGraph);
 
       ImGui.text("Current distance: %.2f".formatted(staticRelativeSceneNode.getCurrentDistance()));
-      ImGui.sameLine();
       distanceToDisableTrackingInput.render();
    }
 

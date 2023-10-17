@@ -21,10 +21,9 @@ public abstract class RDXDetectableSceneNode extends RDXSceneNode
    }
 
    @Override
-   public void renderImGuiWidgets(SceneGraphModificationQueue modificationQueue, SceneGraph sceneGraph)
+   public void renderImGuiControls(SceneGraphModificationQueue modificationQueue, SceneGraph sceneGraph)
    {
-      super.renderImGuiWidgets(modificationQueue, sceneGraph);
-      ImGui.sameLine();
+      super.renderImGuiControls(modificationQueue, sceneGraph);
 
       boolean currentlyDetected = detectableSceneNode.getCurrentlyDetected();
       currentlyDetectedPlot.setWidgetTextColor(currentlyDetected ? ImGuiTools.GREEN : ImGuiTools.RED);

@@ -57,6 +57,7 @@ public class RDXPrimitiveRigidBodySceneNode extends RDXRigidBodySceneNode
       modelInstance.setColor(GHOST_COLOR);
    }
 
+   @Override
    public void update(SceneGraphModificationQueue modificationQueue)
    {
       super.update(modificationQueue);
@@ -64,9 +65,10 @@ public class RDXPrimitiveRigidBodySceneNode extends RDXRigidBodySceneNode
       modelInstance.setTransformToWorldFrame(visualModelToWorldTransform);
    }
 
-   public void renderImGuiWidgets(SceneGraphModificationQueue modificationQueue, SceneGraph sceneGraph)
+   @Override
+   public void renderImGuiControls(SceneGraphModificationQueue modificationQueue, SceneGraph sceneGraph)
    {
-      super.renderImGuiWidgets(modificationQueue, sceneGraph);
+      super.renderImGuiControls(modificationQueue, sceneGraph);
 
       ImGui.text("Modify shape:");
 
@@ -158,6 +160,7 @@ public class RDXPrimitiveRigidBodySceneNode extends RDXRigidBodySceneNode
       }
    }
 
+   @Override
    public void getRenderables(Array<Renderable> renderables, Pool<Renderable> pool, Set<RDXSceneLevel> sceneLevels)
    {
       super.getRenderables(renderables, pool, sceneLevels);

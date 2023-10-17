@@ -5,9 +5,12 @@ import us.ihmc.perception.sceneGraph.SceneGraph;
 import us.ihmc.perception.sceneGraph.arUco.ArUcoMarkerNode;
 import us.ihmc.perception.sceneGraph.modification.SceneGraphModificationQueue;
 import us.ihmc.rdx.imgui.ImGuiInputDoubleWrapper;
+import us.ihmc.rdx.tools.RDXIconTexture;
 
 public class RDXArUcoMarkerNode extends RDXDetectableSceneNode
 {
+   private static final RDXIconTexture ARUCO_ICON = new RDXIconTexture("icons/sceneNodeIcons/aruco.png");
+
    private final ArUcoMarkerNode arUcoMarkerNode;
    private final ImGuiInputDoubleWrapper alphaFilterValueSlider;
 
@@ -28,11 +31,17 @@ public class RDXArUcoMarkerNode extends RDXDetectableSceneNode
    }
 
    @Override
-   public void renderImGuiWidgets(SceneGraphModificationQueue modificationQueue, SceneGraph sceneGraph)
+   public void renderImGuiControls(SceneGraphModificationQueue modificationQueue, SceneGraph sceneGraph)
    {
-      super.renderImGuiWidgets(modificationQueue, sceneGraph);
+      super.renderImGuiControls(modificationQueue, sceneGraph);
+
       ImGui.text("Marker ID: %d   Size: %.2f m".formatted(arUcoMarkerNode.getMarkerID(), arUcoMarkerNode.getMarkerSize()));
-      ImGui.sameLine();
       alphaFilterValueSlider.render();
+   }
+
+   @Override
+   public RDXIconTexture getIcon()
+   {
+      return ARUCO_ICON;
    }
 }

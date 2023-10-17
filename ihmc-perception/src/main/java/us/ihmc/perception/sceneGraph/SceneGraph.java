@@ -44,6 +44,7 @@ public class SceneGraph
    private transient final Map<String, SceneNode> namesToNodesMap = new HashMap<>();
    private transient final TIntObjectMap<ArUcoMarkerNode> arUcoMarkerIDToNodeMap = new TIntObjectHashMap<>();
    private transient final SortedSet<SceneNode> sceneNodesByID = new TreeSet<>(Comparator.comparingLong(SceneNode::getID));
+   private transient String[] sceneNodeNamesArray = new String[0];
 
    public SceneGraph()
    {
@@ -113,6 +114,13 @@ public class SceneGraph
       arUcoMarkerIDToNodeMap.clear();
       sceneNodesByID.clear();
       updateCaches(rootNode);
+
+      sceneNodeNamesArray = new String[sceneNodesByID.size()];
+      int index = 0;
+      for (SceneNode sceneNode : sceneNodesByID)
+      {
+         sceneNodeNamesArray[index++] = sceneNode.getName();
+      }
    }
 
    private void updateCaches(SceneNode node)
@@ -171,6 +179,11 @@ public class SceneGraph
    public SortedSet<SceneNode> getSceneNodesByID()
    {
       return sceneNodesByID;
+   }
+
+   public String[] getSceneNodeNamesArray()
+   {
+      return sceneNodeNamesArray;
    }
 
    public ReferenceFrameDynamicCollection asNewDynamicReferenceFrameCollection()

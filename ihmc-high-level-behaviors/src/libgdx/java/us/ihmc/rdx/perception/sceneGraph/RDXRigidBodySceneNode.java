@@ -42,6 +42,7 @@ public class RDXRigidBodySceneNode extends RDXSceneNode
                                                       imBoolean -> ImGui.checkbox(labels.get("Track " + initialParentName), imBoolean));
    }
 
+   @Override
    public void update(SceneGraphModificationQueue modificationQueue)
    {
       if (trackDetectedPoseChanged.poll())
@@ -73,16 +74,15 @@ public class RDXRigidBodySceneNode extends RDXSceneNode
          initialParentName = rigidBodySceneNode.getNodeFrame().getParent().getName();
    }
 
-   public void renderImGuiWidgets(SceneGraphModificationQueue modificationQueue, SceneGraph sceneGraph)
+   @Override
+   public void renderImGuiControls(SceneGraphModificationQueue modificationQueue, SceneGraph sceneGraph)
    {
-      super.renderImGuiWidgets(modificationQueue, sceneGraph);
-      ImGui.sameLine();
+      super.renderImGuiControls(modificationQueue, sceneGraph);
+
       ImGui.text(" Parent: " + rigidBodySceneNode.getNodeFrame().getParent().getName());
 
       trackDetectedPoseWrapper.renderImGuiWidget();
-      ImGui.sameLine();
       ImGui.checkbox(labels.get("Show Offset Gizmo"), offsetPoseGizmo.getSelected());
-      ImGui.sameLine();
       if (ImGui.button(labels.get("Clear Offset")))
       {
          rigidBodySceneNode.clearOffset();

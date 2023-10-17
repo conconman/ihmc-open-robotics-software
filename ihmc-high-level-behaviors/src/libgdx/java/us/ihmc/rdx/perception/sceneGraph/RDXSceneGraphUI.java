@@ -212,6 +212,8 @@ public class RDXSceneGraphUI
       ImGui.endMenuBar();
    }
 
+   private int currentSelectedSceneNodeIndex = 0;
+
    public void renderImGuiWidgets()
    {
       sceneGraph.modifyTree(modificationQueue ->
@@ -242,13 +244,39 @@ public class RDXSceneGraphUI
          }
          else // Render IDs in order so they don't jump around
          {
-            for (SceneNode sceneNode : sceneGraph.getSceneNodesByID())
+            ImGui.pushItemWidth(-1); // Don't render a label on the ListBox
+            if (ImGui.beginListBox("##sceneNodesListBox"))
             {
-               if (uiSceneNodes.containsKey(sceneNode))
+               for (int i = 0; i < sceneGraph.getSceneNodeNamesArray().length; i++)
                {
-                  ImGuiTools.textBold(sceneNode.getName());
-                  uiSceneNodes.get(sceneNode).renderImGuiWidgets(modificationQueue, sceneGraph);
-                  ImGui.separator();
+                  SceneNode sceneNode = sceneGraph.getNamesToNodesMap().get(sceneGraph.getSceneNodeNamesArray()[i]);
+
+                  boolean isSelected = currentSelectedSceneNodeIndex == i;
+
+                  uiSceneNodes.get(sceneNode).renderIcon();
+
+                  ImGui.sameLine();
+
+                  if (ImGui.selectable(sceneGraph.getSceneNodeNamesArray()[i], isSelected))
+                  {
+                     currentSelectedSceneNodeIndex = i;
+                  }
+
+                  if (isSelected)
+                     ImGui.setItemDefaultFocus();
+               }
+
+               ImGui.endListBox();
+            }
+
+            if (sceneGraph.getSceneNodeNamesArray().length > 0)
+            {
+               SceneNode selectedSceneNode = sceneGraph.getNamesToNodesMap().get(sceneGraph.getSceneNodeNamesArray()[currentSelectedSceneNodeIndex]);
+
+               // Render selected SceneNode controls
+               if (uiSceneNodes.containsKey(selectedSceneNode))
+               {
+                  uiSceneNodes.get(selectedSceneNode).renderImGuiControls(modificationQueue, sceneGraph);
                }
             }
          }
@@ -271,7 +299,7 @@ public class RDXSceneGraphUI
             expanded = true;
             ImGui.popFont();
 
-            uiSceneNode.renderImGuiWidgets(modificationQueue, sceneGraph);
+            uiSceneNode.renderImGuiControls(modificationQueue, sceneGraph);
             for (SceneNode child : sceneNode.getChildren())
             {
                renderSceneNodesAsTree(modificationQueue, child);

@@ -184,7 +184,8 @@ class ZED2CenterposeNode():
         y_pixels_height = 200
         x = 1280 - x_pixels_width
         y = 720 - y_pixels_height
-        cv2.rectangle(image, (x, y), (x + x_pixels_width, y + y_pixels_height), (0, 0, 0), -1)
+        # cv2.rectangle(image, (x, y), (x + x_pixels_width, y + y_pixels_height), (0, 0, 0), -1)
+        cv2.rectangle(image, (720, 520), (1280, 720), (0, 0, 0), -1)
 
         detection:Detection = self.processImage(image)
 

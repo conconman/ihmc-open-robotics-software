@@ -15,12 +15,12 @@ from perception_msgs.msg import ImageMessage
 
 from lib.opts import opts
 from lib.detectors.object_pose import ObjectPoseDetector
-from models import CenterPoseTrackModels, CenterPoseModels, archType, experiment_type
+from models import CenterPoseTrackModels, CenterPoseModels, archType, experiment_type, getModelPath
 from dataclasses import dataclass
 
 @dataclass
 class Detection():
-    object_id : int
+    object_id : int = 0
     stabilizer : int = 0
     sequence_id : int = 0
     skipDetaction : bool = False
@@ -31,7 +31,6 @@ class Detection():
     confidence: float = 0.0
     quaternion_xyzw: Rotation = Rotation.from_quat([0, 0, 0, 1])
     position: np.ndarray = np.zeros((3))
-
 
 class ZED2CenterposeNode():
     def __init__(self, experiment:experiment_type):
@@ -50,7 +49,7 @@ class ZED2CenterposeNode():
         self.scale = 10.0
         
         self.opt.arch = self.my_archType.value
-        self.opt.load_model = self.my_model.value
+        self.opt.load_model = getModelPath[self.my_model.value]
         self.opt.debug = 5
 
         # Default setting

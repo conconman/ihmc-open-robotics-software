@@ -20,6 +20,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Detection():
+    object_id : int
     stabilizer : int = 0
     sequence_id : int = 0
     skipDetaction : bool = False
@@ -41,15 +42,15 @@ class ZED2CenterposeNode():
 
         self.opt.tracking_task = False
         if self.opt.tracking_task == True:
-            my_archType = archType.TRACKING
-            my_model = CenterPoseTrackModels.MUG
+            self.my_archType = archType.TRACKING
+            self.my_model = CenterPoseTrackModels.MUG
         else:
-            my_archType = archType.NOTRACKING
-            my_model = CenterPoseModels.MUG
+            self.my_archType = archType.NOTRACKING
+            self.my_model = CenterPoseModels.MUG
         self.scale = 10.0
         
-        self.opt.arch = my_archType.value
-        self.opt.load_model = my_model.value
+        self.opt.arch = self.my_archType.value
+        self.opt.load_model = self.my_model.value
         self.opt.debug = 5
 
         # Default setting
@@ -180,6 +181,12 @@ class ZED2CenterposeNode():
         image_np = np.frombuffer(b''.join(msg.data), dtype=np.uint8)
         image = cv2.imdecode(image_np, cv2.COLOR_BGR2RGB)
         
+        x_pixels_width = 720
+        y_pixels_height = 200
+        x = 1280 - x_pixels_width
+        y = 720 - y_pixels_height
+        cv2.rectangle(image, (x, y), (x + x_pixels_width, y + y_pixels_height), (0, 0, 0), -1)
+
         detection:Detection = self.processImage(image)
 
         if detection is not None and isinstance(detection, Detection):
@@ -192,7 +199,8 @@ class ZED2CenterposeNode():
             detection = Detection()
 
             detection.confidence = ret['results'][0]['score']
-            detection.objectType = "cup"
+            detection.objectType = self.my_model.name
+            detection.object_id = self.my_model.value
 
             if 'kps_3d_cam' in ret['results'][0]:
                 detection.kps_3d = []
@@ -232,6 +240,7 @@ class ZED2CenterposeNode():
 
     def publish_message(self, detection:Detection):
         if detection.skipDetaction == False:
+            self.detected_object.id = detection.object_id
             detection.sequence_id += 1
             self.detected_object.sequence_id = detection.sequence_id
             self.detected_object.confidence = detection.confidence

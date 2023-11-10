@@ -1,50 +1,52 @@
 from enum import Enum
+from dataclasses import dataclass
+import argparse
 
-Models_path = "/root/centerpose-ros2/models"
+Models_path = "/root/centerpose-ros2"
 
-getModelPath = {
-        0 : Models_path + "/bike_v1_140.pth",
-        1 : Models_path + "/book_v1_140.pth",
-        2 : Models_path + "/bottle_v1_sym_12_140.pth",
-        3 : Models_path + "/camera_v1_140.pth",
-        4 : Models_path + "/cereal_box_v1_140.pth",
-        5 : Models_path + "/chair_v1_140.pth",
-        6 : Models_path + "/cup_cup_v1_sym_12_140",
-        7 : Models_path + "/cup_mug_v1_140.pth",
-        8 : Models_path + "/laptop_v1_140.pth",
-        9 : Models_path + "/shoe_v1_140.pth"
-    }
+@dataclass
+class CenterposeObjectClass():
+    id : int
+    modelPath : str
+    trackingModelPath : str
+    modelScale : float
 
-class CenterPoseModels(Enum):
-    BIKE = 0
-    BOOK = 1
-    BOTTLE = 2
-    CAMERA = 3
-    CEREAL = 4
-    CHAIR = 5
-    CUP = 6
-    MUG = 7
-    LAPTOP = 8
-    SHOE = 9
+    def getID(self):
+        return self.id
+    
+    def getModelPath(self):
+        return Models_path + "/models" + self.modelPath
+    
+    def getTrackingModelPath(self):
+        return Models_path + "/models" + self.trackingModelPath
+    
+    def getModelScale(self):
+        return self.modelScale
 
-    getModelPath = {
-        0 : Models_path + "/bike_v1_140.pth",
-        1 : Models_path + "/book_v1_140.pth",
-        2 : Models_path + "/bottle_v1_sym_12_140.pth",
-        3 : Models_path + "/camera_v1_140.pth",
-        4 : Models_path + "/cereal_box_v1_140.pth",
-        5 : Models_path + "/chair_v1_140.pth",
-        6 : Models_path + "/cup_cup_v1_sym_12_140",
-        7 : Models_path + "/cup_mug_v1_140.pth",
-        8 : Models_path + "/laptop_v1_140.pth",
-        9 : Models_path + "/shoe_v1_140.pth"
-    }
+class ArgTypeMixin(Enum):
 
-    def get_path(self):
-        return CenterPoseModels.getModelPath[int(self.value)]
+    @classmethod
+    def argtype(cls, s: str) -> Enum:
+        try:
+            return cls[s]
+        except KeyError:
+            raise argparse.ArgumentTypeError(
+                f"{s!r} is not a valid {cls.__name__}")
 
-class CenterPoseTrackModels(Enum):
-    MUG = Models_path + "/cup_mug_15.pth"
+    def __str__(self):
+        return self.name
+
+class CenterPoseModels(ArgTypeMixin, Enum):
+    BIKE = CenterposeObjectClass(0,"bike_v1_140.pth", "", 1.0)
+    BOOK = CenterposeObjectClass(1, "/book_v1_140.pth", "", 1.0)
+    BOTTLE = CenterposeObjectClass(2, "/bottle_v1_sym_12_140.pth", "", 1.0)
+    CAMERA = CenterposeObjectClass(3, "/camera_v1_140.pth", "", 1.0)
+    CEREAL = CenterposeObjectClass(4, "/cereal_box_v1_140.pth", "", 1.0)
+    CHAIR = CenterposeObjectClass(5, "/chair_v1_140.pth", "", 1.27)
+    CUP = CenterposeObjectClass(6, "/cup_cup_v1_sym_12_140", "", 1.0)
+    MUG = CenterposeObjectClass(7, "/cup_mug_v1_140.pth", "/cup_mug_15.pth", 10.0)
+    LAPTOP = CenterposeObjectClass(8, "/laptop_v1_140.pth", "", 1.0)
+    SHOE = CenterposeObjectClass(9, "/shoe_v1_140.pth", "", 1.0)
 
 class archType(Enum):
     NOTRACKING = 'dlav1_34'
@@ -58,4 +60,6 @@ if __name__ == '__main__':
     my_model = CenterPoseModels.MUG
     print(my_model.name)
     print(my_model.value)
-    print(my_model.get_path())
+    print(my_model.value.getID())
+    print(my_model.value.getModelPath())
+    print(my_model.value.getModelScale())

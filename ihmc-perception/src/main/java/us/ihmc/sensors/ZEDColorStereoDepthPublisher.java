@@ -15,6 +15,7 @@ import us.ihmc.communication.IHMCROS2Publisher;
 import us.ihmc.communication.PerceptionAPI;
 import us.ihmc.communication.ROS2Tools;
 import us.ihmc.communication.packets.MessageTools;
+import us.ihmc.communication.ros2.ROS2Helper;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.log.LogTools;
@@ -429,6 +430,14 @@ public class ZEDColorStereoDepthPublisher
 
    public static void main(String[] args)
    {
-      new ZEDColorStereoDepthPublisher(0, PerceptionAPI.ZED2_COLOR_IMAGES, PerceptionAPI.ZED2_DEPTH, ReferenceFrame::getWorldFrame);
+      ROS2Node ros2Node = ROS2Tools.createROS2Node(DomainFactory.PubSubImplementation.FAST_RTPS, "nadia_zed2_color_stereo_depth_publisher_node");
+      ROS2Helper ros2Helper = new ROS2Helper(ros2Node);
+
+      ROS2SceneGraph sceneGraph = new ROS2SceneGraph(ros2Helper);
+
+      CenterposeDetectionManager centerposeDetectionManager = new CenterposeDetectionManager(ros2Helper, ZEDModelData.createCameraReferenceFrame(RobotSide.LEFT, ReferenceFrame.getWorldFrame()));
+
+      ZEDColorStereoDepthPublisher zed2Publisher = new ZEDColorStereoDepthPublisher(0, PerceptionAPI.ZED2_COLOR_IMAGES, PerceptionAPI.ZED2_DEPTH, ReferenceFrame::getWorldFrame);
+      zed2Publisher.createCenterposeDetectionManager(sceneGraph, centerposeDetectionManager);
    }
 }

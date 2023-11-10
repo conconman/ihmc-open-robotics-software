@@ -30,14 +30,19 @@ public class CenterposeDetectionManager
    private final IHMCROS2Input<DetectedObjectPacket> subscriber;
    private final Map<Integer, TimeBasedDetectionFilter> centerposeNodeDetectionFilters = new HashMap<>();
    private final ReferenceFrame centerposeOutputFrame;
+   private final ReferenceFrame rosSensorFrame;
 
    public CenterposeDetectionManager(ROS2Helper ros2Helper, ReferenceFrame sensorFrame)
    {
       ROS2Topic<DetectedObjectPacket> topicName = PerceptionAPI.CENTERPOSE_DETECTED_OBJECT;
       subscriber = ros2Helper.subscribe(topicName);
 
+      rosSensorFrame = ReferenceFrameTools.constructFrameWithChangingTransformToParent("RosSensorFrame",
+                                                                                       ReferenceFrame.getWorldFrame(),
+                                                                                       new RigidBodyTransform());
+
       centerposeOutputFrame = ReferenceFrameTools.constructFrameWithUnchangingTransformToParent("CenterposeOutputFrame",
-                                                                                                sensorFrame,
+                                                                                                rosSensorFrame,
                                                                                                 CENTERPOSE_DETECTION_TO_IHMC_ZUP_TRANSFORM);
    }
 
@@ -47,6 +52,8 @@ public class CenterposeDetectionManager
       if (subscriber.getMessageNotification().poll())
       {
          DetectedObjectPacket detectedObjectPacket = subscriber.getMessageNotification().read();
+
+         rosSensorFrame.getTransformToParent().set(detectedObjectPacket.getPose());
 
          // Update or add the corresponding CenterposeSceneNode
          sceneGraph.modifyTree(modificationQueue ->

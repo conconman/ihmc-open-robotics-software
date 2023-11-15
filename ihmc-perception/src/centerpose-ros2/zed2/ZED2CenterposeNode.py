@@ -208,6 +208,7 @@ class ZED2CenterposeNode():
         self.depthImageSwapReference.set_var1(msg)
 
     def checkForFalseDetections(self, image:ImageMessage, detection:Detection):
+        # TODO
         return detection
     
     def listener_color_callback(self, msg):

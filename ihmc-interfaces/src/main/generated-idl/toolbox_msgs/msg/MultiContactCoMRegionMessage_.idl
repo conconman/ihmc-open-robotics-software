@@ -1,0 +1,28 @@
+#ifndef __toolbox_msgs__msg__MultiContactCoMRegionMessage__idl__
+#define __toolbox_msgs__msg__MultiContactCoMRegionMessage__idl__
+
+#include "ihmc_common_msgs/msg/./Point2DMessage_.idl"
+module toolbox_msgs
+{
+  module msg
+  {
+    module dds
+    {
+
+      /**
+       * This message is part of the multi-contact feasibility module
+       * This message acts as an output of the module and contains the CoM region of the current keyframe.
+       */
+      @TypeCode(type="toolbox_msgs::msg::dds_::MultiContactCoMRegionMessage_")
+      struct MultiContactCoMRegionMessage
+      {
+        /**
+         * Feasible CoM region of the current keyframe
+         */
+        sequence<ihmc_common_msgs::msg::dds::Point2DMessage, 20> support_polygon;
+      };
+    };
+  };
+};
+
+#endif

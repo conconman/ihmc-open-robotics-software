@@ -1,0 +1,36 @@
+#ifndef __toolbox_msgs__msg__MultiContactScripingInputMessage__idl__
+#define __toolbox_msgs__msg__MultiContactScripingInputMessage__idl__
+
+#include "toolbox_msgs/msg/./MultiContactKinematicsSnapshot_.idl"
+module toolbox_msgs
+{
+  module msg
+  {
+    module dds
+    {
+
+      /**
+       * This message is part of the multi-contact feasibility module
+       * This message acts as an input to the module and describes the candidate robot state.
+       */
+      @TypeCode(type="toolbox_msgs::msg::dds_::MultiContactScripingInputMessage_")
+      struct MultiContactScripingInputMessage
+      {
+        /**
+         * The current keyframe snapshot
+         */
+        toolbox_msgs::msg::dds::MultiContactKinematicsSnapshot snapshot;
+        /**
+         * The current keyframe snapshot (optional)
+         */
+        toolbox_msgs::msg::dds::MultiContactKinematicsSnapshot previous_snapshot;
+        /**
+         * Whether previous_snapshot is populated
+         */
+        boolean contains_previous_keyframe;
+      };
+    };
+  };
+};
+
+#endif

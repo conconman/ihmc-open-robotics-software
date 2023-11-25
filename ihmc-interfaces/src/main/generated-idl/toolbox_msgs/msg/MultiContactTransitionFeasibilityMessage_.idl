@@ -1,0 +1,27 @@
+#ifndef __toolbox_msgs__msg__MultiContactTransitionFeasibilityMessage__idl__
+#define __toolbox_msgs__msg__MultiContactTransitionFeasibilityMessage__idl__
+
+module toolbox_msgs
+{
+  module msg
+  {
+    module dds
+    {
+
+      /**
+       * This message is part of the multi-contact feasibility module
+       * This message acts as an output of the module and specifies if the candidate keyframe transition is feasible.
+       */
+      @TypeCode(type="toolbox_msgs::msg::dds_::MultiContactTransitionFeasibilityMessage_")
+      struct MultiContactTransitionFeasibilityMessage
+      {
+        /**
+         * Whether the current keyframe transition is feasible
+         */
+        boolean is_transition_feasible;
+      };
+    };
+  };
+};
+
+#endif

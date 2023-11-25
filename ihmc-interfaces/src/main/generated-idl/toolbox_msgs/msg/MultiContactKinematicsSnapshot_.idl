@@ -1,0 +1,42 @@
+#ifndef __toolbox_msgs__msg__MultiContactKinematicsSnapshot__idl__
+#define __toolbox_msgs__msg__MultiContactKinematicsSnapshot__idl__
+
+#include "geometry_msgs/msg/./Vector3_.idl"
+#include "toolbox_msgs/msg/./KinematicsToolboxInputCollectionMessage_.idl"
+#include "toolbox_msgs/msg/./KinematicsToolboxOutputStatus_.idl"
+module toolbox_msgs
+{
+  module msg
+  {
+    module dds
+    {
+
+      /**
+       * This message is part of the multi-contact feasibility module
+       * This message describes how a keyframe is parameterized in terms of kinematic objectives
+       */
+      @TypeCode(type="toolbox_msgs::msg::dds_::MultiContactKinematicsSnapshot_")
+      struct MultiContactKinematicsSnapshot
+      {
+        /**
+         * The keyframe kinematics snapshot
+         */
+        toolbox_msgs::msg::dds::KinematicsToolboxInputCollectionMessage kinematics_snapshot;
+        /**
+         * The output of the IK toolbox
+         */
+        toolbox_msgs::msg::dds::KinematicsToolboxOutputStatus kinematics_solution;
+        /**
+         * Which rigid bodies are in contact in kinematics_snapshot
+         */
+        sequence<boolean, 20> in_contact;
+        /**
+         * The surface normals of the contacting rigid bodies
+         */
+        sequence<geometry_msgs::msg::dds::Vector3, 20> surface_normals;
+      };
+    };
+  };
+};
+
+#endif

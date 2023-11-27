@@ -15,7 +15,7 @@ public class Polygon2DMessagePubSubType implements us.ihmc.pubsub.TopicDataType<
    @Override
    public final java.lang.String getDefinitionChecksum()
    {
-   		return "baad5603602cdd1f156c6cd14741553878c3617142e82daabc86d4b5b8adc618";
+   		return "a933937976b7f1c59db6917169dda67313dd8fa4cc110214a27e2411bf78e934";
    }
    
    @Override
@@ -54,9 +54,9 @@ public class Polygon2DMessagePubSubType implements us.ihmc.pubsub.TopicDataType<
 
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
 
-      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);for(int i0 = 0; i0 < 50; ++i0)
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);for(int i0 = 0; i0 < 25; ++i0)
       {
-          current_alignment += geometry_msgs.msg.dds.PointPubSubType.getMaxCdrSerializedSize(current_alignment);}
+          current_alignment += ihmc_common_msgs.msg.dds.Point2DMessagePubSubType.getMaxCdrSerializedSize(current_alignment);}
 
       return current_alignment - initial_alignment;
    }
@@ -76,7 +76,7 @@ public class Polygon2DMessagePubSubType implements us.ihmc.pubsub.TopicDataType<
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
       for(int i0 = 0; i0 < data.getVertices().size(); ++i0)
       {
-          current_alignment += geometry_msgs.msg.dds.PointPubSubType.getCdrSerializedSize(data.getVertices().get(i0), current_alignment);}
+          current_alignment += ihmc_common_msgs.msg.dds.Point2DMessagePubSubType.getCdrSerializedSize(data.getVertices().get(i0), current_alignment);}
 
 
       return current_alignment - initial_alignment;
@@ -86,7 +86,7 @@ public class Polygon2DMessagePubSubType implements us.ihmc.pubsub.TopicDataType<
    {
       cdr.write_type_4(data.getSequenceId());
 
-      if(data.getVertices().size() <= 50)
+      if(data.getVertices().size() <= 25)
       cdr.write_type_e(data.getVertices());else
           throw new RuntimeException("vertices field exceeds the maximum length");
 

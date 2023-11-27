@@ -1,7 +1,7 @@
 #ifndef __controller_msgs__msg__Polygon2DMessage__idl__
 #define __controller_msgs__msg__Polygon2DMessage__idl__
 
-#include "geometry_msgs/msg/./Point_.idl"
+#include "ihmc_common_msgs/msg/./Point2DMessage_.idl"
 module controller_msgs
 {
   module msg
@@ -19,7 +19,7 @@ module controller_msgs
          * Unique ID used to identify this message, should preferably be consecutively increasing.
          */
         unsigned long sequence_id;
-        sequence<geometry_msgs::msg::dds::Point, 50> vertices;
+        sequence<ihmc_common_msgs::msg::dds::Point2DMessage, 25> vertices;
       };
     };
   };

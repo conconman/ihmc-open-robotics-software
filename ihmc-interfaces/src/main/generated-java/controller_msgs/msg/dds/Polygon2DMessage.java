@@ -15,11 +15,11 @@ public class Polygon2DMessage extends Packet<Polygon2DMessage> implements Settab
             * Unique ID used to identify this message, should preferably be consecutively increasing.
             */
    public long sequence_id_;
-   public us.ihmc.idl.IDLSequence.Object<us.ihmc.euclid.tuple3D.Point3D>  vertices_;
+   public us.ihmc.idl.IDLSequence.Object<ihmc_common_msgs.msg.dds.Point2DMessage>  vertices_;
 
    public Polygon2DMessage()
    {
-      vertices_ = new us.ihmc.idl.IDLSequence.Object<us.ihmc.euclid.tuple3D.Point3D> (50, new geometry_msgs.msg.dds.PointPubSubType());
+      vertices_ = new us.ihmc.idl.IDLSequence.Object<ihmc_common_msgs.msg.dds.Point2DMessage> (25, new ihmc_common_msgs.msg.dds.Point2DMessagePubSubType());
 
    }
 
@@ -52,7 +52,7 @@ public class Polygon2DMessage extends Packet<Polygon2DMessage> implements Settab
    }
 
 
-   public us.ihmc.idl.IDLSequence.Object<us.ihmc.euclid.tuple3D.Point3D>  getVertices()
+   public us.ihmc.idl.IDLSequence.Object<ihmc_common_msgs.msg.dds.Point2DMessage>  getVertices()
    {
       return vertices_;
    }

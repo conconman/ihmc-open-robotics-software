@@ -15,11 +15,16 @@ public class MultiContactCoMRegionMessage extends Packet<MultiContactCoMRegionMe
    /**
             * Feasible CoM region of the current keyframe
             */
-   public us.ihmc.idl.IDLSequence.Object<ihmc_common_msgs.msg.dds.Point2DMessage>  support_polygon_;
+   public controller_msgs.msg.dds.Polygon2DMessage com_feasibility_region_;
+   /**
+            * Feasible CoM region for contact removability
+            */
+   public us.ihmc.idl.IDLSequence.Object<controller_msgs.msg.dds.Polygon2DMessage>  com_feasibility_preview_regions_;
 
    public MultiContactCoMRegionMessage()
    {
-      support_polygon_ = new us.ihmc.idl.IDLSequence.Object<ihmc_common_msgs.msg.dds.Point2DMessage> (20, new ihmc_common_msgs.msg.dds.Point2DMessagePubSubType());
+      com_feasibility_region_ = new controller_msgs.msg.dds.Polygon2DMessage();
+      com_feasibility_preview_regions_ = new us.ihmc.idl.IDLSequence.Object<controller_msgs.msg.dds.Polygon2DMessage> (15, new controller_msgs.msg.dds.Polygon2DMessagePubSubType());
 
    }
 
@@ -31,16 +36,26 @@ public class MultiContactCoMRegionMessage extends Packet<MultiContactCoMRegionMe
 
    public void set(MultiContactCoMRegionMessage other)
    {
-      support_polygon_.set(other.support_polygon_);
+      controller_msgs.msg.dds.Polygon2DMessagePubSubType.staticCopy(other.com_feasibility_region_, com_feasibility_region_);
+      com_feasibility_preview_regions_.set(other.com_feasibility_preview_regions_);
    }
 
 
    /**
             * Feasible CoM region of the current keyframe
             */
-   public us.ihmc.idl.IDLSequence.Object<ihmc_common_msgs.msg.dds.Point2DMessage>  getSupportPolygon()
+   public controller_msgs.msg.dds.Polygon2DMessage getComFeasibilityRegion()
    {
-      return support_polygon_;
+      return com_feasibility_region_;
+   }
+
+
+   /**
+            * Feasible CoM region for contact removability
+            */
+   public us.ihmc.idl.IDLSequence.Object<controller_msgs.msg.dds.Polygon2DMessage>  getComFeasibilityPreviewRegions()
+   {
+      return com_feasibility_preview_regions_;
    }
 
 
@@ -61,12 +76,14 @@ public class MultiContactCoMRegionMessage extends Packet<MultiContactCoMRegionMe
       if(other == null) return false;
       if(other == this) return true;
 
-      if (this.support_polygon_.size() != other.support_polygon_.size()) { return false; }
+      if (!this.com_feasibility_region_.epsilonEquals(other.com_feasibility_region_, epsilon)) return false;
+      if (this.com_feasibility_preview_regions_.size() != other.com_feasibility_preview_regions_.size()) { return false; }
       else
       {
-         for (int i = 0; i < this.support_polygon_.size(); i++)
-         {  if (!this.support_polygon_.get(i).epsilonEquals(other.support_polygon_.get(i), epsilon)) return false; }
+         for (int i = 0; i < this.com_feasibility_preview_regions_.size(); i++)
+         {  if (!this.com_feasibility_preview_regions_.get(i).epsilonEquals(other.com_feasibility_preview_regions_.get(i), epsilon)) return false; }
       }
+
 
       return true;
    }
@@ -80,7 +97,8 @@ public class MultiContactCoMRegionMessage extends Packet<MultiContactCoMRegionMe
 
       MultiContactCoMRegionMessage otherMyClass = (MultiContactCoMRegionMessage) other;
 
-      if (!this.support_polygon_.equals(otherMyClass.support_polygon_)) return false;
+      if (!this.com_feasibility_region_.equals(otherMyClass.com_feasibility_region_)) return false;
+      if (!this.com_feasibility_preview_regions_.equals(otherMyClass.com_feasibility_preview_regions_)) return false;
 
       return true;
    }
@@ -91,8 +109,10 @@ public class MultiContactCoMRegionMessage extends Packet<MultiContactCoMRegionMe
       StringBuilder builder = new StringBuilder();
 
       builder.append("MultiContactCoMRegionMessage {");
-      builder.append("support_polygon=");
-      builder.append(this.support_polygon_);
+      builder.append("com_feasibility_region=");
+      builder.append(this.com_feasibility_region_);      builder.append(", ");
+      builder.append("com_feasibility_preview_regions=");
+      builder.append(this.com_feasibility_preview_regions_);
       builder.append("}");
       return builder.toString();
    }

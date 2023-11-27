@@ -1,7 +1,7 @@
 #ifndef __toolbox_msgs__msg__MultiContactCoMRegionMessage__idl__
 #define __toolbox_msgs__msg__MultiContactCoMRegionMessage__idl__
 
-#include "ihmc_common_msgs/msg/./Point2DMessage_.idl"
+#include "controller_msgs/msg/./Polygon2DMessage_.idl"
 module toolbox_msgs
 {
   module msg
@@ -19,7 +19,11 @@ module toolbox_msgs
         /**
          * Feasible CoM region of the current keyframe
          */
-        sequence<ihmc_common_msgs::msg::dds::Point2DMessage, 20> support_polygon;
+        controller_msgs::msg::dds::Polygon2DMessage com_feasibility_region;
+        /**
+         * Feasible CoM region for contact removability
+         */
+        sequence<controller_msgs::msg::dds::Polygon2DMessage, 15> com_feasibility_preview_regions;
       };
     };
   };

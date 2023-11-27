@@ -2,5 +2,7 @@
 # This message acts as an output of the module and contains the CoM region of the current keyframe.
 
 # Feasible CoM region of the current keyframe
-ihmc_common_msgs/Point2DMessage[<=20] support_polygon
+controller_msgs/Polygon2DMessage com_feasibility_region
 
+# Feasible CoM region for contact removability
+controller_msgs/Polygon2DMessage[<=15] com_feasibility_preview_regions

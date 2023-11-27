@@ -15,7 +15,7 @@ public class MultiContactCoMRegionMessagePubSubType implements us.ihmc.pubsub.To
    @Override
    public final java.lang.String getDefinitionChecksum()
    {
-   		return "37922f872bbeedf1264f7832ed8aa694ac40d840737532c00736532e38408781";
+   		return "a233aa4194a35fd929e9065b5bfac052ffa8ef23581aa5ab883d4a12656fe029";
    }
    
    @Override
@@ -52,9 +52,12 @@ public class MultiContactCoMRegionMessagePubSubType implements us.ihmc.pubsub.To
    {
       int initial_alignment = current_alignment;
 
-      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);for(int i0 = 0; i0 < 20; ++i0)
+      current_alignment += controller_msgs.msg.dds.Polygon2DMessagePubSubType.getMaxCdrSerializedSize(current_alignment);
+
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);for(int i0 = 0; i0 < 15; ++i0)
       {
-          current_alignment += ihmc_common_msgs.msg.dds.Point2DMessagePubSubType.getMaxCdrSerializedSize(current_alignment);}
+          current_alignment += controller_msgs.msg.dds.Polygon2DMessagePubSubType.getMaxCdrSerializedSize(current_alignment);}
+
       return current_alignment - initial_alignment;
    }
 
@@ -67,38 +70,47 @@ public class MultiContactCoMRegionMessagePubSubType implements us.ihmc.pubsub.To
    {
       int initial_alignment = current_alignment;
 
+      current_alignment += controller_msgs.msg.dds.Polygon2DMessagePubSubType.getCdrSerializedSize(data.getComFeasibilityRegion(), current_alignment);
+
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
-      for(int i0 = 0; i0 < data.getSupportPolygon().size(); ++i0)
+      for(int i0 = 0; i0 < data.getComFeasibilityPreviewRegions().size(); ++i0)
       {
-          current_alignment += ihmc_common_msgs.msg.dds.Point2DMessagePubSubType.getCdrSerializedSize(data.getSupportPolygon().get(i0), current_alignment);}
+          current_alignment += controller_msgs.msg.dds.Polygon2DMessagePubSubType.getCdrSerializedSize(data.getComFeasibilityPreviewRegions().get(i0), current_alignment);}
+
 
       return current_alignment - initial_alignment;
    }
 
    public static void write(toolbox_msgs.msg.dds.MultiContactCoMRegionMessage data, us.ihmc.idl.CDR cdr)
    {
-      if(data.getSupportPolygon().size() <= 20)
-      cdr.write_type_e(data.getSupportPolygon());else
-          throw new RuntimeException("support_polygon field exceeds the maximum length");
+      controller_msgs.msg.dds.Polygon2DMessagePubSubType.write(data.getComFeasibilityRegion(), cdr);
+      if(data.getComFeasibilityPreviewRegions().size() <= 15)
+      cdr.write_type_e(data.getComFeasibilityPreviewRegions());else
+          throw new RuntimeException("com_feasibility_preview_regions field exceeds the maximum length");
 
    }
 
    public static void read(toolbox_msgs.msg.dds.MultiContactCoMRegionMessage data, us.ihmc.idl.CDR cdr)
    {
-      cdr.read_type_e(data.getSupportPolygon());	
+      controller_msgs.msg.dds.Polygon2DMessagePubSubType.read(data.getComFeasibilityRegion(), cdr);	
+      cdr.read_type_e(data.getComFeasibilityPreviewRegions());	
 
    }
 
    @Override
    public final void serialize(toolbox_msgs.msg.dds.MultiContactCoMRegionMessage data, us.ihmc.idl.InterchangeSerializer ser)
    {
-      ser.write_type_e("support_polygon", data.getSupportPolygon());
+      ser.write_type_a("com_feasibility_region", new controller_msgs.msg.dds.Polygon2DMessagePubSubType(), data.getComFeasibilityRegion());
+
+      ser.write_type_e("com_feasibility_preview_regions", data.getComFeasibilityPreviewRegions());
    }
 
    @Override
    public final void deserialize(us.ihmc.idl.InterchangeSerializer ser, toolbox_msgs.msg.dds.MultiContactCoMRegionMessage data)
    {
-      ser.read_type_e("support_polygon", data.getSupportPolygon());
+      ser.read_type_a("com_feasibility_region", new controller_msgs.msg.dds.Polygon2DMessagePubSubType(), data.getComFeasibilityRegion());
+
+      ser.read_type_e("com_feasibility_preview_regions", data.getComFeasibilityPreviewRegions());
    }
 
    public static void staticCopy(toolbox_msgs.msg.dds.MultiContactCoMRegionMessage src, toolbox_msgs.msg.dds.MultiContactCoMRegionMessage dest)

@@ -15,7 +15,7 @@ public class MultiContactCoMRegionPreviewMessagePubSubType implements us.ihmc.pu
    @Override
    public final java.lang.String getDefinitionChecksum()
    {
-   		return "19ebc7a39d3a6ec8658e7e41580d2eac1fafc581677e6ed617a99714c1ba49f9";
+   		return "ad31cc4e41f3504083cd3c8fe4825fd9bae1055a1032a2a11fb9794d3b3551e2";
    }
    
    @Override

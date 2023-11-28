@@ -1,5 +1,5 @@
 # File units = meters
-mtllib Total Platform.mtl
+mtllib workPlatform.mtl
 g Part 1
 v 0.902895 1.01838 2.8599 
 v 0.902895 1.01838 2.5551 

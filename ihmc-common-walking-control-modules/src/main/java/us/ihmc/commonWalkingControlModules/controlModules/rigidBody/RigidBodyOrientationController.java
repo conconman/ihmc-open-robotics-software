@@ -272,4 +272,9 @@ public class RigidBodyOrientationController extends RigidBodyTaskspaceControlSta
    {
       return null;
    }
+
+   public RigidBodyOrientationControlHelper getOrientationControlHelper()
+   {
+      return orientationHelper;
+   }
 }

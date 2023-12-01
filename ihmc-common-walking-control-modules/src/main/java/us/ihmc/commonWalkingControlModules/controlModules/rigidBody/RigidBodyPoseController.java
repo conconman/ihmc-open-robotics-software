@@ -391,4 +391,10 @@ public class RigidBodyPoseController extends RigidBodyTaskspaceControlState
       group.addChild(positionHelper.getSCS2YoGraphics());
       return group;
    }
+
+   @Override
+   public RigidBodyOrientationControlHelper getOrientationControlHelper()
+   {
+      return orientationHelper;
+   }
 }

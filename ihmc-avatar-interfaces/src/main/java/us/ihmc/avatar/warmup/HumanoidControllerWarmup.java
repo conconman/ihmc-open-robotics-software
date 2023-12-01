@@ -307,6 +307,7 @@ public abstract class HumanoidControllerWarmup
       controllerCoreFactory = new WholeBodyControllerCoreFactory(managerFactoryParent);
       controllerCoreFactory.setHighLevelHumanoidControllerToolbox(controllerToolbox);
       controllerCoreFactory.setWalkingControllerParameters(walkingControllerParameters);
+      managerFactory.setPlaneContactWrenchProcessor(controllerCoreFactory.getOrCreateWholeBodyControllerCoreToolbox().getPlaneContactWrenchProcessor());
 
       walkingControllerState = new WalkingControllerState(commandInputManager,
                                                           statusOutputManager,

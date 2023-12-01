@@ -519,6 +519,7 @@ public class RigidBodyControlManagerTest
                                                                     contactableBody,
                                                                     null,
                                                                     false,
+                                                                    null,
                                                                     yoTime,
                                                                     null,
                                                                     testRegistry);

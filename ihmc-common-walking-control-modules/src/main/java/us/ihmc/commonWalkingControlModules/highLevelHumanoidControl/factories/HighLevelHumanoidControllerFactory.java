@@ -182,6 +182,8 @@ public class HighLevelHumanoidControllerFactory implements CloseableAndDisposabl
       controllerCoreFactory = new WholeBodyControllerCoreFactory(registry);
       controllerCoreFactory.setWalkingControllerParameters(walkingControllerParameters);
       controllerCoreFactory.setHighLevelHumanoidControllerToolbox(controllerToolbox);
+
+      managerFactory.setPlaneContactWrenchProcessor(controllerCoreFactory.getOrCreateWholeBodyControllerCoreToolbox().getPlaneContactWrenchProcessor());
    }
 
    private ComponentBasedFootstepDataMessageGeneratorFactory componentBasedFootstepDataMessageGeneratorFactory;

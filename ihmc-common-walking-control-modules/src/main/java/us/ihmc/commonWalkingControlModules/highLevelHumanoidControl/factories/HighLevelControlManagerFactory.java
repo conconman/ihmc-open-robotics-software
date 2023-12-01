@@ -16,6 +16,7 @@ import us.ihmc.commonWalkingControlModules.controllerCore.FeedbackControllerTemp
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommandList;
 import us.ihmc.commonWalkingControlModules.dynamicPlanning.bipedPlanning.CoPTrajectoryParameters;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
+import us.ihmc.commonWalkingControlModules.momentumBasedController.PlaneContactWrenchProcessor;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.MomentumOptimizationSettings;
 import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -67,6 +68,7 @@ public class HighLevelControlManagerFactory implements SCS2YoGraphicHolder
    private FeetManager feetManager;
    private PelvisOrientationManager pelvisOrientationManager;
    private NaturalPostureManager naturalPostureManager;
+   private PlaneContactWrenchProcessor planeContactWrenchProcessor;
 
    private final Map<String, RigidBodyControlManager> rigidBodyManagerMapByBodyName = new HashMap<>();
 
@@ -108,6 +110,11 @@ public class HighLevelControlManagerFactory implements SCS2YoGraphicHolder
    public void setHighLevelHumanoidControllerToolbox(HighLevelHumanoidControllerToolbox controllerToolbox)
    {
       this.controllerToolbox = controllerToolbox;
+   }
+
+   public void setPlaneContactWrenchProcessor(PlaneContactWrenchProcessor planeContactWrenchProcessor)
+   {
+      this.planeContactWrenchProcessor = planeContactWrenchProcessor;
    }
 
    public void setWalkingControllerParameters(WalkingControllerParameters walkingControllerParameters)
@@ -257,6 +264,7 @@ public class HighLevelControlManagerFactory implements SCS2YoGraphicHolder
                                                                     contactableBody,
                                                                     defaultControlMode,
                                                                     enableFunctionGenerators,
+                                                                    planeContactWrenchProcessor,
                                                                     yoTime,
                                                                     graphicsListRegistry,
                                                                     registry);

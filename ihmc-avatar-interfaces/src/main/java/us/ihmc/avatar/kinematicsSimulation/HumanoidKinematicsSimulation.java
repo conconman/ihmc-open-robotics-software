@@ -302,7 +302,8 @@ public class HumanoidKinematicsSimulation
                                                    walkingParentRegistry);
       
       jointDesiredOutputList = controllerCore.getOutputForLowLevelController();
-      
+      managerFactory.setPlaneContactWrenchProcessor(controlCoreToolbox.getPlaneContactWrenchProcessor());
+
       walkingController.setControllerCoreOutput(controllerCore.getOutputForHighLevelController());
 
       linearMomentumRateControlModule = new LinearMomentumRateControlModule(centerOfMassStateProvider,

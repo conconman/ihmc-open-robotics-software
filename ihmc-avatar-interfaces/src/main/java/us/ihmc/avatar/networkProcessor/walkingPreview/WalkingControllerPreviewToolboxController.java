@@ -174,6 +174,7 @@ public class WalkingControllerPreviewToolboxController extends ToolboxController
 
       controllerCore = new WholeBodyControllerCore(controlCoreToolbox, feedbackControlTemplate, jointDesiredOutputList, walkingParentRegistry);
       walkingController.setControllerCoreOutput(controllerCore.getOutputForHighLevelController());
+      managerFactory.setPlaneContactWrenchProcessor(controlCoreToolbox.getPlaneContactWrenchProcessor());
 
       double controlDT = controllerToolbox.getControlDT();
       RigidBodyBasics elevator = fullRobotModel.getElevator();

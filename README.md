@@ -14,10 +14,8 @@
 #### Developers
 
 Our developers are a mix of Windows and Linux users. We officially support:
-- Windows 10/11
-- Ubuntu 20.04+
-
-Other GNU/Linux distros will likely work, however largely untested. macOS is partially supported, but incomplete at this time.
+- Windows 10/11 x86_64
+- Ubuntu 20.04+ x86_64, arm64
 
 ### Branches
 This repository uses the git-flow branching model. 

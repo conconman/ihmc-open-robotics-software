@@ -186,11 +186,6 @@ public class HandPoseActionExecutor extends ActionNodeExecutor<HandPoseActionSta
          desiredHandControlPose.setFromReferenceFrame(state.getPalmFrame().getReferenceFrame());
          syncedHandControlPose.setFromReferenceFrame(syncedRobot.getFullRobotModel().getHandControlFrame(getDefinition().getSide()));
 
-         if (getState().getIsExecuting() && !hasSentCommand && getState().getSolutionQuality() <= ArmIKSolver.GOOD_QUALITY_MAX)
-         {
-            hasSentCommand = true;
-            sendCommand();
-         }
 
          boolean wasExecuting = state.getIsExecuting();
          // Left hand broke on Nadia and not in the robot model?
@@ -202,6 +197,12 @@ public class HandPoseActionExecutor extends ActionNodeExecutor<HandPoseActionSta
                                                                executionTimer,
                                                                BehaviorActionCompletionComponent.TRANSLATION,
                                                                BehaviorActionCompletionComponent.ORIENTATION));
+
+         if (state.getIsExecuting() && !hasSentCommand && getState().getSolutionQuality() <= ArmIKSolver.GOOD_QUALITY_MAX)
+         {
+            hasSentCommand = true;
+            sendCommand();
+         }
 
          state.setNominalExecutionDuration(getDefinition().getTrajectoryDuration());
          state.setElapsedExecutionTime(executionTimer.getElapsedTime());

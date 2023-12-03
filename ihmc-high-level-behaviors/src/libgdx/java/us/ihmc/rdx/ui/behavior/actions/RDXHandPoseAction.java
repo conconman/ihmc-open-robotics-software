@@ -7,6 +7,7 @@ import com.badlogic.gdx.utils.Pool;
 import imgui.ImGui;
 import imgui.flag.ImGuiMouseButton;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
+import us.ihmc.avatar.inverseKinematics.ArmIKSolver;
 import us.ihmc.behaviors.sequence.actions.HandPoseActionDefinition;
 import us.ihmc.behaviors.sequence.actions.HandPoseActionState;
 import us.ihmc.communication.crdt.CRDTInfo;
@@ -221,7 +222,7 @@ public class RDXHandPoseAction extends RDXActionNode<HandPoseActionState, HandPo
       armMultiBodyGraphics.get(getDefinition().getSide()).updateSubtreeGraphics();
 
       // We probably don't want to recolor the mesh every tick.
-      Color color = state.getSolutionQuality() > 1.0 ? badQualityColor : goodQualityColor;
+      Color color = state.getSolutionQuality() > ArmIKSolver.GOOD_QUALITY_MAX ? badQualityColor : goodQualityColor;
       if (color != currentColor.get(getDefinition().getSide()))
       {
          currentColor.put(getDefinition().getSide(), color);

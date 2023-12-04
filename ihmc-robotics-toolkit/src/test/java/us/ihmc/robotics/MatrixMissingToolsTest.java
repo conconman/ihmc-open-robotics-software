@@ -95,4 +95,20 @@ public class MatrixMissingToolsTest
       }
    }
 
+   @Test
+   public void matrixPower()
+   {
+      DMatrixRMaj testMatrix = new DMatrixRMaj(4,4);
+      testMatrix.set(0,0,2);
+      testMatrix.set(1,1,2);
+
+      DMatrixRMaj powerMatrix = new DMatrixRMaj(4,4);
+
+      MatrixMissingTools.power(testMatrix,powerMatrix,3);
+
+      System.out.println(powerMatrix);
+
+   }
+
+
 }

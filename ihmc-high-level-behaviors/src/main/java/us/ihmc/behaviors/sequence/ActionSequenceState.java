@@ -39,6 +39,7 @@ public class ActionSequenceState extends BehaviorTreeNodeState<ActionSequenceDef
       super.update();
 
       actionIndex.setValue(0);
+      actionChildren.clear();
       updateActionSubtree(this, actionIndex);
    }
 
@@ -86,7 +87,7 @@ public class ActionSequenceState extends BehaviorTreeNodeState<ActionSequenceDef
    public <T extends ActionNodeState<?>> T findNextPreviousAction(Class<T> actionClass, int queryIndex, @Nullable RobotSide side)
    {
       T previousAction = null;
-      for (int i = queryIndex - 1; i >= 0; i--)
+      for (int i = queryIndex - 1; i >= 0 && previousAction == null; i--)
       {
          ActionNodeState<?> action = actionChildren.get(i);
          if (actionClass.isInstance(action))

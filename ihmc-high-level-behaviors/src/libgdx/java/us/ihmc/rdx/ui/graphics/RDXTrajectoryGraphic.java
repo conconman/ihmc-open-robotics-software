@@ -10,6 +10,10 @@ import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.rdx.mesh.RDXMutableLineModel;
 
+/**
+ * A white line for the translation part and little coordinate frame graphics to show orientation change.
+ * Orientation component is only shown if the orientation change is significant.
+ */
 public class RDXTrajectoryGraphic
 {
    private final RDXMutableLineModel positionGraphic = new RDXMutableLineModel();
@@ -19,35 +23,43 @@ public class RDXTrajectoryGraphic
    private final Pose3D startPose = new Pose3D();
    private final Pose3D endPose = new Pose3D();
 
+   private final RotationMatrix identity = new RotationMatrix();
    private final RotationMatrix relativeRotation = new RotationMatrix();
    private final RotationMatrix endOrientation = new RotationMatrix();
 
-   public void update(RigidBodyTransformReadOnly start, RigidBodyTransformReadOnly end, double lineWidth)
+   public void update(RigidBodyTransformReadOnly startInput, RigidBodyTransformReadOnly endInput, double lineWidth)
+   {
+      startPose.set(startInput);
+      endPose.set(endInput);
+
+      positionGraphic.update(startPose.getTranslation(), endPose.getTranslation(), lineWidth, Color.WHITE);
+
+      handleDrawingOrientation(startInput, endInput);
+   }
+
+   private void handleDrawingOrientation(RigidBodyTransformReadOnly startInput, RigidBodyTransformReadOnly endInput)
    {
       if (referenceFrameGraphics == null)
       {
          referenceFrameGraphics = new RecyclingArrayList<>(() -> new RDXReferenceFrameGraphic(0.03));
       }
+      referenceFrameGraphics.clear();
 
-
-      startPose.set(start);
-      endPose.set(end);
-
-      endOrientation.set(end.getRotation());
-
-      relativeRotation.set(start.getRotation());
+      endOrientation.set(endInput.getRotation());
+      relativeRotation.set(startInput.getRotation());
       relativeRotation.invert();
       relativeRotation.multiply(endOrientation);
 
-      positionGraphic.update(start.getTranslation(), end.getTranslation(), lineWidth, Color.WHITE);
+      double distance = relativeRotation.distance(identity);
 
-
-      referenceFrameGraphics.clear();
-      for (double alpha = 0.0; alpha < 1.0; alpha += 0.1)
+      if (distance > 0.3) // If there's not much orientation change, don't show it.
       {
-         RDXReferenceFrameGraphic referenceFrameGraphic = referenceFrameGraphics.add();
-         referenceFrameGraphic.getFramePose3D().interpolate(startPose, endPose, alpha);
-         referenceFrameGraphic.updateFromFramePose();
+         for (double alpha = 0.0; alpha < 1.0; alpha += 0.1)
+         {
+            RDXReferenceFrameGraphic referenceFrameGraphic = referenceFrameGraphics.add();
+            referenceFrameGraphic.getFramePose3D().interpolate(startPose, endPose, alpha);
+            referenceFrameGraphic.updateFromFramePose();
+         }
       }
    }
 

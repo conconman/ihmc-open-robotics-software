@@ -1,6 +1,8 @@
 package us.ihmc.rdx.ui.behavior.actions;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Mesh;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
@@ -8,11 +10,17 @@ import imgui.ImGui;
 import imgui.flag.ImGuiMouseButton;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.inverseKinematics.ArmIKSolver;
+import us.ihmc.behaviors.sequence.ActionNodeInitialization;
+import us.ihmc.behaviors.sequence.ActionNodeState;
+import us.ihmc.behaviors.sequence.ActionSequenceState;
 import us.ihmc.behaviors.sequence.actions.HandPoseActionDefinition;
 import us.ihmc.behaviors.sequence.actions.HandPoseActionState;
 import us.ihmc.communication.crdt.CRDTInfo;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DBasics;
+import us.ihmc.graphicsDescription.MeshDataBuilder;
+import us.ihmc.graphicsDescription.MeshDataHolder;
 import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
 import us.ihmc.mecano.multiBodySystem.interfaces.MultiBodySystemBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
@@ -23,15 +31,19 @@ import us.ihmc.rdx.imgui.ImGuiReferenceFrameLibraryCombo;
 import us.ihmc.rdx.imgui.ImGuiUniqueLabelMap;
 import us.ihmc.rdx.input.ImGui3DViewInput;
 import us.ihmc.rdx.input.ImGui3DViewPickResult;
+import us.ihmc.rdx.mesh.MeshDataBuilderMissingTools;
+import us.ihmc.rdx.mesh.RDXMeshDataInterpreter;
 import us.ihmc.rdx.simulation.scs2.RDXFrameNodePart;
 import us.ihmc.rdx.simulation.scs2.RDXMultiBodySystemFactories;
 import us.ihmc.rdx.simulation.scs2.RDXRigidBody;
 import us.ihmc.rdx.simulation.scs2.RDXVisualTools;
+import us.ihmc.rdx.tools.RDXModelBuilder;
 import us.ihmc.rdx.ui.RDX3DPanel;
 import us.ihmc.rdx.ui.RDX3DPanelTooltip;
 import us.ihmc.rdx.ui.affordances.RDXInteractableHighlightModel;
 import us.ihmc.rdx.ui.affordances.RDXInteractableTools;
 import us.ihmc.rdx.ui.behavior.sequence.RDXActionNode;
+import us.ihmc.rdx.ui.behavior.sequence.RDXActionSequence;
 import us.ihmc.rdx.ui.gizmo.RDXSelectablePose3DGizmo;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.MultiBodySystemMissingTools;
@@ -81,6 +93,8 @@ public class RDXHandPoseAction extends RDXActionNode<HandPoseActionState, HandPo
    private final SideDependentList<OneDoFJointBasics[]> armGraphicOneDoFJoints = new SideDependentList<>();
    private final SideDependentList<Color> currentColor = new SideDependentList<>();
    private final RDX3DPanelTooltip tooltip;
+   private ModelInstance trajectoryGraphic;
+   private final MeshDataBuilder meshDataBuilder = new MeshDataBuilder();
 
    public RDXHandPoseAction(long id,
                             CRDTInfo crdtInfo,
@@ -175,6 +189,8 @@ public class RDXHandPoseAction extends RDXActionNode<HandPoseActionState, HandPo
 
       tooltip = new RDX3DPanelTooltip(panel3D);
       panel3D.addImGuiOverlayAddition(this::render3DPanelImGuiOverlays);
+
+
    }
 
    @Override
@@ -206,6 +222,32 @@ public class RDXHandPoseAction extends RDXActionNode<HandPoseActionState, HandPo
          // IK solution visualization via ghost arms
          if (state.getIsNextForExecution())
             visualizeIK();
+
+         if (getParent().getState() instanceof ActionSequenceState parent)
+         {
+            HandPoseActionState previousHandPose = parent.findNextPreviousAction(HandPoseActionState.class,
+                                                                                 getState().getActionIndex(),
+                                                                                 getDefinition().getSide());
+            if (previousHandPose != null)
+            {
+               Vector3DBasics start = previousHandPose.getPalmFrame().getReferenceFrame().getTransformToRoot().getTranslation();
+               Vector3DBasics end = getState().getPalmFrame().getReferenceFrame().getTransformToRoot().getTranslation();
+               double lineWidth = 0.01;
+               Color color = Color.WHITE;
+               if (trajectoryGraphic == null)
+               {
+                  trajectoryGraphic = RDXModelBuilder.buildModelInstance(meshBuilder -> meshBuilder.addLine(start, end, lineWidth, color));
+               }
+               else
+               {
+                  Mesh mesh = trajectoryGraphic.model.nodes.get(0).parts.get(0).meshPart.mesh;
+                  meshDataBuilder.clear();
+                  meshDataBuilder.addLine(start, end, lineWidth);
+                  MeshDataHolder meshDataHolder = meshDataBuilder.generateMeshDataHolder();
+                  RDXMeshDataInterpreter.repositionMeshVertices(meshDataHolder, mesh, color);
+               }
+            }
+         }
       }
    }
 
@@ -316,6 +358,9 @@ public class RDXHandPoseAction extends RDXActionNode<HandPoseActionState, HandPo
 
          if (state.getIsNextForExecution())
             armMultiBodyGraphics.get(getDefinition().getSide()).getVisualRenderables(renderables, pool);
+
+         if (trajectoryGraphic != null)
+            trajectoryGraphic.getRenderables(renderables, pool);
       }
    }
 

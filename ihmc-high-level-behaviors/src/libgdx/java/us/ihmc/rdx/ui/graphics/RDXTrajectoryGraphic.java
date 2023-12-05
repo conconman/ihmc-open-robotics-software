@@ -16,6 +16,7 @@ import us.ihmc.rdx.mesh.RDXMutableLineModel;
  */
 public class RDXTrajectoryGraphic
 {
+   public static final float OPACITY = 0.7f;
    private final RDXMutableLineModel positionGraphic = new RDXMutableLineModel();
 
    private RecyclingArrayList<RDXReferenceFrameGraphic> referenceFrameGraphics;
@@ -33,6 +34,7 @@ public class RDXTrajectoryGraphic
       endPose.set(endInput);
 
       positionGraphic.update(startPose.getTranslation(), endPose.getTranslation(), lineWidth, Color.WHITE);
+      positionGraphic.getModelInstance().setOpacity(OPACITY);
 
       handleDrawingOrientation(startInput, endInput);
    }
@@ -59,6 +61,7 @@ public class RDXTrajectoryGraphic
             RDXReferenceFrameGraphic referenceFrameGraphic = referenceFrameGraphics.add();
             referenceFrameGraphic.getFramePose3D().interpolate(startPose, endPose, alpha);
             referenceFrameGraphic.updateFromFramePose();
+            referenceFrameGraphic.setOpacity(OPACITY);
          }
       }
    }

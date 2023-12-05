@@ -2,12 +2,12 @@ package us.ihmc.rdx.mesh;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Mesh;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
 import us.ihmc.graphicsDescription.MeshDataHolder;
 import us.ihmc.rdx.tools.RDXModelBuilder;
+import us.ihmc.rdx.tools.RDXModelInstance;
 
 /**
  * A performance optimization to help avoid rebuilding meshes unecessarily
@@ -17,7 +17,7 @@ import us.ihmc.rdx.tools.RDXModelBuilder;
 public class RDXMutableMeshModel
 {
    private Color color = null;
-   private ModelInstance modelInstance;
+   private RDXModelInstance modelInstance;
 
    public boolean isColorOutOfDate(Color color)
    {
@@ -30,13 +30,18 @@ public class RDXMutableMeshModel
    {
       if (modelInstance == null)
       {
-         modelInstance = RDXModelBuilder.buildModelInstance(meshBuilder -> meshBuilder.addMesh(meshDataHolder, color));
+         modelInstance = new RDXModelInstance(RDXModelBuilder.buildModelInstance(meshBuilder -> meshBuilder.addMesh(meshDataHolder, color)));
       }
       else
       {
          Mesh mesh = modelInstance.model.nodes.get(0).parts.get(0).meshPart.mesh;
          RDXMeshDataInterpreter.repositionMeshVertices(meshDataHolder, mesh, color);
       }
+   }
+
+   public RDXModelInstance getModelInstance()
+   {
+      return modelInstance;
    }
 
    public void getRenderables(Array<Renderable> renderables, Pool<Renderable> pool)

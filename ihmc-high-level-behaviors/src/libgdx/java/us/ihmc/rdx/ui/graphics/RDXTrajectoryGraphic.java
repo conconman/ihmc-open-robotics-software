@@ -13,17 +13,12 @@ import us.ihmc.rdx.mesh.RDXMutableLineModel;
 public class RDXTrajectoryGraphic
 {
    private final RDXMutableLineModel positionGraphic = new RDXMutableLineModel();
-   private final RDXMutableLineModel xGraphic = new RDXMutableLineModel();
-   private final RDXMutableLineModel yGraphic = new RDXMutableLineModel();
-   private final RDXMutableLineModel zGraphic = new RDXMutableLineModel();
 
    private RecyclingArrayList<RDXReferenceFrameGraphic> referenceFrameGraphics;
 
    private final Pose3D startPose = new Pose3D();
    private final Pose3D endPose = new Pose3D();
 
-   private final Pose3D startOffset = new Pose3D();
-   private final Pose3D endOffset = new Pose3D();
    private final RotationMatrix relativeRotation = new RotationMatrix();
    private final RotationMatrix endOrientation = new RotationMatrix();
 
@@ -44,9 +39,6 @@ public class RDXTrajectoryGraphic
       relativeRotation.invert();
       relativeRotation.multiply(endOrientation);
 
-
-
-
       positionGraphic.update(start.getTranslation(), end.getTranslation(), lineWidth, Color.WHITE);
 
 
@@ -57,26 +49,6 @@ public class RDXTrajectoryGraphic
          referenceFrameGraphic.getFramePose3D().interpolate(startPose, endPose, alpha);
          referenceFrameGraphic.updateFromFramePose();
       }
-
-
-      startOffset.set(start);
-      startOffset.appendTranslation(lineWidth, 0.0, 0.0);
-      endOffset.set(end);
-      endOffset.appendTranslation(lineWidth, 0.0, 0.0);
-      xGraphic.update(startOffset.getTranslation(), endOffset.getTranslation(), lineWidth / 2.0, Color.RED);
-      startOffset.set(start);
-      startOffset.appendTranslation(0.0, lineWidth, 0.0);
-      endOffset.set(end);
-      endOffset.appendTranslation(0.0, lineWidth, 0.0);
-      yGraphic.update(startOffset.getTranslation(), endOffset.getTranslation(), lineWidth / 2.0, Color.GREEN);
-      startOffset.set(start);
-      startOffset.appendTranslation(0.0, 0.0, lineWidth);
-      endOffset.set(end);
-      endOffset.appendTranslation(0.0, 0.0, lineWidth);
-      zGraphic.update(startOffset.getTranslation(), endOffset.getTranslation(), lineWidth / 2.0, Color.BLUE);
-
-
-
    }
 
    public void getRenderables(Array<Renderable> renderables, Pool<Renderable> pool)
@@ -90,9 +62,5 @@ public class RDXTrajectoryGraphic
             referenceFrameGraphic.getRenderables(renderables, pool);
          }
       }
-
-      //      xGraphic.getRenderables(renderables, pool);
-//      yGraphic.getRenderables(renderables, pool);
-//      zGraphic.getRenderables(renderables, pool);
    }
 }

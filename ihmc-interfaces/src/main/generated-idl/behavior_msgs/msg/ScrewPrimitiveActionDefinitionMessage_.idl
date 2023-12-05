@@ -1,0 +1,58 @@
+#ifndef __behavior_msgs__msg__ScrewPrimitiveActionDefinitionMessage__idl__
+#define __behavior_msgs__msg__ScrewPrimitiveActionDefinitionMessage__idl__
+
+#include "behavior_msgs/msg/./ActionNodeDefinitionMessage_.idl"
+#include "controller_msgs/msg/./RigidBodyTransformMessage_.idl"
+module behavior_msgs
+{
+  module msg
+  {
+    module dds
+    {
+
+      @TypeCode(type="behavior_msgs::msg::dds_::ScrewPrimitiveActionDefinitionMessage_")
+      struct ScrewPrimitiveActionDefinitionMessage
+      {
+        /**
+         * Parent definition fields
+         */
+        behavior_msgs::msg::dds::ActionNodeDefinitionMessage definition;
+        /**
+         * Specifies the side of the robot that this message refers to.
+         */
+        @defaultValue(value=255)
+        octet robot_side;
+        /**
+         * Name of the frame the this action is expressed in
+         */
+        string object_frame_name;
+        /**
+         * Transform that expresses the screw axis in the object frame
+         */
+        controller_msgs::msg::dds::RigidBodyTransformMessage screw_axis_transform_to_object;
+        /**
+         * The pitch
+         */
+        double pitch;
+        /**
+         * The axial torque
+         */
+        double axial_torque;
+        /**
+         * The axial_force
+         */
+        double axial_force;
+        /**
+         * The distance
+         */
+        double distance;
+        /**
+         * Whether maintaining the rigid body controlled in world after the action is complete
+         */
+        boolean hold_pose_in_world;
+      };
+    };
+  };
+};
+
+#endif

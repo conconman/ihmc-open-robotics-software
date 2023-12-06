@@ -32,6 +32,7 @@ public class ScrewPrimitiveActionDefinition extends ActionNodeDefinition impleme
    private final CRDTUnidirectionalDouble axialTorque;
    private final CRDTUnidirectionalDouble axialForce;
    private final CRDTUnidirectionalDouble distance;
+   // TODO: Remove?
    private final CRDTUnidirectionalBoolean holdPoseInWorldLater;
 
    public ScrewPrimitiveActionDefinition(CRDTInfo crdtInfo, WorkspaceResourceDirectory saveFileDirectory)

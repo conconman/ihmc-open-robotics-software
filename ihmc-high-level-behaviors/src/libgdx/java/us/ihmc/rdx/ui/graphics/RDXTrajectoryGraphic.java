@@ -43,7 +43,7 @@ public class RDXTrajectoryGraphic
       updateInternal(lineWidth);
    }
 
-   public void update(double lineWidth, List<RigidBodyTransformReadOnly> posesReadOnly)
+   public void update(double lineWidth, List<? extends RigidBodyTransformReadOnly> posesReadOnly)
    {
       positions.clear();
       poses.clear();

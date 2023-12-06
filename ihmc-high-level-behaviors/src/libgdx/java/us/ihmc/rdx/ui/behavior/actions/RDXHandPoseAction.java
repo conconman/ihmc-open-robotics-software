@@ -220,9 +220,9 @@ public class RDXHandPoseAction extends RDXActionNode<HandPoseActionState, HandPo
             if (previousHandPose != null)
             {
                double lineWidth = 0.01;
-               trajectoryGraphic.update(previousHandPose.getPalmFrame().getReferenceFrame().getTransformToRoot(),
-                                        getState().getPalmFrame().getReferenceFrame().getTransformToRoot(),
-                                        lineWidth);
+               trajectoryGraphic.update(lineWidth,
+                                        previousHandPose.getPalmFrame().getReferenceFrame().getTransformToRoot(),
+                                        getState().getPalmFrame().getReferenceFrame().getTransformToRoot());
             }
          }
       }

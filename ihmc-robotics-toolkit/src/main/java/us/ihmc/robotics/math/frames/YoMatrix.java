@@ -49,10 +49,7 @@ public class YoMatrix
     */
    public YoMatrix(String name, int maxNumberOfRows, int maxNumberOfColumns, String[] rowNames, YoRegistry registry)
    {
-      this(name, maxNumberOfRows, maxNumberOfColumns, rowNames, new String[maxNumberOfColumns], registry);
-
-      if (maxNumberOfColumns > 1)
-         throw new IllegalArgumentException("The YoMatrix must be a column vector if only row names are provided, else unique names cannot be generated.");
+      this(name, maxNumberOfRows, maxNumberOfColumns, rowNames, null, registry);
    }
 
    /**
@@ -95,6 +92,9 @@ public class YoMatrix
                }
                case ROWS:
                {
+                  if (maxNumberOfColumns > 1)
+                     throw new IllegalArgumentException("The YoMatrix must be a column vector if only row names are provided, else unique names cannot be generated.");
+
                   variables[row][column] = new YoDouble(name + "_" + rowNames[row], registry);  // names are the row names, no column identifier
                   break;
                }

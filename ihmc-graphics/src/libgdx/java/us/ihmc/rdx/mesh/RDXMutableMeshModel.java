@@ -28,13 +28,25 @@ public class RDXMutableMeshModel
 
    protected void updateMesh(MeshDataHolder meshDataHolder)
    {
-      if (modelInstance == null)
+      boolean needToRebuildModel = modelInstance == null;
+
+      Mesh mesh = null;
+      if (!needToRebuildModel)
+      {
+         mesh = modelInstance.model.nodes.get(0).parts.get(0).meshPart.mesh;
+
+         // These buffer capacities are final, so the Mesh needs to be recreated if there's not enough space
+         needToRebuildModel |= mesh.getIndicesBuffer().capacity() < meshDataHolder.getTriangleIndices().length;
+         needToRebuildModel |= mesh.getVerticesBuffer().capacity() < meshDataHolder.getVertices().length;
+      }
+
+      if (needToRebuildModel)
       {
          modelInstance = new RDXModelInstance(RDXModelBuilder.buildModelInstance(meshBuilder -> meshBuilder.addMesh(meshDataHolder, color)));
       }
       else
       {
-         Mesh mesh = modelInstance.model.nodes.get(0).parts.get(0).meshPart.mesh;
+         RDXMeshDataInterpreter.reorderMeshVertices(meshDataHolder, mesh);
          RDXMeshDataInterpreter.repositionMeshVertices(meshDataHolder, mesh, color);
       }
    }

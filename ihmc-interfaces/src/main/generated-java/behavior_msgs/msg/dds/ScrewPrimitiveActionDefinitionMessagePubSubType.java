@@ -15,7 +15,7 @@ public class ScrewPrimitiveActionDefinitionMessagePubSubType implements us.ihmc.
    @Override
    public final java.lang.String getDefinitionChecksum()
    {
-   		return "8aa88592f454e32d84416a581d3d0b97fbcb342d9997b170008c1f3c58b13a41";
+   		return "e37778e4ba7f6273f8277650c42dcac3956a5e9f1399cc671c928d66a99e4144";
    }
    
    @Override
@@ -120,13 +120,13 @@ public class ScrewPrimitiveActionDefinitionMessagePubSubType implements us.ihmc.
           throw new RuntimeException("object_frame_name field exceeds the maximum length");
 
       controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType.write(data.getScrewAxisTransformToObject(), cdr);
-      cdr.write_type_6(data.getPitch());
+      cdr.write_type_6(data.getRotation());
+
+      cdr.write_type_6(data.getTranslation());
 
       cdr.write_type_6(data.getAxialTorque());
 
       cdr.write_type_6(data.getAxialForce());
-
-      cdr.write_type_6(data.getDistance());
 
       cdr.write_type_7(data.getHoldPoseInWorld());
 
@@ -139,13 +139,13 @@ public class ScrewPrimitiveActionDefinitionMessagePubSubType implements us.ihmc.
       	
       cdr.read_type_d(data.getObjectFrameName());	
       controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType.read(data.getScrewAxisTransformToObject(), cdr);	
-      data.setPitch(cdr.read_type_6());
+      data.setRotation(cdr.read_type_6());
+      	
+      data.setTranslation(cdr.read_type_6());
       	
       data.setAxialTorque(cdr.read_type_6());
       	
       data.setAxialForce(cdr.read_type_6());
-      	
-      data.setDistance(cdr.read_type_6());
       	
       data.setHoldPoseInWorld(cdr.read_type_7());
       	
@@ -161,10 +161,10 @@ public class ScrewPrimitiveActionDefinitionMessagePubSubType implements us.ihmc.
       ser.write_type_d("object_frame_name", data.getObjectFrameName());
       ser.write_type_a("screw_axis_transform_to_object", new controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType(), data.getScrewAxisTransformToObject());
 
-      ser.write_type_6("pitch", data.getPitch());
+      ser.write_type_6("rotation", data.getRotation());
+      ser.write_type_6("translation", data.getTranslation());
       ser.write_type_6("axial_torque", data.getAxialTorque());
       ser.write_type_6("axial_force", data.getAxialForce());
-      ser.write_type_6("distance", data.getDistance());
       ser.write_type_7("hold_pose_in_world", data.getHoldPoseInWorld());
    }
 
@@ -177,10 +177,10 @@ public class ScrewPrimitiveActionDefinitionMessagePubSubType implements us.ihmc.
       ser.read_type_d("object_frame_name", data.getObjectFrameName());
       ser.read_type_a("screw_axis_transform_to_object", new controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType(), data.getScrewAxisTransformToObject());
 
-      data.setPitch(ser.read_type_6("pitch"));
+      data.setRotation(ser.read_type_6("rotation"));
+      data.setTranslation(ser.read_type_6("translation"));
       data.setAxialTorque(ser.read_type_6("axial_torque"));
       data.setAxialForce(ser.read_type_6("axial_force"));
-      data.setDistance(ser.read_type_6("distance"));
       data.setHoldPoseInWorld(ser.read_type_7("hold_pose_in_world"));
    }
 

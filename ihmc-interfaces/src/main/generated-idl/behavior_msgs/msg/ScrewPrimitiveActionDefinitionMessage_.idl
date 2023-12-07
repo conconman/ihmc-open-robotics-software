@@ -31,9 +31,13 @@ module behavior_msgs
          */
         controller_msgs::msg::dds::RigidBodyTransformMessage screw_axis_transform_to_object;
         /**
-         * The pitch
+         * The magnitude of the rotation component
          */
-        double pitch;
+        double rotation;
+        /**
+         * The magnitude of the translation component
+         */
+        double translation;
         /**
          * The axial torque
          */
@@ -42,10 +46,6 @@ module behavior_msgs
          * The axial_force
          */
         double axial_force;
-        /**
-         * The distance
-         */
-        double distance;
         /**
          * Whether maintaining the rigid body controlled in world after the action is complete
          */

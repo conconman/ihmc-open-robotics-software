@@ -11,7 +11,6 @@ import us.ihmc.behaviors.sequence.actions.ScrewPrimitiveActionDefinition;
 import us.ihmc.behaviors.sequence.actions.ScrewPrimitiveActionState;
 import us.ihmc.commons.lists.RecyclingArrayList;
 import us.ihmc.communication.crdt.CRDTInfo;
-import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.rdx.imgui.ImDoubleWrapper;
@@ -30,8 +29,8 @@ public class RDXScrewPrimitiveAction extends RDXActionNode<ScrewPrimitiveActionS
 {
    private final ImGuiUniqueLabelMap labels = new ImGuiUniqueLabelMap(getClass());
    private final ImGuiReferenceFrameLibraryCombo objectFrameComboBox;
-   private final ImDoubleWrapper pitchWidget;
-   private final ImDoubleWrapper distanceWidget;
+   private final ImDoubleWrapper rotationWidget;
+   private final ImDoubleWrapper translationWidget;
    private final RDXTrajectoryGraphic trajectoryGraphic = new RDXTrajectoryGraphic();
    private final RecyclingArrayList<FramePose3D> trajectoryPoses = new RecyclingArrayList<>(FramePose3D::new);
 
@@ -52,12 +51,12 @@ public class RDXScrewPrimitiveAction extends RDXActionNode<ScrewPrimitiveActionS
                                                                 referenceFrameLibrary,
                                                                 getDefinition()::getObjectFrameName,
                                                                 getDefinition()::setObjectFrameName);
-      pitchWidget = new ImDoubleWrapper(getDefinition()::getPitch,
-                                        getDefinition()::setPitch,
-                                        imDouble -> ImGuiTools.sliderDouble(labels.get("Pitch"), imDouble, 0.0, 2.0));
-      distanceWidget = new ImDoubleWrapper(getDefinition()::getDistance,
-                                           getDefinition()::setDistance,
-                                           imDouble -> ImGui.inputDouble(labels.get("Distance"), imDouble, 0.0, 0.5));
+      rotationWidget = new ImDoubleWrapper(getDefinition()::getRotation,
+                                           getDefinition()::setRotation,
+                                           imDouble -> ImGuiTools.sliderDouble(labels.get("Rotation"), imDouble, -2.0 * Math.PI, 2.0 * Math.PI));
+      translationWidget = new ImDoubleWrapper(getDefinition()::getTranslation,
+                                              getDefinition()::setTranslation,
+                                              imDouble -> ImGuiTools.sliderDouble(labels.get("Translation"), imDouble, -0.4, 0.4));
    }
 
    @Override
@@ -79,13 +78,11 @@ public class RDXScrewPrimitiveAction extends RDXActionNode<ScrewPrimitiveActionS
                firstPose.setToZero(previousHandPose.getPalmFrame().getReferenceFrame());
                firstPose.changeFrame(ReferenceFrame.getWorldFrame());
 
-               double pitch = getDefinition().getPitch();
-               double traversed = 0.0;
+               int segments = (int) Math.ceil(Math.abs(getDefinition().getRotation()) / 0.3 + Math.abs(getDefinition().getTranslation()) / 0.02);
+               double rotationPerSegment = getDefinition().getRotation() / segments;
+               double translationPerSegment = getDefinition().getTranslation() / segments;
 
-//               double translationNormal = pitch / ;
-//               double translationPerPoint = pitch / 0.01;
-
-               while (traversed < getDefinition().getDistance() && trajectoryPoses.size() < 100)
+               for (int i = 0; i < segments; i++)
                {
                   FramePose3D lastPose = trajectoryPoses.getLast();
 
@@ -93,12 +90,10 @@ public class RDXScrewPrimitiveAction extends RDXActionNode<ScrewPrimitiveActionS
                   nextPose.setIncludingFrame(lastPose);
                   nextPose.changeFrame(getState().getScrewFrame().getReferenceFrame());
 
-                  nextPose.prependRollRotation(0.01);
-                  nextPose.appendTranslation(0.0, 0.0, -pitch * 0.01);
+                  nextPose.prependRollRotation(rotationPerSegment);
+                  nextPose.prependTranslation(translationPerSegment, 0.0, 0.0);
 
                   nextPose.changeFrame(ReferenceFrame.getWorldFrame());
-
-                  traversed += nextPose.getTranslation().distance(lastPose.getTranslation());
                }
 
                double lineWidth = 0.01;
@@ -112,8 +107,8 @@ public class RDXScrewPrimitiveAction extends RDXActionNode<ScrewPrimitiveActionS
    protected void renderImGuiWidgetsInternal()
    {
       objectFrameComboBox.render();
-      pitchWidget.renderImGuiWidget();
-      distanceWidget.renderImGuiWidget();
+      rotationWidget.renderImGuiWidget();
+      translationWidget.renderImGuiWidget();
    }
 
    @Override

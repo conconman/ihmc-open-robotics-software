@@ -25,9 +25,13 @@ public class ScrewPrimitiveActionDefinitionMessage extends Packet<ScrewPrimitive
             */
    public controller_msgs.msg.dds.RigidBodyTransformMessage screw_axis_transform_to_object_;
    /**
-            * The pitch
+            * The magnitude of the rotation component
             */
-   public double pitch_;
+   public double rotation_;
+   /**
+            * The magnitude of the translation component
+            */
+   public double translation_;
    /**
             * The axial torque
             */
@@ -36,10 +40,6 @@ public class ScrewPrimitiveActionDefinitionMessage extends Packet<ScrewPrimitive
             * The axial_force
             */
    public double axial_force_;
-   /**
-            * The distance
-            */
-   public double distance_;
    /**
             * Whether maintaining the rigid body controlled in world after the action is complete
             */
@@ -67,13 +67,13 @@ public class ScrewPrimitiveActionDefinitionMessage extends Packet<ScrewPrimitive
       object_frame_name_.append(other.object_frame_name_);
 
       controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType.staticCopy(other.screw_axis_transform_to_object_, screw_axis_transform_to_object_);
-      pitch_ = other.pitch_;
+      rotation_ = other.rotation_;
+
+      translation_ = other.translation_;
 
       axial_torque_ = other.axial_torque_;
 
       axial_force_ = other.axial_force_;
-
-      distance_ = other.distance_;
 
       hold_pose_in_world_ = other.hold_pose_in_world_;
 
@@ -137,18 +137,33 @@ public class ScrewPrimitiveActionDefinitionMessage extends Packet<ScrewPrimitive
    }
 
    /**
-            * The pitch
+            * The magnitude of the rotation component
             */
-   public void setPitch(double pitch)
+   public void setRotation(double rotation)
    {
-      pitch_ = pitch;
+      rotation_ = rotation;
    }
    /**
-            * The pitch
+            * The magnitude of the rotation component
             */
-   public double getPitch()
+   public double getRotation()
    {
-      return pitch_;
+      return rotation_;
+   }
+
+   /**
+            * The magnitude of the translation component
+            */
+   public void setTranslation(double translation)
+   {
+      translation_ = translation;
+   }
+   /**
+            * The magnitude of the translation component
+            */
+   public double getTranslation()
+   {
+      return translation_;
    }
 
    /**
@@ -179,21 +194,6 @@ public class ScrewPrimitiveActionDefinitionMessage extends Packet<ScrewPrimitive
    public double getAxialForce()
    {
       return axial_force_;
-   }
-
-   /**
-            * The distance
-            */
-   public void setDistance(double distance)
-   {
-      distance_ = distance;
-   }
-   /**
-            * The distance
-            */
-   public double getDistance()
-   {
-      return distance_;
    }
 
    /**
@@ -235,13 +235,13 @@ public class ScrewPrimitiveActionDefinitionMessage extends Packet<ScrewPrimitive
       if (!us.ihmc.idl.IDLTools.epsilonEqualsStringBuilder(this.object_frame_name_, other.object_frame_name_, epsilon)) return false;
 
       if (!this.screw_axis_transform_to_object_.epsilonEquals(other.screw_axis_transform_to_object_, epsilon)) return false;
-      if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.pitch_, other.pitch_, epsilon)) return false;
+      if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.rotation_, other.rotation_, epsilon)) return false;
+
+      if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.translation_, other.translation_, epsilon)) return false;
 
       if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.axial_torque_, other.axial_torque_, epsilon)) return false;
 
       if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.axial_force_, other.axial_force_, epsilon)) return false;
-
-      if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.distance_, other.distance_, epsilon)) return false;
 
       if (!us.ihmc.idl.IDLTools.epsilonEqualsBoolean(this.hold_pose_in_world_, other.hold_pose_in_world_, epsilon)) return false;
 
@@ -264,13 +264,13 @@ public class ScrewPrimitiveActionDefinitionMessage extends Packet<ScrewPrimitive
       if (!us.ihmc.idl.IDLTools.equals(this.object_frame_name_, otherMyClass.object_frame_name_)) return false;
 
       if (!this.screw_axis_transform_to_object_.equals(otherMyClass.screw_axis_transform_to_object_)) return false;
-      if(this.pitch_ != otherMyClass.pitch_) return false;
+      if(this.rotation_ != otherMyClass.rotation_) return false;
+
+      if(this.translation_ != otherMyClass.translation_) return false;
 
       if(this.axial_torque_ != otherMyClass.axial_torque_) return false;
 
       if(this.axial_force_ != otherMyClass.axial_force_) return false;
-
-      if(this.distance_ != otherMyClass.distance_) return false;
 
       if(this.hold_pose_in_world_ != otherMyClass.hold_pose_in_world_) return false;
 
@@ -292,14 +292,14 @@ public class ScrewPrimitiveActionDefinitionMessage extends Packet<ScrewPrimitive
       builder.append(this.object_frame_name_);      builder.append(", ");
       builder.append("screw_axis_transform_to_object=");
       builder.append(this.screw_axis_transform_to_object_);      builder.append(", ");
-      builder.append("pitch=");
-      builder.append(this.pitch_);      builder.append(", ");
+      builder.append("rotation=");
+      builder.append(this.rotation_);      builder.append(", ");
+      builder.append("translation=");
+      builder.append(this.translation_);      builder.append(", ");
       builder.append("axial_torque=");
       builder.append(this.axial_torque_);      builder.append(", ");
       builder.append("axial_force=");
       builder.append(this.axial_force_);      builder.append(", ");
-      builder.append("distance=");
-      builder.append(this.distance_);      builder.append(", ");
       builder.append("hold_pose_in_world=");
       builder.append(this.hold_pose_in_world_);
       builder.append("}");

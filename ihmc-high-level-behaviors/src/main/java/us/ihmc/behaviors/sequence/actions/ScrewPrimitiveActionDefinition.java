@@ -12,26 +12,17 @@ import us.ihmc.robotics.robotSide.SidedObject;
 import us.ihmc.tools.io.JSONTools;
 import us.ihmc.tools.io.WorkspaceResourceDirectory;
 
-/**
- * Screw primitive from:
- * "A Versatile Affordance Modeling Framework Using Screw Primitives to Increase Autonomy During Manipulation Contact Tasks"
- * Adam Pettinger, Farshid Alambeigi, and Mitch Pryor
- * https://ieeexplore.ieee.org/document/9794598
- */
 public class ScrewPrimitiveActionDefinition extends ActionNodeDefinition implements SidedObject
 {
    private final CRDTUnidirectionalEnumField<RobotSide> side;
    private final CRDTUnidirectionalString objectFrameName;
    private final CRDTUnidirectionalRigidBodyTransform screwAxisTransformToObject;
-   /**
-    * pitch = translation per rotation (m/rad)
-    * pitch == Infinity: Translation only
-    * pitch == 0: Rotation only
-    */
-   private final CRDTUnidirectionalDouble pitch;
+   /** The magnitude of the rotation component */
+   private final CRDTUnidirectionalDouble rotation;
+   /** The magnitude of the translation component */
+   private final CRDTUnidirectionalDouble translation;
    private final CRDTUnidirectionalDouble axialTorque;
    private final CRDTUnidirectionalDouble axialForce;
-   private final CRDTUnidirectionalDouble distance;
    // TODO: Remove?
    private final CRDTUnidirectionalBoolean holdPoseInWorldLater;
 
@@ -43,10 +34,10 @@ public class ScrewPrimitiveActionDefinition extends ActionNodeDefinition impleme
       holdPoseInWorldLater = new CRDTUnidirectionalBoolean(ROS2ActorDesignation.OPERATOR, crdtInfo, true);
       objectFrameName = new CRDTUnidirectionalString(ROS2ActorDesignation.OPERATOR, crdtInfo, ReferenceFrame.getWorldFrame().getName());
       screwAxisTransformToObject = new CRDTUnidirectionalRigidBodyTransform(ROS2ActorDesignation.OPERATOR, crdtInfo);
-      pitch = new CRDTUnidirectionalDouble(ROS2ActorDesignation.OPERATOR, crdtInfo, 0.0);
+      rotation = new CRDTUnidirectionalDouble(ROS2ActorDesignation.OPERATOR, crdtInfo, 0.0);
+      translation = new CRDTUnidirectionalDouble(ROS2ActorDesignation.OPERATOR, crdtInfo, 0.1);
       axialTorque = new CRDTUnidirectionalDouble(ROS2ActorDesignation.OPERATOR, crdtInfo, 10.0);
       axialForce = new CRDTUnidirectionalDouble(ROS2ActorDesignation.OPERATOR, crdtInfo, 10.0);
-      distance = new CRDTUnidirectionalDouble(ROS2ActorDesignation.OPERATOR, crdtInfo, 0.1);
    }
 
    @Override
@@ -57,10 +48,10 @@ public class ScrewPrimitiveActionDefinition extends ActionNodeDefinition impleme
       jsonNode.put("side", side.getValue().getLowerCaseName());
       jsonNode.put("objectFrame", objectFrameName.getValue());
       JSONTools.toJSON(jsonNode, screwAxisTransformToObject.getValueReadOnly());
-      jsonNode.put("pitch", pitch.getValue());
+      jsonNode.put("rotation", rotation.getValue());
+      jsonNode.put("translation", translation.getValue());
       jsonNode.put("axialTorque", axialTorque.getValue());
       jsonNode.put("axialForce", axialForce.getValue());
-      jsonNode.put("distance", distance.getValue());
       jsonNode.put("holdPoseInWorldLater", holdPoseInWorldLater.getValue());
    }
 
@@ -72,10 +63,10 @@ public class ScrewPrimitiveActionDefinition extends ActionNodeDefinition impleme
       side.setValue(RobotSide.getSideFromString(jsonNode.get("side").asText()));
       objectFrameName.setValue(jsonNode.get("objectFrame").textValue());
       JSONTools.toEuclid(jsonNode, screwAxisTransformToObject.getValue());
-      pitch.setValue(jsonNode.get("pitch").asDouble());
+      rotation.setValue(jsonNode.get("rotation").asDouble());
+      translation.setValue(jsonNode.get("translation").asDouble());
       axialTorque.setValue(jsonNode.get("axialTorque").asDouble());
       axialForce.setValue(jsonNode.get("axialForce").asDouble());
-      distance.setValue(jsonNode.get("distance").asDouble());
       holdPoseInWorldLater.setValue(jsonNode.get("holdPoseInWorldLater").asBoolean());
    }
 
@@ -86,10 +77,10 @@ public class ScrewPrimitiveActionDefinition extends ActionNodeDefinition impleme
       message.setRobotSide(side.toMessage().toByte());
       message.setObjectFrameName(objectFrameName.toMessage());
       screwAxisTransformToObject.toMessage(message.getScrewAxisTransformToObject());
-      message.setPitch(pitch.toMessage());
+      message.setRotation(rotation.toMessage());
+      message.setTranslation(translation.toMessage());
       message.setAxialTorque(axialTorque.toMessage());
       message.setAxialForce(axialForce.toMessage());
-      message.setDistance(distance.toMessage());
       message.setHoldPoseInWorld(holdPoseInWorldLater.toMessage());
    }
 
@@ -100,10 +91,10 @@ public class ScrewPrimitiveActionDefinition extends ActionNodeDefinition impleme
       side.fromMessage(RobotSide.fromByte(message.getRobotSide()));
       objectFrameName.fromMessage(message.getObjectFrameNameAsString());
       screwAxisTransformToObject.fromMessage(message.getScrewAxisTransformToObject());
-      pitch.fromMessage(message.getPitch());
+      rotation.fromMessage(message.getRotation());
+      translation.fromMessage(message.getTranslation());
       axialTorque.fromMessage(message.getAxialTorque());
       axialForce.fromMessage(message.getAxialForce());
-      distance.fromMessage(message.getDistance());
       holdPoseInWorldLater.fromMessage(message.getHoldPoseInWorld());
    }
 
@@ -133,14 +124,24 @@ public class ScrewPrimitiveActionDefinition extends ActionNodeDefinition impleme
       return screwAxisTransformToObject;
    }
 
-   public double getPitch()
+   public double getRotation()
    {
-      return pitch.getValue();
+      return rotation.getValue();
    }
 
-   public void setPitch(double pitch)
+   public void setRotation(double rotation)
    {
-      this.pitch.setValue(pitch);
+      this.rotation.setValue(rotation);
+   }
+
+   public double getTranslation()
+   {
+      return translation.getValue();
+   }
+
+   public void setTranslation(double translation)
+   {
+      this.translation.setValue(translation);
    }
 
    public double getAxialTorque()
@@ -161,16 +162,6 @@ public class ScrewPrimitiveActionDefinition extends ActionNodeDefinition impleme
    public void setAxialForce(double axialForce)
    {
       this.axialForce.setValue(axialForce);
-   }
-
-   public double getDistance()
-   {
-      return distance.getValue();
-   }
-
-   public void setDistance(double distance)
-   {
-      this.distance.setValue(distance);
    }
 
    public boolean getHoldPoseInWorldLater()

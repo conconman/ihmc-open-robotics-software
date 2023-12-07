@@ -1,9 +1,9 @@
 package us.ihmc.rdx.ui.behavior.actions;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
-import imgui.ImGui;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.behaviors.sequence.ActionSequenceState;
 import us.ihmc.behaviors.sequence.actions.HandPoseActionState;
@@ -11,14 +11,18 @@ import us.ihmc.behaviors.sequence.actions.ScrewPrimitiveActionDefinition;
 import us.ihmc.behaviors.sequence.actions.ScrewPrimitiveActionState;
 import us.ihmc.commons.lists.RecyclingArrayList;
 import us.ihmc.communication.crdt.CRDTInfo;
+import us.ihmc.euclid.Axis3D;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.rdx.imgui.ImDoubleWrapper;
 import us.ihmc.rdx.imgui.ImGuiReferenceFrameLibraryCombo;
 import us.ihmc.rdx.imgui.ImGuiTools;
 import us.ihmc.rdx.imgui.ImGuiUniqueLabelMap;
+import us.ihmc.rdx.input.ImGui3DViewInput;
+import us.ihmc.rdx.mesh.RDXDashedLineMesh;
 import us.ihmc.rdx.ui.RDX3DPanel;
 import us.ihmc.rdx.ui.behavior.sequence.RDXActionNode;
+import us.ihmc.rdx.ui.gizmo.RDXSelectablePose3DGizmo;
 import us.ihmc.rdx.ui.graphics.RDXTrajectoryGraphic;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.physics.RobotCollisionModel;
@@ -31,6 +35,8 @@ public class RDXScrewPrimitiveAction extends RDXActionNode<ScrewPrimitiveActionS
    private final ImGuiReferenceFrameLibraryCombo objectFrameComboBox;
    private final ImDoubleWrapper rotationWidget;
    private final ImDoubleWrapper translationWidget;
+   private final RDXSelectablePose3DGizmo screwAxisGizmo;
+   private final RDXDashedLineMesh screwAxisGraphic = new RDXDashedLineMesh(Color.WHITE, Axis3D.X, 0.04);
    private final RDXTrajectoryGraphic trajectoryGraphic = new RDXTrajectoryGraphic();
    private final RecyclingArrayList<FramePose3D> trajectoryPoses = new RecyclingArrayList<>(FramePose3D::new);
 
@@ -46,6 +52,9 @@ public class RDXScrewPrimitiveAction extends RDXActionNode<ScrewPrimitiveActionS
       super(new ScrewPrimitiveActionState(id, crdtInfo, saveFileDirectory, referenceFrameLibrary));
 
       getDefinition().setDescription("Screw primitive");
+
+      screwAxisGizmo = new RDXSelectablePose3DGizmo(ReferenceFrame.getWorldFrame(), getDefinition().getScrewAxisTransformToObject().getValue(), getSelected());
+      screwAxisGizmo.create(panel3D);
 
       objectFrameComboBox = new ImGuiReferenceFrameLibraryCombo("Object frame",
                                                                 referenceFrameLibrary,
@@ -66,6 +75,15 @@ public class RDXScrewPrimitiveAction extends RDXActionNode<ScrewPrimitiveActionS
 
       if (getState().getScrewFrame().isChildOfWorld())
       {
+         if (screwAxisGizmo.getPoseGizmo().getGizmoFrame() != getState().getScrewFrame().getReferenceFrame())
+         {
+            screwAxisGizmo.getPoseGizmo().setGizmoFrame(getState().getScrewFrame().getReferenceFrame());
+         }
+         screwAxisGizmo.getPoseGizmo().update();
+
+         double screwAxisLineWidth = 0.005;
+         screwAxisGraphic.update(screwAxisGizmo.getPoseGizmo().getPose(), screwAxisLineWidth, 1.0);
+
          if (getParent().getState() instanceof ActionSequenceState parent)
          {
             HandPoseActionState previousHandPose = parent.findNextPreviousAction(HandPoseActionState.class,
@@ -96,8 +114,8 @@ public class RDXScrewPrimitiveAction extends RDXActionNode<ScrewPrimitiveActionS
                   nextPose.changeFrame(ReferenceFrame.getWorldFrame());
                }
 
-               double lineWidth = 0.01;
-               trajectoryGraphic.update(lineWidth, trajectoryPoses);
+               double trajectoryLineWidth = 0.01;
+               trajectoryGraphic.update(trajectoryLineWidth, trajectoryPoses);
             }
          }
       }
@@ -112,10 +130,30 @@ public class RDXScrewPrimitiveAction extends RDXActionNode<ScrewPrimitiveActionS
    }
 
    @Override
+   public void calculate3DViewPick(ImGui3DViewInput input)
+   {
+      if (getState().getScrewFrame().isChildOfWorld())
+      {
+         screwAxisGizmo.calculate3DViewPick(input);
+      }
+   }
+
+   @Override
+   public void process3DViewInput(ImGui3DViewInput input)
+   {
+      if (getState().getScrewFrame().isChildOfWorld())
+      {
+         screwAxisGizmo.process3DViewInput(input);
+      }
+   }
+
+   @Override
    public void getRenderables(Array<Renderable> renderables, Pool<Renderable> pool)
    {
       if (getState().getScrewFrame().isChildOfWorld())
       {
+         screwAxisGizmo.getVirtualRenderables(renderables, pool);
+         screwAxisGraphic.getRenderables(renderables, pool);
          trajectoryGraphic.getRenderables(renderables, pool);
       }
    }

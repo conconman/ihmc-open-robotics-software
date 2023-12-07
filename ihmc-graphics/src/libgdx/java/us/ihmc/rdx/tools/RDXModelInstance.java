@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import us.ihmc.euclid.geometry.interfaces.Pose3DReadOnly;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
 
@@ -51,7 +52,7 @@ public class RDXModelInstance extends ModelInstance
       LibGDXTools.toLibGDX(transformToWorldFrame, transform);
    }
 
-   public void setPoseInWorldFrame(Pose3DReadOnly pose)
+   public void setPoseInWorldFrame(RigidBodyTransformReadOnly pose)
    {
       LibGDXTools.toLibGDX(pose, tempTransform, transform);
 

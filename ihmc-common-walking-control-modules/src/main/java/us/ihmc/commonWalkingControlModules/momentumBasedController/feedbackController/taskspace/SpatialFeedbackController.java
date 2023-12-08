@@ -680,7 +680,10 @@ public class SpatialFeedbackController implements FeedbackControllerInterface
       angularFeedbackTermToPack.clipToMaxNorm(orientationGains.getMaximumProportionalError());
 
       yoErrorVector.setIncludingFrame(angularFeedbackTermToPack, linearFeedbackTermToPack);
-      yoErrorVector.changeFrame(trajectoryFrame);
+
+      yoErrorVector.changeFrame(controlFrame);
+//      yoErrorVector.changeFrame(trajectoryFrame);
+
       yoErrorVector.setCommandId(currentCommandId);
       yoErrorOrientation.setRotationVectorIncludingFrame(yoErrorVector.getAngularPart());
       yoErrorOrientation.setCommandId(currentCommandId);

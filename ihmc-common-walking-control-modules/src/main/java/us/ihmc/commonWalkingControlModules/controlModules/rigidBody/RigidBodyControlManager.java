@@ -73,9 +73,6 @@ public class RigidBodyControlManager implements SCS2YoGraphicHolder
                                   PID3DGainsReadOnly taskspaceOrientationGains,
                                   PID3DGainsReadOnly taskspacePositionGains,
                                   ContactablePlaneBody contactableBody,
-                                  PIDSE3GainsReadOnly holdLoadedHandPositionGains,
-                                  Vector3DReadOnly handLoadedLinearWeight,
-                                  Vector3DReadOnly handLoadedAngularWeight,
                                   RigidBodyControlMode defaultControlMode,
                                   boolean enableFunctionGenerators,
                                   YoDouble yoTime,
@@ -171,14 +168,10 @@ public class RigidBodyControlManager implements SCS2YoGraphicHolder
       if (contactableBody != null)
       {
          loadBearingControlState = new RigidBodyLoadBearingControlState(bodyToControl,
-                                                                        contactableBody,
                                                                         elevator,
                                                                         yoTime,
                                                                         jointControlHelper,
                                                                         taskspaceControlState.getOrientationControlHelper(),
-                                                                        holdLoadedHandPositionGains,
-                                                                        handLoadedLinearWeight,
-                                                                        handLoadedAngularWeight,
                                                                         graphicsListRegistry,
                                                                         registry);
       }

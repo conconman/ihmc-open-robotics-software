@@ -146,12 +146,6 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
          se3TrajectoryMessage.getLinearWeightMatrix().setXWeight(50.0);
          se3TrajectoryMessage.getLinearWeightMatrix().setYWeight(50.0);
          se3TrajectoryMessage.getLinearWeightMatrix().setZWeight(50.0);
-         se3TrajectoryMessage.getAngularWeightMatrix().setXWeight(-1.0);
-         se3TrajectoryMessage.getAngularWeightMatrix().setYWeight(-1.0);
-         se3TrajectoryMessage.getAngularWeightMatrix().setZWeight(-1.0);
-         se3TrajectoryMessage.getLinearWeightMatrix().setXWeight(-1.0);
-         se3TrajectoryMessage.getLinearWeightMatrix().setYWeight(-1.0);
-         se3TrajectoryMessage.getLinearWeightMatrix().setZWeight(-1.0);
          se3TrajectoryMessage.getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
          se3TrajectoryMessage.getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
 

@@ -15,7 +15,7 @@ public class ScrewPrimitiveActionStateMessagePubSubType implements us.ihmc.pubsu
    @Override
    public final java.lang.String getDefinitionChecksum()
    {
-   		return "fc58f5e5823bae6d67ff81052c8de7f556fbfd0c51cd4a9b88b5b32c7ee0972b";
+   		return "f5b950e64247e403a645f181660d529811fd98b1dd3c4baa99764471c76c8a82";
    }
    
    @Override
@@ -56,6 +56,9 @@ public class ScrewPrimitiveActionStateMessagePubSubType implements us.ihmc.pubsu
 
       current_alignment += behavior_msgs.msg.dds.ScrewPrimitiveActionDefinitionMessagePubSubType.getMaxCdrSerializedSize(current_alignment);
 
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);for(int i0 = 0; i0 < 200; ++i0)
+      {
+          current_alignment += geometry_msgs.msg.dds.PosePubSubType.getMaxCdrSerializedSize(current_alignment);}
 
       return current_alignment - initial_alignment;
    }
@@ -73,6 +76,11 @@ public class ScrewPrimitiveActionStateMessagePubSubType implements us.ihmc.pubsu
 
       current_alignment += behavior_msgs.msg.dds.ScrewPrimitiveActionDefinitionMessagePubSubType.getCdrSerializedSize(data.getDefinition(), current_alignment);
 
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+      for(int i0 = 0; i0 < data.getTrajectory().size(); ++i0)
+      {
+          current_alignment += geometry_msgs.msg.dds.PosePubSubType.getCdrSerializedSize(data.getTrajectory().get(i0), current_alignment);}
+
 
       return current_alignment - initial_alignment;
    }
@@ -81,12 +89,17 @@ public class ScrewPrimitiveActionStateMessagePubSubType implements us.ihmc.pubsu
    {
       behavior_msgs.msg.dds.ActionNodeStateMessagePubSubType.write(data.getState(), cdr);
       behavior_msgs.msg.dds.ScrewPrimitiveActionDefinitionMessagePubSubType.write(data.getDefinition(), cdr);
+      if(data.getTrajectory().size() <= 200)
+      cdr.write_type_e(data.getTrajectory());else
+          throw new RuntimeException("trajectory field exceeds the maximum length");
+
    }
 
    public static void read(behavior_msgs.msg.dds.ScrewPrimitiveActionStateMessage data, us.ihmc.idl.CDR cdr)
    {
       behavior_msgs.msg.dds.ActionNodeStateMessagePubSubType.read(data.getState(), cdr);	
       behavior_msgs.msg.dds.ScrewPrimitiveActionDefinitionMessagePubSubType.read(data.getDefinition(), cdr);	
+      cdr.read_type_e(data.getTrajectory());	
 
    }
 
@@ -97,6 +110,7 @@ public class ScrewPrimitiveActionStateMessagePubSubType implements us.ihmc.pubsu
 
       ser.write_type_a("definition", new behavior_msgs.msg.dds.ScrewPrimitiveActionDefinitionMessagePubSubType(), data.getDefinition());
 
+      ser.write_type_e("trajectory", data.getTrajectory());
    }
 
    @Override
@@ -106,6 +120,7 @@ public class ScrewPrimitiveActionStateMessagePubSubType implements us.ihmc.pubsu
 
       ser.read_type_a("definition", new behavior_msgs.msg.dds.ScrewPrimitiveActionDefinitionMessagePubSubType(), data.getDefinition());
 
+      ser.read_type_e("trajectory", data.getTrajectory());
    }
 
    public static void staticCopy(behavior_msgs.msg.dds.ScrewPrimitiveActionStateMessage src, behavior_msgs.msg.dds.ScrewPrimitiveActionStateMessage dest)

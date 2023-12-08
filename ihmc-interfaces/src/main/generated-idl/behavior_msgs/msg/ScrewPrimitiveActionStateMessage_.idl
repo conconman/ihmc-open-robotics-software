@@ -3,6 +3,7 @@
 
 #include "behavior_msgs/msg/./ActionNodeStateMessage_.idl"
 #include "behavior_msgs/msg/./ScrewPrimitiveActionDefinitionMessage_.idl"
+#include "geometry_msgs/msg/./Pose_.idl"
 module behavior_msgs
 {
   module msg
@@ -21,6 +22,7 @@ module behavior_msgs
          * Definition
          */
         behavior_msgs::msg::dds::ScrewPrimitiveActionDefinitionMessage definition;
+        sequence<geometry_msgs::msg::dds::Pose, 200> trajectory;
       };
     };
   };

@@ -16,11 +16,14 @@ public class ScrewPrimitiveActionStateMessage extends Packet<ScrewPrimitiveActio
             * Definition
             */
    public behavior_msgs.msg.dds.ScrewPrimitiveActionDefinitionMessage definition_;
+   public us.ihmc.idl.IDLSequence.Object<us.ihmc.euclid.geometry.Pose3D>  trajectory_;
 
    public ScrewPrimitiveActionStateMessage()
    {
       state_ = new behavior_msgs.msg.dds.ActionNodeStateMessage();
       definition_ = new behavior_msgs.msg.dds.ScrewPrimitiveActionDefinitionMessage();
+      trajectory_ = new us.ihmc.idl.IDLSequence.Object<us.ihmc.euclid.geometry.Pose3D> (200, new geometry_msgs.msg.dds.PosePubSubType());
+
    }
 
    public ScrewPrimitiveActionStateMessage(ScrewPrimitiveActionStateMessage other)
@@ -33,6 +36,7 @@ public class ScrewPrimitiveActionStateMessage extends Packet<ScrewPrimitiveActio
    {
       behavior_msgs.msg.dds.ActionNodeStateMessagePubSubType.staticCopy(other.state_, state_);
       behavior_msgs.msg.dds.ScrewPrimitiveActionDefinitionMessagePubSubType.staticCopy(other.definition_, definition_);
+      trajectory_.set(other.trajectory_);
    }
 
 
@@ -51,6 +55,12 @@ public class ScrewPrimitiveActionStateMessage extends Packet<ScrewPrimitiveActio
    public behavior_msgs.msg.dds.ScrewPrimitiveActionDefinitionMessage getDefinition()
    {
       return definition_;
+   }
+
+
+   public us.ihmc.idl.IDLSequence.Object<us.ihmc.euclid.geometry.Pose3D>  getTrajectory()
+   {
+      return trajectory_;
    }
 
 
@@ -73,6 +83,13 @@ public class ScrewPrimitiveActionStateMessage extends Packet<ScrewPrimitiveActio
 
       if (!this.state_.epsilonEquals(other.state_, epsilon)) return false;
       if (!this.definition_.epsilonEquals(other.definition_, epsilon)) return false;
+      if (this.trajectory_.size() != other.trajectory_.size()) { return false; }
+      else
+      {
+         for (int i = 0; i < this.trajectory_.size(); i++)
+         {  if (!this.trajectory_.get(i).epsilonEquals(other.trajectory_.get(i), epsilon)) return false; }
+      }
+
 
       return true;
    }
@@ -88,6 +105,7 @@ public class ScrewPrimitiveActionStateMessage extends Packet<ScrewPrimitiveActio
 
       if (!this.state_.equals(otherMyClass.state_)) return false;
       if (!this.definition_.equals(otherMyClass.definition_)) return false;
+      if (!this.trajectory_.equals(otherMyClass.trajectory_)) return false;
 
       return true;
    }
@@ -101,7 +119,9 @@ public class ScrewPrimitiveActionStateMessage extends Packet<ScrewPrimitiveActio
       builder.append("state=");
       builder.append(this.state_);      builder.append(", ");
       builder.append("definition=");
-      builder.append(this.definition_);
+      builder.append(this.definition_);      builder.append(", ");
+      builder.append("trajectory=");
+      builder.append(this.trajectory_);
       builder.append("}");
       return builder.toString();
    }

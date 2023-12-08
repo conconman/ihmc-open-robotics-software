@@ -5,8 +5,6 @@ import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
-import us.ihmc.behaviors.sequence.ActionSequenceState;
-import us.ihmc.behaviors.sequence.actions.HandPoseActionState;
 import us.ihmc.behaviors.sequence.actions.ScrewPrimitiveActionDefinition;
 import us.ihmc.behaviors.sequence.actions.ScrewPrimitiveActionState;
 import us.ihmc.commons.lists.RecyclingArrayList;
@@ -84,40 +82,11 @@ public class RDXScrewPrimitiveAction extends RDXActionNode<ScrewPrimitiveActionS
          double screwAxisLineWidth = 0.005;
          screwAxisGraphic.update(screwAxisGizmo.getPoseGizmo().getPose(), screwAxisLineWidth, 1.0);
 
-         if (getParent().getState() instanceof ActionSequenceState parent)
-         {
-            HandPoseActionState previousHandPose = parent.findNextPreviousAction(HandPoseActionState.class,
-                                                                                 getState().getActionIndex(),
-                                                                                 getDefinition().getSide());
-            if (previousHandPose != null)
-            {
-               trajectoryPoses.clear();
-               FramePose3D firstPose = trajectoryPoses.add();
-               firstPose.setToZero(previousHandPose.getPalmFrame().getReferenceFrame());
-               firstPose.changeFrame(ReferenceFrame.getWorldFrame());
-
-               int segments = (int) Math.ceil(Math.abs(getDefinition().getRotation()) / 0.3 + Math.abs(getDefinition().getTranslation()) / 0.02);
-               double rotationPerSegment = getDefinition().getRotation() / segments;
-               double translationPerSegment = getDefinition().getTranslation() / segments;
-
-               for (int i = 0; i < segments; i++)
-               {
-                  FramePose3D lastPose = trajectoryPoses.getLast();
-
-                  FramePose3D nextPose = trajectoryPoses.add();
-                  nextPose.setIncludingFrame(lastPose);
-                  nextPose.changeFrame(getState().getScrewFrame().getReferenceFrame());
-
-                  nextPose.prependRollRotation(rotationPerSegment);
-                  nextPose.prependTranslation(translationPerSegment, 0.0, 0.0);
-
-                  nextPose.changeFrame(ReferenceFrame.getWorldFrame());
-               }
-
-               double trajectoryLineWidth = 0.01;
-               trajectoryGraphic.update(trajectoryLineWidth, trajectoryPoses);
-            }
-         }
+         double trajectoryLineWidth = 0.01;
+         trajectoryPoses.clear();
+         for (int i = 0; i < getState().getTrajectory().getSize(); i++)
+            trajectoryPoses.add().set(getState().getTrajectory().getValueReadOnly(i));
+         trajectoryGraphic.update(trajectoryLineWidth, trajectoryPoses);
       }
    }
 

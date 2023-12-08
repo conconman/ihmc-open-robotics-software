@@ -1,6 +1,9 @@
 package us.ihmc.behaviors.sequence.actions;
 
 import controller_msgs.msg.dds.HandTrajectoryMessage;
+import controller_msgs.msg.dds.HandWrenchTrajectoryMessage;
+import controller_msgs.msg.dds.WrenchTrajectoryMessage;
+import controller_msgs.msg.dds.WrenchTrajectoryPointMessage;
 import ihmc_common_msgs.msg.dds.SE3TrajectoryMessage;
 import ihmc_common_msgs.msg.dds.SE3TrajectoryPointMessage;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
@@ -39,6 +42,7 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
    private final BehaviorActionCompletionCalculator completionCalculator = new BehaviorActionCompletionCalculator();
    private final FramePose3D workPose = new FramePose3D();
    private final HandTrajectoryMessage handTrajectoryMessage = new HandTrajectoryMessage();
+   private final HandWrenchTrajectoryMessage handWrenchTrajectoryMessage = new HandWrenchTrajectoryMessage();
 
    public ScrewPrimitiveActionExecutor(long id,
                                        CRDTInfo crdtInfo,
@@ -129,6 +133,9 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
          startPositionDistanceToGoal = syncedHandControlPose.getTranslation().differenceNorm(desiredHandControlPose.getTranslation());
          startOrientationDistanceToGoal = syncedHandControlPose.getRotation().distance(desiredHandControlPose.getRotation(), true);
 
+         handWrenchTrajectoryMessage.setRobotSide(getDefinition().getSide().toByte());
+         handWrenchTrajectoryMessage.setForceExecution(true);
+
          handTrajectoryMessage.setRobotSide(getDefinition().getSide().toByte());
          handTrajectoryMessage.setForceExecution(true);
 
@@ -148,6 +155,12 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
          se3TrajectoryMessage.getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
          se3TrajectoryMessage.getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
 
+         WrenchTrajectoryMessage wrenchTrajectory = handWrenchTrajectoryMessage.getWrenchTrajectory();
+         wrenchTrajectory.getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
+         wrenchTrajectory.getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
+
+         wrenchTrajectory.getWrenchTrajectoryPoints().clear();
+
          se3TrajectoryMessage.getTaskspaceTrajectoryPoints().clear();
 
          double timeStep = 0.5;
@@ -155,6 +168,8 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
          int bookendRamp = 5;
          Vector3D linearVelocity = new Vector3D();
          Vector3D angularVelocity = new Vector3D();
+         Vector3D force = new Vector3D();
+         Vector3D torque = new Vector3D();
          Quaternion orientationDelta = new Quaternion();
          int numberOfPoints = getState().getTrajectory().getSize();
 
@@ -175,9 +190,14 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
             double angularDistance = pose3D.getOrientation().distance(lastPose3D.getOrientation());
 
             linearVelocity.normalize();
+            force.set(linearVelocity);
             linearVelocity.scale(linearDistance / timeStep);
             angularVelocity.normalize();
+            torque.set(angularVelocity);
             angularVelocity.scale(angularDistance / timeStep);
+
+            force.scale(10.0);
+            torque.scale(7.0);
 
             SE3TrajectoryPointMessage se3TrajectoryPointMessage = se3TrajectoryMessage.getTaskspaceTrajectoryPoints().add();
             se3TrajectoryPointMessage.getPosition().set(pose3D.getTranslation());
@@ -185,10 +205,16 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
             se3TrajectoryPointMessage.getLinearVelocity().set(linearVelocity);
             se3TrajectoryPointMessage.getAngularVelocity().set(angularVelocity);
 
+            WrenchTrajectoryPointMessage wrenchTrajectoryPointMessage = wrenchTrajectory.getWrenchTrajectoryPoints().add();
+            wrenchTrajectoryPointMessage.getWrench().getForce().set(force);
+            wrenchTrajectoryPointMessage.getWrench().getTorque().set(torque);
+
             time += timeStep;
+            wrenchTrajectoryPointMessage.setTime(time);
             se3TrajectoryPointMessage.setTime(time);
          }
-         ros2ControllerHelper.publishToController(handTrajectoryMessage);
+//         ros2ControllerHelper.publishToController(handTrajectoryMessage);
+         ros2ControllerHelper.publishToController(handWrenchTrajectoryMessage);
       }
       else
       {

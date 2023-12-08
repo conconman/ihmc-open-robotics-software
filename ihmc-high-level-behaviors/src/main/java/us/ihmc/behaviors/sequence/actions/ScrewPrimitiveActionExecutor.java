@@ -19,11 +19,14 @@ import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.geometry.interfaces.Pose3DReadOnly;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
+import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
+import us.ihmc.robotics.referenceFrames.ReferenceFrameMissingTools;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.tools.io.WorkspaceResourceDirectory;
 
@@ -43,6 +46,9 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
    private final FramePose3D workPose = new FramePose3D();
    private final HandTrajectoryMessage handTrajectoryMessage = new HandTrajectoryMessage();
    private final HandWrenchTrajectoryMessage handWrenchTrajectoryMessage = new HandWrenchTrajectoryMessage();
+   private final RigidBodyTransform startPoseFrameToWorld = new RigidBodyTransform();
+   private final ReferenceFrame startPoseFrame = ReferenceFrameMissingTools.constructFrameWithChangingTransformToParent(ReferenceFrame.getWorldFrame(),
+                                                                                                                        startPoseFrameToWorld);
 
    public ScrewPrimitiveActionExecutor(long id,
                                        CRDTInfo crdtInfo,
@@ -164,7 +170,10 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
          Vector3D angularVelocity = new Vector3D();
          Vector3D force = new Vector3D();
          Vector3D torque = new Vector3D();
-         Quaternion orientationDelta = new Quaternion();
+         FrameQuaternion rotation = new FrameQuaternion();
+         FrameQuaternion framePreviousPose = new FrameQuaternion();
+         FrameQuaternion frameNextPose = new FrameQuaternion();
+//         Quaternion rotationInWorld = new Quaternion();
          int numberOfPoints = getState().getTrajectory().getSize();
 
          for (int i = 1; i < numberOfPoints; i++)
@@ -177,8 +186,32 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
             Pose3DReadOnly lastPose3D = getState().getTrajectory().getValueReadOnly(i - 1);
             linearVelocity.sub(pose3D.getPosition(), lastPose3D.getPosition());
 
-            orientationDelta.difference(pose3D.getOrientation(), lastPose3D.getOrientation());
-            orientationDelta.getRotationVector(angularVelocity);
+            startPoseFrameToWorld.set(lastPose3D);
+            startPoseFrame.update();
+            framePreviousPose.setToZero(startPoseFrame);
+            frameNextPose.setIncludingFrame(ReferenceFrame.getWorldFrame(), pose3D.getOrientation());
+            frameNextPose.changeFrame(startPoseFrame);
+
+            rotation.setToZero(startPoseFrame);
+            rotation.difference(frameNextPose, framePreviousPose);
+            rotation.changeFrame(ReferenceFrame.getWorldFrame());
+
+
+//            rotation.setToZero(startPoseFrame);
+//            Quaternion diff = new Quaternion();
+//            diff.set(pose3D.getOrientation());
+//            diff.multiplyConjugateOther(lastPose3D.getOrientation());
+//            diff.getRotationVector(angularVelocity);
+//            frameNextPose.setIncludingFrame(ReferenceFrame.getWorldFrame(), pose3D.getOrientation());
+//            frameNextPose.changeFrame(startPoseFrame);
+//            rotation.set(frameNextPose);
+//            rotation.changeFrame(ReferenceFrame.getWorldFrame());
+//            rotation.transform(lastPose3D.getOrientation());
+//            rotation.difference(lastPose3D.getOrientation());
+//            rotationInWorld.setToZero();
+//            orientationDelta.transform(rotationInWorld);
+
+            rotation.getRotationVector(angularVelocity);
 
             double linearDistance = linearVelocity.norm();
             double angularDistance = pose3D.getOrientation().distance(lastPose3D.getOrientation());
@@ -189,6 +222,9 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
             angularVelocity.normalize();
             torque.set(angularVelocity);
             angularVelocity.scale(angularDistance / timeStep);
+
+            angularVelocity.setToZero();
+
 
             force.scale(10.0);
             torque.scale(7.0);
@@ -207,8 +243,8 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
             wrenchTrajectoryPointMessage.setTime(time);
             se3TrajectoryPointMessage.setTime(time);
          }
-//         ros2ControllerHelper.publishToController(handTrajectoryMessage);
-         ros2ControllerHelper.publishToController(handWrenchTrajectoryMessage);
+         ros2ControllerHelper.publishToController(handTrajectoryMessage);
+//         ros2ControllerHelper.publishToController(handWrenchTrajectoryMessage);
       }
       else
       {

@@ -152,54 +152,38 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
 
          double timeStep = 0.5;
          double time = timeStep;
-         double linearMaxVelocity = 0.05;
-         double angularMaxVelocity = 0.7;
          int bookendRamp = 5;
          Vector3D linearVelocity = new Vector3D();
          Vector3D angularVelocity = new Vector3D();
          Quaternion orientationDelta = new Quaternion();
          int numberOfPoints = getState().getTrajectory().getSize();
 
-//         double totalTime = timeStep
-//         double linearDistance = 0.0;
-//         double angularDistance = 0.0;
-
          for (int i = 1; i < numberOfPoints; i++)
          {
             Pose3DReadOnly pose3D = getState().getTrajectory().getValueReadOnly(i);
 
-//            if (i > 0)
-//            {
-               double velocityScale = Math.min(Math.min(i, numberOfPoints - i), bookendRamp) / (double) bookendRamp;
-               velocityScale = 1.0; // FIXME
+            double velocityScale = Math.min(Math.min(i, numberOfPoints - i), bookendRamp) / (double) bookendRamp;
+            velocityScale = 1.0; // FIXME
 
-               Pose3DReadOnly lastPose3D = getState().getTrajectory().getValueReadOnly(i - 1);
-               linearVelocity.sub(pose3D.getPosition(), lastPose3D.getPosition());
+            Pose3DReadOnly lastPose3D = getState().getTrajectory().getValueReadOnly(i - 1);
+            linearVelocity.sub(pose3D.getPosition(), lastPose3D.getPosition());
 
-               orientationDelta.difference(pose3D.getOrientation(), lastPose3D.getOrientation());
-               orientationDelta.getRotationVector(angularVelocity);
+            orientationDelta.difference(pose3D.getOrientation(), lastPose3D.getOrientation());
+            orientationDelta.getRotationVector(angularVelocity);
 
-               double linearDistance = linearVelocity.norm();
-               double angularDistance = pose3D.getOrientation().distance(lastPose3D.getOrientation());
+            double linearDistance = linearVelocity.norm();
+            double angularDistance = pose3D.getOrientation().distance(lastPose3D.getOrientation());
 
-
-
-
-               linearVelocity.normalize();
-//               linearVelocity.scale(velocityScale * linearMaxVelocity);
-               linearVelocity.scale(linearDistance / timeStep);
-               angularVelocity.normalize();
-//               angularVelocity.scale(velocityScale * angularMaxVelocity);
-               angularVelocity.scale(angularDistance / timeStep);
-//            }
+            linearVelocity.normalize();
+            linearVelocity.scale(linearDistance / timeStep);
+            angularVelocity.normalize();
+            angularVelocity.scale(angularDistance / timeStep);
 
             SE3TrajectoryPointMessage se3TrajectoryPointMessage = se3TrajectoryMessage.getTaskspaceTrajectoryPoints().add();
             se3TrajectoryPointMessage.getPosition().set(pose3D.getTranslation());
             se3TrajectoryPointMessage.getOrientation().set(pose3D.getOrientation());
             se3TrajectoryPointMessage.getLinearVelocity().set(linearVelocity);
             se3TrajectoryPointMessage.getAngularVelocity().set(angularVelocity);
-//            se3TrajectoryPointMessage.getLinearVelocity().setToZero();
-//            se3TrajectoryPointMessage.getAngularVelocity().setToZero();
 
             time += timeStep;
             se3TrajectoryPointMessage.setTime(time);

@@ -1,5 +1,6 @@
 package us.ihmc.rdx.mesh;
 
+import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.graphicsDescription.MeshDataBuilder;
 
@@ -10,7 +11,6 @@ public class MeshDataBuilderMissingTools
     *
     * @param eightVertices
     * @param lineWidth
-    * @param color
     */
    public static void addMultiLineBox(Point3DReadOnly[] eightVertices, double lineWidth, MeshDataBuilder meshDataBuilder)
    {

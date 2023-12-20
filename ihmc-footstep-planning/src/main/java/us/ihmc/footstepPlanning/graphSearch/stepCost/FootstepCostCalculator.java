@@ -54,14 +54,11 @@ public class FootstepCostCalculator implements FootstepCostCalculatorInterface
    private final Plane3D bestFitPlane = new Plane3D();
    private static final double cliffCost = 0.0; // 0.3;
 
-   private final FootstepPlannerEnvironmentHandler environmentHandler;
-
    public FootstepCostCalculator(FootstepPlannerParametersReadOnly parameters,
                                  FootstepSnapperReadOnly snapper,
                                  IdealStepCalculatorInterface idealStepCalculator,
                                  ToDoubleFunction<FootstepGraphNode> heuristics,
                                  SideDependentList<? extends ConvexPolygon2DReadOnly> footPolygons,
-                                 FootstepPlannerEnvironmentHandler environmentHandler,
                                  YoRegistry parentRegistry)
    {
       this.parameters = parameters;
@@ -69,7 +66,6 @@ public class FootstepCostCalculator implements FootstepCostCalculatorInterface
       this.idealStepCalculator = idealStepCalculator;
       this.heuristics = heuristics;
       this.footPolygons = footPolygons;
-      this.environmentHandler = environmentHandler;
 
       /* Scale's by a factor of the foot length/width */
       double polygonScaleFactor = 0.65;
@@ -115,7 +111,7 @@ public class FootstepCostCalculator implements FootstepCostCalculatorInterface
       edgeCost.add(Math.abs(pitchOffset * parameters.getPitchWeight()));
       edgeCost.add(Math.abs(rollOffset * parameters.getRollWeight()));
 
-      if (environmentHandler.hasFallbackHeightMap() && candidateSnapData.getSnappedToHeightMap())
+      if (candidateSnapData.getSnappedToHeightMap())
       {
          double rmsError = candidateSnapData.getRMSErrorHeightMap();
          double rmsAlpha = EuclidCoreTools.clamp(
@@ -163,7 +159,7 @@ public class FootstepCostCalculator implements FootstepCostCalculatorInterface
       if (snapData != null)
       {
          double area;
-         if (!environmentHandler.hasFallbackHeightMap() || !snapData.getSnappedToHeightMap())
+         if (!snapData.getSnappedToHeightMap())
          {
             ConvexPolygon2DReadOnly footholdAfterSnap = snapData.getCroppedFoothold();
             if(footholdAfterSnap.isEmpty() || footholdAfterSnap.containsNaN())

@@ -105,7 +105,7 @@ public class AStarFootstepPlanner
       this.expansion = new ParameterBasedStepExpansion(footstepPlannerParameters, referenceBasedIdealStepCalculator, footPolygons);
 
       this.distanceAndYawHeuristics = new FootstepPlannerHeuristicCalculator(footstepPlannerParameters, bodyPathPlanHolder, registry);
-      stepCostCalculator = new FootstepCostCalculator(footstepPlannerParameters, snapper, referenceBasedIdealStepCalculator, distanceAndYawHeuristics::compute, footPolygons, plannerEnvironmentHandler, registry);
+      stepCostCalculator = new FootstepCostCalculator(footstepPlannerParameters, snapper, referenceBasedIdealStepCalculator, distanceAndYawHeuristics::compute, footPolygons, registry);
 
 
       this.iterationConductor = new AStarFootstepPlannerIterationConductor(expansion, checker, stepCostCalculator, distanceAndYawHeuristics::compute);

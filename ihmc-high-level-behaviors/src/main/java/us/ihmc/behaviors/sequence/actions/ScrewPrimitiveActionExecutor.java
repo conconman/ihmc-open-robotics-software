@@ -18,15 +18,15 @@ import us.ihmc.communication.crdt.CRDTInfo;
 import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.geometry.interfaces.Pose3DReadOnly;
+import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
-import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.euclid.yawPitchRoll.YawPitchRoll;
 import us.ihmc.log.LogTools;
+import us.ihmc.robotics.referenceFrames.MutableReferenceFrame;
 import us.ihmc.robotics.referenceFrames.ReferenceFrameLibrary;
-import us.ihmc.robotics.referenceFrames.ReferenceFrameMissingTools;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.tools.io.WorkspaceResourceDirectory;
 
@@ -46,9 +46,16 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
    private final FramePose3D workPose = new FramePose3D();
    private final HandTrajectoryMessage handTrajectoryMessage = new HandTrajectoryMessage();
    private final HandWrenchTrajectoryMessage handWrenchTrajectoryMessage = new HandWrenchTrajectoryMessage();
-   private final RigidBodyTransform startPoseFrameToWorld = new RigidBodyTransform();
-   private final ReferenceFrame startPoseFrame = ReferenceFrameMissingTools.constructFrameWithChangingTransformToParent(ReferenceFrame.getWorldFrame(),
-                                                                                                                        startPoseFrameToWorld);
+   private final Vector3D linearVelocity = new Vector3D();
+   private final Vector3D angularVelocity = new Vector3D();
+   private final Vector3D force = new Vector3D();
+   private final Vector3D torque = new Vector3D();
+   private final Quaternion localRotationQuaternion = new Quaternion();
+   private final Vector3D worldRotationVector = new Vector3D();;
+   private final Vector3D localRotationVectorEnd = new Vector3D();
+   private final FramePoint3D frameRotationVectorEnd = new FramePoint3D();
+   private final MutableReferenceFrame previousPoseFrame = new MutableReferenceFrame();
+   private final MutableReferenceFrame nextPoseFrame = new MutableReferenceFrame();
 
    public ScrewPrimitiveActionExecutor(long id,
                                        CRDTInfo crdtInfo,
@@ -134,7 +141,6 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
    {
       if (getState().getScrewFrame().isChildOfWorld())
       {
-//         desiredHandControlPose.setFromReferenceFrame(getState().getPalmFrame().getReferenceFrame());
          syncedHandControlPose.setFromReferenceFrame(syncedRobot.getFullRobotModel().getHandControlFrame(getDefinition().getSide()));
          startPositionDistanceToGoal = syncedHandControlPose.getTranslation().differenceNorm(desiredHandControlPose.getTranslation());
          startOrientationDistanceToGoal = syncedHandControlPose.getRotation().distance(desiredHandControlPose.getRotation(), true);
@@ -165,73 +171,43 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
 
          double timeStep = 0.5;
          double time = timeStep;
-         int bookendRamp = 5;
-         Vector3D linearVelocity = new Vector3D();
-         Vector3D angularVelocity = new Vector3D();
-         Vector3D force = new Vector3D();
-         Vector3D torque = new Vector3D();
-         FrameQuaternion rotation = new FrameQuaternion();
-         FrameQuaternion framePreviousPose = new FrameQuaternion();
-         FrameQuaternion frameNextPose = new FrameQuaternion();
-//         Quaternion rotationInWorld = new Quaternion();
          int numberOfPoints = getState().getTrajectory().getSize();
 
-         for (int i = 1; i < numberOfPoints; i++)
+         for (int i = 0; i < numberOfPoints; i++)
          {
-            Pose3DReadOnly pose3D = getState().getTrajectory().getValueReadOnly(i);
+            // Includes where the hand currently is as the first point
+            Pose3DReadOnly previousPose = i == 0 ? syncedHandControlPose : getState().getTrajectory().getValueReadOnly(i - 1);
+            Pose3DReadOnly nextPose = getState().getTrajectory().getValueReadOnly(i);
 
-            double velocityScale = Math.min(Math.min(i, numberOfPoints - i), bookendRamp) / (double) bookendRamp;
-            velocityScale = 1.0; // FIXME
+            previousPoseFrame.getTransformToParent().set(previousPose);
+            previousPoseFrame.getReferenceFrame().update();
 
-            Pose3DReadOnly lastPose3D = getState().getTrajectory().getValueReadOnly(i - 1);
-            linearVelocity.sub(pose3D.getPosition(), lastPose3D.getPosition());
+            nextPoseFrame.getTransformToParent().set(nextPose);
+            nextPoseFrame.getReferenceFrame().update();
 
-            startPoseFrameToWorld.set(lastPose3D);
-            startPoseFrame.update();
-            framePreviousPose.setToZero(startPoseFrame);
-            frameNextPose.setIncludingFrame(ReferenceFrame.getWorldFrame(), pose3D.getOrientation());
-            frameNextPose.changeFrame(startPoseFrame);
+            linearVelocity.sub(nextPose.getPosition(), previousPose.getPosition());
+            linearVelocity.scale(1.0 / timeStep);
 
-            rotation.setToZero(startPoseFrame);
-            rotation.difference(frameNextPose, framePreviousPose);
-            rotation.changeFrame(ReferenceFrame.getWorldFrame());
+            localRotationQuaternion.difference(previousPose.getOrientation(), nextPose.getOrientation());
+            localRotationQuaternion.getRotationVector(localRotationVectorEnd);
+            frameRotationVectorEnd.setIncludingFrame(nextPoseFrame.getReferenceFrame(), localRotationVectorEnd);
+            frameRotationVectorEnd.changeFrame(ReferenceFrame.getWorldFrame());
+            worldRotationVector.sub(frameRotationVectorEnd, nextPose.getTranslation());
 
+            angularVelocity.set(worldRotationVector);
+            angularVelocity.scale(1.0 / timeStep);
 
-//            rotation.setToZero(startPoseFrame);
-//            Quaternion diff = new Quaternion();
-//            diff.set(pose3D.getOrientation());
-//            diff.multiplyConjugateOther(lastPose3D.getOrientation());
-//            diff.getRotationVector(angularVelocity);
-//            frameNextPose.setIncludingFrame(ReferenceFrame.getWorldFrame(), pose3D.getOrientation());
-//            frameNextPose.changeFrame(startPoseFrame);
-//            rotation.set(frameNextPose);
-//            rotation.changeFrame(ReferenceFrame.getWorldFrame());
-//            rotation.transform(lastPose3D.getOrientation());
-//            rotation.difference(lastPose3D.getOrientation());
-//            rotationInWorld.setToZero();
-//            orientationDelta.transform(rotationInWorld);
-
-            rotation.getRotationVector(angularVelocity);
-
-            double linearDistance = linearVelocity.norm();
-            double angularDistance = pose3D.getOrientation().distance(lastPose3D.getOrientation());
-
-            linearVelocity.normalize();
             force.set(linearVelocity);
-            linearVelocity.scale(linearDistance / timeStep);
-            angularVelocity.normalize();
-            torque.set(angularVelocity);
-            angularVelocity.scale(angularDistance / timeStep);
-
-            angularVelocity.setToZero();
-
-
+            force.normalize();
             force.scale(10.0);
+
+            torque.set(angularVelocity);
+            torque.normalize();
             torque.scale(7.0);
 
             SE3TrajectoryPointMessage se3TrajectoryPointMessage = se3TrajectoryMessage.getTaskspaceTrajectoryPoints().add();
-            se3TrajectoryPointMessage.getPosition().set(pose3D.getTranslation());
-            se3TrajectoryPointMessage.getOrientation().set(pose3D.getOrientation());
+            se3TrajectoryPointMessage.getPosition().set(nextPose.getTranslation());
+            se3TrajectoryPointMessage.getOrientation().set(nextPose.getOrientation());
             se3TrajectoryPointMessage.getLinearVelocity().set(linearVelocity);
             se3TrajectoryPointMessage.getAngularVelocity().set(angularVelocity);
 
@@ -242,6 +218,12 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
             time += timeStep;
             wrenchTrajectoryPointMessage.setTime(time);
             se3TrajectoryPointMessage.setTime(time);
+
+            LogTools.info("Adding point time: %.2f  nextPose: %s %s  linearVel: %s  angularVel: %s".formatted(time,
+                                                                                                              nextPose.getPosition(),
+                                                                                                              new YawPitchRoll(nextPose.getOrientation()),
+                                                                                                              linearVelocity,
+                                                                                                              angularVelocity));
          }
          ros2ControllerHelper.publishToController(handTrajectoryMessage);
 //         ros2ControllerHelper.publishToController(handWrenchTrajectoryMessage);

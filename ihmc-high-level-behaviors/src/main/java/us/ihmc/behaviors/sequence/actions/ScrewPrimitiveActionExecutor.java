@@ -219,11 +219,14 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
             wrenchTrajectoryPointMessage.setTime(time);
             se3TrajectoryPointMessage.setTime(time);
 
-            LogTools.info("Adding point time: %.2f  nextPose: %s %s  linearVel: %s  angularVel: %s".formatted(time,
-                                                                                                              nextPose.getPosition(),
-                                                                                                              new YawPitchRoll(nextPose.getOrientation()),
-                                                                                                              linearVelocity,
-                                                                                                              angularVelocity));
+            LogTools.info("Adding point time: %.2f  nextPose: %s %s  linearVel: %s  angularVel: %s  force: %s  torque %s"
+                    .formatted(time,
+                               nextPose.getPosition(),
+                               new YawPitchRoll(nextPose.getOrientation()),
+                               linearVelocity,
+                               angularVelocity,
+                               force,
+                               torque));
          }
          ros2ControllerHelper.publishToController(handTrajectoryMessage);
 //         ros2ControllerHelper.publishToController(handWrenchTrajectoryMessage);

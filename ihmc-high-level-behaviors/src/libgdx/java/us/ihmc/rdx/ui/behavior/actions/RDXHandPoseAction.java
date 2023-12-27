@@ -169,8 +169,6 @@ public class RDXHandPoseAction extends RDXActionNode<HandPoseActionState, HandPo
 
       tooltip = new RDX3DPanelTooltip(panel3D);
       panel3D.addImGuiOverlayAddition(this::render3DPanelImGuiOverlays);
-
-
    }
 
    @Override

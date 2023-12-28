@@ -15,7 +15,7 @@ public class ScrewPrimitiveActionDefinitionMessagePubSubType implements us.ihmc.
    @Override
    public final java.lang.String getDefinitionChecksum()
    {
-   		return "e37778e4ba7f6273f8277650c42dcac3956a5e9f1399cc671c928d66a99e4144";
+   		return "0e0905e191d793c01b72234cb29f0ec32de640c5512b09f456996d3425d78dce";
    }
    
    @Override
@@ -67,6 +67,16 @@ public class ScrewPrimitiveActionDefinitionMessagePubSubType implements us.ihmc.
 
       current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
 
+      current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
+
+      current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
+
+      current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
+
+      current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
+
+      current_alignment += controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType.getMaxCdrSerializedSize(current_alignment);
+
       current_alignment += 1 + us.ihmc.idl.CDR.alignment(current_alignment, 1);
 
 
@@ -89,7 +99,7 @@ public class ScrewPrimitiveActionDefinitionMessagePubSubType implements us.ihmc.
 
       current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4) + data.getObjectFrameName().length() + 1;
 
-      current_alignment += controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType.getCdrSerializedSize(data.getScrewAxisTransformToObject(), current_alignment);
+      current_alignment += controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType.getCdrSerializedSize(data.getScrewAxisPose(), current_alignment);
 
       current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
 
@@ -102,6 +112,20 @@ public class ScrewPrimitiveActionDefinitionMessagePubSubType implements us.ihmc.
 
       current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
 
+
+      current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
+
+
+      current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
+
+
+      current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
+
+
+      current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
+
+
+      current_alignment += controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType.getCdrSerializedSize(data.getWrenchContactPose(), current_alignment);
 
       current_alignment += 1 + us.ihmc.idl.CDR.alignment(current_alignment, 1);
 
@@ -119,15 +143,24 @@ public class ScrewPrimitiveActionDefinitionMessagePubSubType implements us.ihmc.
       cdr.write_type_d(data.getObjectFrameName());else
           throw new RuntimeException("object_frame_name field exceeds the maximum length");
 
-      controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType.write(data.getScrewAxisTransformToObject(), cdr);
-      cdr.write_type_6(data.getRotation());
-
+      controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType.write(data.getScrewAxisPose(), cdr);
       cdr.write_type_6(data.getTranslation());
 
-      cdr.write_type_6(data.getAxialTorque());
+      cdr.write_type_6(data.getRotation());
 
-      cdr.write_type_6(data.getAxialForce());
+      cdr.write_type_6(data.getMaxLinearVelocity());
 
+      cdr.write_type_6(data.getMaxAngularVelocity());
+
+      cdr.write_type_6(data.getMaxForce());
+
+      cdr.write_type_6(data.getMaxTorque());
+
+      cdr.write_type_6(data.getLinearPositionWeight());
+
+      cdr.write_type_6(data.getAngularPositionWeight());
+
+      controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType.write(data.getWrenchContactPose(), cdr);
       cdr.write_type_7(data.getHoldPoseInWorld());
 
    }
@@ -138,15 +171,24 @@ public class ScrewPrimitiveActionDefinitionMessagePubSubType implements us.ihmc.
       data.setRobotSide(cdr.read_type_9());
       	
       cdr.read_type_d(data.getObjectFrameName());	
-      controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType.read(data.getScrewAxisTransformToObject(), cdr);	
-      data.setRotation(cdr.read_type_6());
-      	
+      controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType.read(data.getScrewAxisPose(), cdr);	
       data.setTranslation(cdr.read_type_6());
       	
-      data.setAxialTorque(cdr.read_type_6());
+      data.setRotation(cdr.read_type_6());
       	
-      data.setAxialForce(cdr.read_type_6());
+      data.setMaxLinearVelocity(cdr.read_type_6());
       	
+      data.setMaxAngularVelocity(cdr.read_type_6());
+      	
+      data.setMaxForce(cdr.read_type_6());
+      	
+      data.setMaxTorque(cdr.read_type_6());
+      	
+      data.setLinearPositionWeight(cdr.read_type_6());
+      	
+      data.setAngularPositionWeight(cdr.read_type_6());
+      	
+      controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType.read(data.getWrenchContactPose(), cdr);	
       data.setHoldPoseInWorld(cdr.read_type_7());
       	
 
@@ -159,12 +201,18 @@ public class ScrewPrimitiveActionDefinitionMessagePubSubType implements us.ihmc.
 
       ser.write_type_9("robot_side", data.getRobotSide());
       ser.write_type_d("object_frame_name", data.getObjectFrameName());
-      ser.write_type_a("screw_axis_transform_to_object", new controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType(), data.getScrewAxisTransformToObject());
+      ser.write_type_a("screw_axis_pose", new controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType(), data.getScrewAxisPose());
 
-      ser.write_type_6("rotation", data.getRotation());
       ser.write_type_6("translation", data.getTranslation());
-      ser.write_type_6("axial_torque", data.getAxialTorque());
-      ser.write_type_6("axial_force", data.getAxialForce());
+      ser.write_type_6("rotation", data.getRotation());
+      ser.write_type_6("max_linear_velocity", data.getMaxLinearVelocity());
+      ser.write_type_6("max_angular_velocity", data.getMaxAngularVelocity());
+      ser.write_type_6("max_force", data.getMaxForce());
+      ser.write_type_6("max_torque", data.getMaxTorque());
+      ser.write_type_6("linear_position_weight", data.getLinearPositionWeight());
+      ser.write_type_6("angular_position_weight", data.getAngularPositionWeight());
+      ser.write_type_a("wrench_contact_pose", new controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType(), data.getWrenchContactPose());
+
       ser.write_type_7("hold_pose_in_world", data.getHoldPoseInWorld());
    }
 
@@ -175,12 +223,18 @@ public class ScrewPrimitiveActionDefinitionMessagePubSubType implements us.ihmc.
 
       data.setRobotSide(ser.read_type_9("robot_side"));
       ser.read_type_d("object_frame_name", data.getObjectFrameName());
-      ser.read_type_a("screw_axis_transform_to_object", new controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType(), data.getScrewAxisTransformToObject());
+      ser.read_type_a("screw_axis_pose", new controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType(), data.getScrewAxisPose());
 
-      data.setRotation(ser.read_type_6("rotation"));
       data.setTranslation(ser.read_type_6("translation"));
-      data.setAxialTorque(ser.read_type_6("axial_torque"));
-      data.setAxialForce(ser.read_type_6("axial_force"));
+      data.setRotation(ser.read_type_6("rotation"));
+      data.setMaxLinearVelocity(ser.read_type_6("max_linear_velocity"));
+      data.setMaxAngularVelocity(ser.read_type_6("max_angular_velocity"));
+      data.setMaxForce(ser.read_type_6("max_force"));
+      data.setMaxTorque(ser.read_type_6("max_torque"));
+      data.setLinearPositionWeight(ser.read_type_6("linear_position_weight"));
+      data.setAngularPositionWeight(ser.read_type_6("angular_position_weight"));
+      ser.read_type_a("wrench_contact_pose", new controller_msgs.msg.dds.RigidBodyTransformMessagePubSubType(), data.getWrenchContactPose());
+
       data.setHoldPoseInWorld(ser.read_type_7("hold_pose_in_world"));
    }
 

@@ -229,7 +229,7 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
                                torque));
          }
          ros2ControllerHelper.publishToController(handTrajectoryMessage);
-//         ros2ControllerHelper.publishToController(handWrenchTrajectoryMessage);
+         ros2ControllerHelper.publishToController(handWrenchTrajectoryMessage);
       }
       else
       {

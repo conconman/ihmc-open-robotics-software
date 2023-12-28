@@ -27,25 +27,39 @@ module behavior_msgs
          */
         string object_frame_name;
         /**
-         * Transform that expresses the screw axis in the object frame
+         * The pose of the screw axis in the object frame
          */
-        controller_msgs::msg::dds::RigidBodyTransformMessage screw_axis_transform_to_object;
-        /**
-         * The magnitude of the rotation component
-         */
-        double rotation;
+        controller_msgs::msg::dds::RigidBodyTransformMessage screw_axis_pose;
         /**
          * The magnitude of the translation component
          */
         double translation;
         /**
-         * The axial torque
+         * The magnitude of the rotation component
          */
-        double axial_torque;
+        double rotation;
         /**
-         * The axial_force
+         * The max linear velocity
          */
-        double axial_force;
+        double max_linear_velocity;
+        /**
+         * The max angular velocity
+         */
+        double max_angular_velocity;
+        /**
+         * The max force
+         */
+        double max_force;
+        /**
+         * The max torque
+         */
+        double max_torque;
+        double linear_position_weight;
+        double angular_position_weight;
+        /**
+         * The pose of the wrench contact in hand control frame
+         */
+        controller_msgs::msg::dds::RigidBodyTransformMessage wrench_contact_pose;
         /**
          * Whether maintaining the rigid body controlled in world after the action is complete
          */

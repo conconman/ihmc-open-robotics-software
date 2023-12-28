@@ -18,7 +18,7 @@ public class ScrewPrimitiveActionState extends ActionNodeState<ScrewPrimitiveAct
    {
       super(id, new ScrewPrimitiveActionDefinition(crdtInfo, saveFileDirectory), crdtInfo);
 
-      screwFrame = new DetachableReferenceFrame(referenceFrameLibrary, getDefinition().getScrewAxisTransformToObject().getValueReadOnly());
+      screwFrame = new DetachableReferenceFrame(referenceFrameLibrary, getDefinition().getScrewAxisPoseInObjectFrame().getValueReadOnly());
       trajectory = new CRDTUnidirectionalPoseList(ROS2ActorDesignation.ROBOT, crdtInfo);
    }
 

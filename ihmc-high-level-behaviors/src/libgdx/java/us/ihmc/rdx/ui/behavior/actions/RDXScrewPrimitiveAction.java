@@ -97,10 +97,26 @@ public class RDXScrewPrimitiveAction extends RDXActionNode<ScrewPrimitiveActionS
                                             imDouble -> ImGuiTools.sliderDouble(labels.get("Max Torque"), imDouble, 0.5, 20.0));
       linearPositionWeightWidget = new ImDoubleWrapper(getDefinition()::getLinearPositionWeight,
                                                        getDefinition()::setLinearPositionWeight,
-                                                       imDouble -> ImGuiTools.sliderDouble(labels.get("Linear Position Weight"), imDouble, 0.0, 100.0));
+                                                       imDouble ->
+                                                       {
+                                                          ImGui.pushItemWidth(100.0f);
+                                                          ImGui.inputDouble(labels.get("Linear Position Weight"), imDouble);
+                                                          ImGui.popItemWidth();
+                                                          ImGui.sameLine();
+                                                          if (ImGui.button(labels.get("Default", "Linear")))
+                                                             imDouble.set(-1.0);
+                                                       });
       angularPositionWeightWidget = new ImDoubleWrapper(getDefinition()::getAngularPositionWeight,
                                                         getDefinition()::setAngularPositionWeight,
-                                                        imDouble -> ImGuiTools.sliderDouble(labels.get("Angular Position Weight"), imDouble, 0.0, 100.0));
+                                                        imDouble ->
+                                                        {
+                                                           ImGui.pushItemWidth(100.0f);
+                                                           ImGui.inputDouble(labels.get("Angular Position Weight"), imDouble);
+                                                           ImGui.popItemWidth();
+                                                           ImGui.sameLine();
+                                                           if (ImGui.button(labels.get("Default", "Angular")))
+                                                              imDouble.set(-1.0);
+                                                        });
    }
 
    @Override

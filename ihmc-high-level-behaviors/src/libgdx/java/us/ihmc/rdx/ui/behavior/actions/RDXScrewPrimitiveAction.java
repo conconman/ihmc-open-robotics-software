@@ -142,6 +142,7 @@ public class RDXScrewPrimitiveAction extends RDXActionNode<ScrewPrimitiveActionS
       maxTorqueWidget.renderImGuiWidget();
       linearPositionWeightWidget.renderImGuiWidget();
       angularPositionWeightWidget.renderImGuiWidget();
+      ImGui.checkbox(labels.get("Adjust Screw Axis Pose"), getSelected());
       ImGui.checkbox(labels.get("Adjust Wrench Contact Pose"), adjustWrenchContactPose);
    }
 

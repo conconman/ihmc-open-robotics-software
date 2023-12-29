@@ -185,16 +185,22 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
 
          int numberOfPoints = getState().getTrajectory().getSize();
          double time = 0.0;
-         linearVelocity.setToZero();
-         angularVelocity.setToZero();
          force.setToZero();
          torque.setToZero();
 
          for (int i = 0; i < numberOfPoints; i++)
          {
+            boolean isLastPoint = i == numberOfPoints - 1;
+
             // For the first point, they are the same -- the initial hand pose
             Pose3DReadOnly previousPose = getState().getTrajectory().getValueReadOnly(i == 0 ? i : i - 1);
             Pose3DReadOnly nextPose = getState().getTrajectory().getValueReadOnly(i);
+
+            previousPoseFrame.getTransformToParent().set(previousPose);
+            previousPoseFrame.getReferenceFrame().update();
+
+            nextPoseFrame.getTransformToParent().set(nextPose);
+            nextPoseFrame.getReferenceFrame().update();
 
             double deltaTime = 0.0;
             if (i > 0)
@@ -206,12 +212,6 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
                double timeForAngular = angularDistance / getDefinition().getMaxAngularVelocity();
                deltaTime = Math.max(timeForLinear, timeForAngular); // Take longest
                time += deltaTime;
-
-               previousPoseFrame.getTransformToParent().set(previousPose);
-               previousPoseFrame.getReferenceFrame().update();
-
-               nextPoseFrame.getTransformToParent().set(nextPose);
-               nextPoseFrame.getReferenceFrame().update();
 
                linearVelocity.sub(nextPose.getPosition(), previousPose.getPosition());
                linearVelocity.normalize();
@@ -237,6 +237,12 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
                torque.scale(getDefinition().getMaxTorque());
             }
 
+            if (i == 0 || isLastPoint)
+            {
+               linearVelocity.setToZero();
+               angularVelocity.setToZero();
+            }
+
             ArmIKSolver armIKSolver = armIKSolvers.get(getDefinition().getSide());
             if (i == 0)
                armIKSolver.copySourceToWork();
@@ -257,7 +263,7 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
                TrajectoryPoint1DMessage trajectoryPoint1DMessage = oneDoFJointTrajectoryMessage.getTrajectoryPoints().add();
                trajectoryPoint1DMessage.setTime(time);
                trajectoryPoint1DMessage.setPosition(armIKSolver.getSolutionOneDoFJoints()[j].getQ());
-               if (i == 0)
+               if (i == 0 || isLastPoint)
                {
                   trajectoryPoint1DMessage.setVelocity(0.0);
                }
@@ -290,12 +296,7 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
                                force,
                                torque));
          }
-         ArmTrajectoryMessage armTrajectoryMessage = new ArmTrajectoryMessage();
-         armTrajectoryMessage.setRobotSide(getDefinition().getSide().toByte());
-         armTrajectoryMessage.getJointspaceTrajectory().set(jointspaceTrajectoryMessage);
-         LogTools.info("Sending Jointspace ArmTrajectoryMessage");
-         ros2ControllerHelper.publishToController(armTrajectoryMessage);
-//         ros2ControllerHelper.publishToController(handHybridTrajectoryMessage);
+         ros2ControllerHelper.publishToController(handHybridTrajectoryMessage);
          if (getDefinition().getMaxForce() > 0.0 || getDefinition().getMaxTorque() > 0.0)
             ros2ControllerHelper.publishToController(handWrenchTrajectoryMessage);
       }

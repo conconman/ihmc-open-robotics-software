@@ -208,6 +208,7 @@ public class HandPoseActionExecutor extends ActionNodeExecutor<HandPoseActionSta
          }
          state.setIsExecuting(isExecuting);
 
+         // Send command later, once the solution is good, as in task approach
          if (state.getIsExecuting() && !hasSentCommand && getState().getSolutionQuality() <= ArmIKSolver.GOOD_QUALITY_MAX)
          {
             hasSentCommand = true;

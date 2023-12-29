@@ -153,18 +153,24 @@ public class RDXActionSequence extends RDXBehaviorTreeNode<ActionSequenceState, 
          }
          else
          {
+            ImGui.text("Executing:");
             for (RDXActionNode<?, ?> currentlyExecutingAction : currentlyExecutingActions)
             {
-               ImGui.text("Currently executing: " + currentlyExecutingAction.getDefinition().getDescription());
+               ImGui.sameLine();
+               ImGui.text("%s (%s)".formatted(currentlyExecutingAction.getDefinition().getDescription(),
+                                                             currentlyExecutingAction.getActionTypeTitle()));
             }
          }
       }
 
-      multipleActionProgressBars.getActionProgressBars().clear();
-      for (RDXActionNode<?, ?> currentlyExecutingAction : currentlyExecutingActions)
+      if (!currentlyExecutingActions.isEmpty()) // Let the latest status keep showing
       {
-         RDXSingleActionProgressBars actionProgressBars = multipleActionProgressBars.getActionProgressBars().add();
-         actionProgressBars.setAction(currentlyExecutingAction);
+         multipleActionProgressBars.getActionProgressBars().clear();
+         for (RDXActionNode<?, ?> currentlyExecutingAction : currentlyExecutingActions)
+         {
+            RDXSingleActionProgressBars actionProgressBars = multipleActionProgressBars.getActionProgressBars().add();
+            actionProgressBars.setAction(currentlyExecutingAction);
+         }
       }
       multipleActionProgressBars.render();
    }

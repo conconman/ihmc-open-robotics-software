@@ -18,15 +18,6 @@ public class RDXMultipleActionProgressBars
 
    public void render()
    {
-      ImGui.text("Executing: ");
-      ImGui.sameLine();
-
-      for (RDXSingleActionProgressBars actionProgressBar : actionProgressBars)
-      {
-         ImGui.text("%s (%s)".formatted(actionProgressBar.getAction().getDefinition().getDescription(),
-                                        actionProgressBar.getAction().getActionTypeTitle()));
-      }
-
       widgetAligner.text("Expected time remaining:");
 
       // We compute the bar width to show them all together,
@@ -40,22 +31,27 @@ public class RDXMultipleActionProgressBars
       }
       float dividedBarWidth = ImGui.getColumnWidth() / actionProgressBars.size() - barWidthToSubtract;
 
-      for (RDXSingleActionProgressBars actionProgressBar : actionProgressBars)
+      if (actionProgressBars.isEmpty())
+         ImGui.progressBar(Float.NaN, ImGui.getColumnWidth(), PROGRESS_BAR_HEIGHT, "");
+      for (int i = 0; i < actionProgressBars.size(); i++)
       {
-         double elapsedTime = actionProgressBar.getAction().getState().getElapsedExecutionTime();
-         double nominalDuration = actionProgressBar.getAction().getState().getNominalExecutionDuration();
+         double elapsedTime = actionProgressBars.get(i).getAction().getState().getElapsedExecutionTime();
+         double nominalDuration = actionProgressBars.get(i).getAction().getState().getNominalExecutionDuration();
          double percentComplete = elapsedTime / nominalDuration;
          double percentLeft = 1.0 - percentComplete;
          ImGui.progressBar((float) percentLeft, dividedBarWidth, PROGRESS_BAR_HEIGHT, "%.2f / %.2f".formatted(elapsedTime, nominalDuration));
-         ImGui.sameLine();
+         if (i < actionProgressBars.size() - 1)
+            ImGui.sameLine();
       }
       ImGui.spacing();
       widgetAligner.text("Position error (m):");
-      for (RDXSingleActionProgressBars actionProgressBar : actionProgressBars)
+      if (actionProgressBars.isEmpty())
+         ImGui.progressBar(Float.NaN, ImGui.getColumnWidth(), PROGRESS_BAR_HEIGHT, "");
+      for (int i = 0; i < actionProgressBars.size(); i++)
       {
-         double currentPositionError = actionProgressBar.getAction().getState().getCurrentPositionDistanceToGoal();
-         double startPositionError = actionProgressBar.getAction().getState().getStartPositionDistanceToGoal();
-         double positionTolerance = actionProgressBar.getAction().getState().getPositionDistanceToGoalTolerance();
+         double currentPositionError = actionProgressBars.get(i).getAction().getState().getCurrentPositionDistanceToGoal();
+         double startPositionError = actionProgressBars.get(i).getAction().getState().getStartPositionDistanceToGoal();
+         double positionTolerance = actionProgressBars.get(i).getAction().getState().getPositionDistanceToGoalTolerance();
          double barEndValue = Math.max(Math.min(startPositionError, currentPositionError), 2.0 * positionTolerance);
          double toleranceMarkPercent = positionTolerance / barEndValue;
          int barColor = currentPositionError < positionTolerance ? ImGuiTools.GREEN : ImGuiTools.RED;
@@ -66,15 +62,18 @@ public class RDXMultipleActionProgressBars
                                       percentLeft,
                                       toleranceMarkPercent,
                                       "%.2f / %.2f".formatted(currentPositionError, startPositionError));
-         ImGui.sameLine();
+         if (i < actionProgressBars.size() - 1)
+            ImGui.sameLine();
       }
       ImGui.spacing();
       widgetAligner.text("Orientation error (%s):".formatted(EuclidCoreMissingTools.DEGREE_SYMBOL));
-      for (RDXSingleActionProgressBars actionProgressBar : actionProgressBars)
+      if (actionProgressBars.isEmpty())
+         ImGui.progressBar(Float.NaN, ImGui.getColumnWidth(), PROGRESS_BAR_HEIGHT, "");
+      for (int i = 0; i < actionProgressBars.size(); i++)
       {
-         double currentOrientationError = actionProgressBar.getAction().getState().getCurrentOrientationDistanceToGoal();
-         double startOrientationError = actionProgressBar.getAction().getState().getStartOrientationDistanceToGoal();
-         double orientationTolerance = actionProgressBar.getAction().getState().getOrientationDistanceToGoalTolerance();
+         double currentOrientationError = actionProgressBars.get(i).getAction().getState().getCurrentOrientationDistanceToGoal();
+         double startOrientationError = actionProgressBars.get(i).getAction().getState().getStartOrientationDistanceToGoal();
+         double orientationTolerance = actionProgressBars.get(i).getAction().getState().getOrientationDistanceToGoalTolerance();
          double barEndValue = Math.max(Math.min(startOrientationError, currentOrientationError), 2.0 * orientationTolerance);
          double toleranceMarkPercent = orientationTolerance / barEndValue;
          int barColor = currentOrientationError < orientationTolerance ? ImGuiTools.GREEN : ImGuiTools.RED;
@@ -85,22 +84,25 @@ public class RDXMultipleActionProgressBars
                                       percentLeft,
                                       toleranceMarkPercent,
                                       "%.2f / %.2f".formatted(Math.toDegrees(currentOrientationError), Math.toDegrees(startOrientationError)));
-         ImGui.sameLine();
+         if (i < actionProgressBars.size() - 1)
+            ImGui.sameLine();
       }
       ImGui.spacing();
       widgetAligner.text("Footstep completion:");
-      for (RDXSingleActionProgressBars actionProgressBar : actionProgressBars)
+      if (actionProgressBars.isEmpty())
+         ImGui.progressBar(Float.NaN, ImGui.getColumnWidth(), PROGRESS_BAR_HEIGHT, "");
+      for (int i = 0; i < actionProgressBars.size(); i++)
       {
          int incompleteFootsteps = 0;
          int totalFootsteps = 0;
          double percentLeft = Double.NaN;
          String overlay = "N/A";
-         if (actionProgressBar.getAction() instanceof RDXWalkAction walkAction)
+         if (actionProgressBars.get(i).getAction() instanceof RDXWalkAction walkAction)
          {
             incompleteFootsteps = walkAction.getState().getNumberOfIncompleteFootsteps();
             totalFootsteps = walkAction.getState().getTotalNumberOfFootsteps();
          }
-         if (actionProgressBar.getAction() instanceof RDXFootstepPlanAction footstepPlanAction)
+         if (actionProgressBars.get(i).getAction() instanceof RDXFootstepPlanAction footstepPlanAction)
          {
             incompleteFootsteps = footstepPlanAction.getState().getNumberOfIncompleteFootsteps();
             totalFootsteps = footstepPlanAction.getState().getTotalNumberOfFootsteps();
@@ -112,13 +114,16 @@ public class RDXMultipleActionProgressBars
          }
 
          ImGui.progressBar((float) percentLeft, ImGui.getColumnWidth(), PROGRESS_BAR_HEIGHT, overlay);
-         ImGui.sameLine();
+         if (i < actionProgressBars.size() - 1)
+            ImGui.sameLine();
       }
       ImGui.spacing();
       widgetAligner.text("Hand wrench linear (N?):");
-      for (RDXSingleActionProgressBars actionProgressBar : actionProgressBars)
+      if (actionProgressBars.isEmpty())
+         ImGui.progressBar(Float.NaN, ImGui.getColumnWidth(), PROGRESS_BAR_HEIGHT, "");
+      for (int i = 0; i < actionProgressBars.size(); i++)
       {
-         if (actionProgressBar.getAction() instanceof RDXHandPoseAction handPoseAction)
+         if (actionProgressBars.get(i).getAction() instanceof RDXHandPoseAction handPoseAction)
          {
             double limit = 20.0;
             double force = handPoseAction.getState().getHandWrenchMagnitudeLinear();
@@ -129,7 +134,8 @@ public class RDXMultipleActionProgressBars
          {
             ImGui.progressBar(Float.NaN, ImGui.getColumnWidth(), PROGRESS_BAR_HEIGHT, "N/A");
          }
-         ImGui.sameLine();
+         if (i < actionProgressBars.size() - 1)
+            ImGui.sameLine();
       }
       ImGui.spacing();
    }

@@ -193,17 +193,20 @@ public class HandPoseActionExecutor extends ActionNodeExecutor<HandPoseActionSta
          desiredHandControlPose.setFromReferenceFrame(state.getPalmFrame().getReferenceFrame());
          syncedHandControlPose.setFromReferenceFrame(syncedRobot.getFullRobotModel().getHandControlFrame(getDefinition().getSide()));
 
-
          boolean wasExecuting = state.getIsExecuting();
-         // Left hand broke on Nadia and not in the robot model?
-         state.setIsExecuting(!completionCalculator.isComplete(desiredHandControlPose,
-                                                               syncedHandControlPose,
-                                                               POSITION_TOLERANCE,
-                                                               ORIENTATION_TOLERANCE,
-                                                               getDefinition().getTrajectoryDuration(),
-                                                               executionTimer,
-                                                               BehaviorActionCompletionComponent.TRANSLATION,
-                                                               BehaviorActionCompletionComponent.ORIENTATION));
+         boolean isExecuting = !hasSentCommand;
+         if (hasSentCommand)
+         {
+            isExecuting = !completionCalculator.isComplete(desiredHandControlPose,
+                                                           syncedHandControlPose,
+                                                           POSITION_TOLERANCE,
+                                                           ORIENTATION_TOLERANCE,
+                                                           getDefinition().getTrajectoryDuration(),
+                                                           executionTimer,
+                                                           BehaviorActionCompletionComponent.TRANSLATION,
+                                                           BehaviorActionCompletionComponent.ORIENTATION);
+         }
+         state.setIsExecuting(isExecuting);
 
          if (state.getIsExecuting() && !hasSentCommand && getState().getSolutionQuality() <= ArmIKSolver.GOOD_QUALITY_MAX)
          {
@@ -239,6 +242,12 @@ public class HandPoseActionExecutor extends ActionNodeExecutor<HandPoseActionSta
       SE3TrajectoryMessage se3TrajectoryMessage = new SE3TrajectoryMessage();
       se3TrajectoryMessage.getQueueingProperties().setExecutionMode(QueueableMessage.EXECUTION_MODE_OVERRIDE);
       // Select all axes and use default weights
+      // se3TrajectoryMessage.getLinearWeightMatrix().setXWeight(50.0);
+      // se3TrajectoryMessage.getLinearWeightMatrix().setYWeight(50.0);
+      // se3TrajectoryMessage.getLinearWeightMatrix().setZWeight(50.0);
+      // se3TrajectoryMessage.getAngularWeightMatrix().setXWeight(50.0);
+      // se3TrajectoryMessage.getAngularWeightMatrix().setYWeight(50.0);
+      // se3TrajectoryMessage.getAngularWeightMatrix().setZWeight(50.0);
       se3TrajectoryMessage.getFrameInformation().setTrajectoryReferenceFrameId(trajectoryReferenceFrameID);
       SE3TrajectoryPointMessage se3TrajectoryPointMessage = se3TrajectoryMessage.getTaskspaceTrajectoryPoints().add();
       se3TrajectoryPointMessage.setTime(getDefinition().getTrajectoryDuration());
@@ -254,7 +263,7 @@ public class HandPoseActionExecutor extends ActionNodeExecutor<HandPoseActionSta
          armTrajectoryMessage.getJointspaceTrajectory().set(jointspaceTrajectoryMessage);
          armTrajectoryMessage.setForceExecution(true); // Prevent the command being rejected because robot is still finishing up walking
          LogTools.info("Publishing arm jointspace trajectory");
-         ros2ControllerHelper.publishToController(jointspaceTrajectoryMessage);
+         ros2ControllerHelper.publishToController(armTrajectoryMessage);
       }
       else // Publishing taskspace only doesn't work well, so we use hybrid - @dcalvert
       {

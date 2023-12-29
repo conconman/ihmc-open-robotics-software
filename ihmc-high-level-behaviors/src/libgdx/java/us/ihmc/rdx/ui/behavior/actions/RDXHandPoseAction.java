@@ -106,14 +106,14 @@ public class RDXHandPoseAction extends RDXActionNode<HandPoseActionState, HandPo
       holdPoseInWorldLaterWrapper = new ImBooleanWrapper(getDefinition()::getHoldPoseInWorldLater,
                                                          getDefinition()::setHoldPoseInWorldLater,
                                                          imBoolean -> ImGui.checkbox(labels.get("Hold pose in world later"), imBoolean));
-      jointSpaceControlWrapper = new ImBooleanWrapper(getDefinition()::getJointSpaceControl,
-                                                      getDefinition()::setJointSpaceControl,
+      jointSpaceControlWrapper = new ImBooleanWrapper(getDefinition()::getJointspaceOnly,
+                                                      getDefinition()::setJointspaceOnly,
                                                       imBoolean -> {
-                                                         if (ImGui.radioButton(labels.get("Joint space"), imBoolean.get()))
-                                                            imBoolean.set(true);
-                                                         ImGui.sameLine();
-                                                         if (ImGui.radioButton(labels.get("Task space"), !imBoolean.get()))
+                                                         if (ImGui.radioButton(labels.get("Hybrid"), !imBoolean.get()))
                                                             imBoolean.set(false);
+                                                         ImGui.sameLine();
+                                                         if (ImGui.radioButton(labels.get("Jointspace Only"), imBoolean.get()))
+                                                            imBoolean.set(true);
                                                       });
 
       for (RobotSide side : RobotSide.values)
@@ -256,7 +256,7 @@ public class RDXHandPoseAction extends RDXActionNode<HandPoseActionState, HandPo
       ImGui.sameLine();
       executeWithNextActionWrapper.renderImGuiWidget();
       jointSpaceControlWrapper.renderImGuiWidget();
-      if (!getDefinition().getJointSpaceControl())
+      if (!getDefinition().getJointspaceOnly())
       {
          holdPoseInWorldLaterWrapper.renderImGuiWidget();
       }

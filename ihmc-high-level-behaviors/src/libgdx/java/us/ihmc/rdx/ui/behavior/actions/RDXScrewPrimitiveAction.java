@@ -14,10 +14,7 @@ import us.ihmc.communication.crdt.CRDTInfo;
 import us.ihmc.euclid.Axis3D;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.rdx.imgui.ImDoubleWrapper;
-import us.ihmc.rdx.imgui.ImGuiReferenceFrameLibraryCombo;
-import us.ihmc.rdx.imgui.ImGuiTools;
-import us.ihmc.rdx.imgui.ImGuiUniqueLabelMap;
+import us.ihmc.rdx.imgui.*;
 import us.ihmc.rdx.input.ImGui3DViewInput;
 import us.ihmc.rdx.mesh.RDXDashedLineMesh;
 import us.ihmc.rdx.ui.RDX3DPanel;
@@ -34,14 +31,14 @@ public class RDXScrewPrimitiveAction extends RDXActionNode<ScrewPrimitiveActionS
    private final FullHumanoidRobotModel syncedRobot;
    private final ImGuiUniqueLabelMap labels = new ImGuiUniqueLabelMap(getClass());
    private final ImGuiReferenceFrameLibraryCombo objectFrameComboBox;
-   private final ImDoubleWrapper translationWidget;
-   private final ImDoubleWrapper rotationWidget;
-   private final ImDoubleWrapper maxLinearVelocityWidget;
-   private final ImDoubleWrapper maxAngularVelocityWidget;
-   private final ImDoubleWrapper maxForceWidget;
-   private final ImDoubleWrapper maxTorqueWidget;
-   private final ImDoubleWrapper linearPositionWeightWidget;
-   private final ImDoubleWrapper angularPositionWeightWidget;
+   private final ImGuiSliderDoubleWrapper translationWidget;
+   private final ImGuiSliderDoubleWrapper rotationWidget;
+   private final ImGuiSliderDoubleWrapper maxLinearVelocityWidget;
+   private final ImGuiSliderDoubleWrapper maxAngularVelocityWidget;
+   private final ImGuiSliderDoubleWrapper maxForceWidget;
+   private final ImGuiSliderDoubleWrapper maxTorqueWidget;
+   private final ImGuiSliderDoubleWrapper linearPositionWeightWidget;
+   private final ImGuiSliderDoubleWrapper angularPositionWeightWidget;
    private final RDXSelectablePose3DGizmo screwAxisGizmo;
    private final ImBoolean adjustWrenchContactPose = new ImBoolean();
    private final RDXSelectablePose3DGizmo wrenchContactPoseGizmo;
@@ -77,46 +74,28 @@ public class RDXScrewPrimitiveAction extends RDXActionNode<ScrewPrimitiveActionS
                                                                 referenceFrameLibrary,
                                                                 getDefinition()::getObjectFrameName,
                                                                 getDefinition()::setObjectFrameName);
-      translationWidget = new ImDoubleWrapper(getDefinition()::getTranslation,
-                                              getDefinition()::setTranslation,
-                                              imDouble -> ImGuiTools.sliderDouble(labels.get("Translation"), imDouble, -0.4, 0.4));
-      rotationWidget = new ImDoubleWrapper(getDefinition()::getRotation,
-                                           getDefinition()::setRotation,
-                                           imDouble -> ImGuiTools.sliderDouble(labels.get("Rotation"), imDouble, -2.0 * Math.PI, 2.0 * Math.PI));
-      maxLinearVelocityWidget = new ImDoubleWrapper(getDefinition()::getMaxLinearVelocity,
-                                                    getDefinition()::setMaxLinearVelocity,
-                                                    imDouble -> ImGuiTools.sliderDouble(labels.get("Max Linear Velocity"), imDouble, 0.05, 1.0));
-      maxAngularVelocityWidget = new ImDoubleWrapper(getDefinition()::getMaxAngularVelocity,
-                                                     getDefinition()::setMaxAngularVelocity,
-                                                     imDouble -> ImGuiTools.sliderDouble(labels.get("Max Angular Velocity"), imDouble, 0.1, Math.PI));
-      maxForceWidget = new ImDoubleWrapper(getDefinition()::getMaxForce,
-                                           getDefinition()::setMaxForce,
-                                           imDouble -> ImGuiTools.sliderDouble(labels.get("Max Force"), imDouble, 1.0, 70.0));
-      maxTorqueWidget = new ImDoubleWrapper(getDefinition()::getMaxTorque,
-                                            getDefinition()::setMaxTorque,
-                                            imDouble -> ImGuiTools.sliderDouble(labels.get("Max Torque"), imDouble, 0.5, 20.0));
-      linearPositionWeightWidget = new ImDoubleWrapper(getDefinition()::getLinearPositionWeight,
-                                                       getDefinition()::setLinearPositionWeight,
-                                                       imDouble ->
-                                                       {
-                                                          ImGui.pushItemWidth(100.0f);
-                                                          ImGui.inputDouble(labels.get("Linear Position Weight"), imDouble);
-                                                          ImGui.popItemWidth();
-                                                          ImGui.sameLine();
-                                                          if (ImGui.button(labels.get("Default", "Linear")))
-                                                             imDouble.set(-1.0);
-                                                       });
-      angularPositionWeightWidget = new ImDoubleWrapper(getDefinition()::getAngularPositionWeight,
-                                                        getDefinition()::setAngularPositionWeight,
-                                                        imDouble ->
-                                                        {
-                                                           ImGui.pushItemWidth(100.0f);
-                                                           ImGui.inputDouble(labels.get("Angular Position Weight"), imDouble);
-                                                           ImGui.popItemWidth();
-                                                           ImGui.sameLine();
-                                                           if (ImGui.button(labels.get("Default", "Angular")))
-                                                              imDouble.set(-1.0);
-                                                        });
+      translationWidget = new ImGuiSliderDoubleWrapper("Translation", "%.2f", -0.4, 0.4, getDefinition()::getTranslation, getDefinition()::setTranslation);
+      rotationWidget = new ImGuiSliderDoubleWrapper("Rotation", "%.2f", -2.0 * Math.PI, 2.0 * Math.PI,
+                                                    getDefinition()::getRotation,
+                                                    getDefinition()::setRotation);
+      maxLinearVelocityWidget = new ImGuiSliderDoubleWrapper("Max Linear Velocity", "%.2f", 0.05, 1.0,
+                                                             getDefinition()::getMaxLinearVelocity,
+                                                             getDefinition()::setMaxLinearVelocity);
+      maxAngularVelocityWidget = new ImGuiSliderDoubleWrapper("Max Angular Velocity", "%.2f", 0.1, Math.PI,
+                                                              getDefinition()::getMaxAngularVelocity,
+                                                              getDefinition()::setMaxAngularVelocity);
+      maxForceWidget = new ImGuiSliderDoubleWrapper("Max Force", "%.2f", 0.0, 70.0, getDefinition()::getMaxForce, getDefinition()::setMaxForce);
+      maxForceWidget.addButton("Disable Wrench", () -> getDefinition().setMaxForce(0.0));
+      maxTorqueWidget = new ImGuiSliderDoubleWrapper("Max Torque", "%.2f", 0.5, 20.0, getDefinition()::getMaxTorque, getDefinition()::setMaxTorque);
+      maxTorqueWidget.addButton("Disable Wrench", () -> getDefinition().setMaxTorque(0.0));
+      linearPositionWeightWidget = new ImGuiSliderDoubleWrapper("Linear Position Weight", "%.2f", 0.0, 70.0,
+                                                                getDefinition()::getLinearPositionWeight,
+                                                                getDefinition()::setLinearPositionWeight);
+      linearPositionWeightWidget.addButton("Use Default Weights", () -> getDefinition().setLinearPositionWeight(-1.0));
+      angularPositionWeightWidget = new ImGuiSliderDoubleWrapper("Angular Position Weight", "%.2f", 0.0, 70.0,
+                                                                getDefinition()::getAngularPositionWeight,
+                                                                getDefinition()::setAngularPositionWeight);
+      angularPositionWeightWidget.addButton("Use Default Weights", () -> getDefinition().setAngularPositionWeight(-1.0));
    }
 
    @Override

@@ -3,6 +3,8 @@ package us.ihmc.rdx.ui.behavior.sequence;
 import imgui.internal.ImGui;
 import us.ihmc.commons.lists.RecyclingArrayList;
 import us.ihmc.rdx.imgui.*;
+import us.ihmc.rdx.ui.behavior.actions.RDXFootstepPlanAction;
+import us.ihmc.rdx.ui.behavior.actions.RDXWalkAction;
 import us.ihmc.robotics.EuclidCoreMissingTools;
 
 public class RDXMultipleActionProgressBars
@@ -15,8 +17,69 @@ public class RDXMultipleActionProgressBars
 
    public void render()
    {
-      widgetAligner.text("Expected time remaining:");
+      emptyPlotIndex = 0;
+      float dividedBarWidth = computeDividedBarWidth();
 
+      for (RDXSingleActionProgressBars actionProgressBar : actionProgressBars)
+      {
+         actionProgressBar.update();
+      }
+
+      widgetAligner.text("Expected time remaining:");
+      handleRenderingBlankBar(false);
+      for (int i = 0; i < actionProgressBars.size(); i++)
+      {
+         actionProgressBars.get(i).renderElapsedTimeBar(dividedBarWidth);
+         sameLineExceptLast(i);
+      }
+      ImGui.spacing();
+
+      widgetAligner.text("Position error (m):");
+      handleRenderingBlankBar(true);
+      for (int i = 0; i < actionProgressBars.size(); i++)
+      {
+         actionProgressBars.get(i).renderPositionError(dividedBarWidth, renderAsPlots);
+         sameLineExceptLast(i);
+      }
+      ImGui.spacing();
+
+      widgetAligner.text("Orientation error (%s):".formatted(EuclidCoreMissingTools.DEGREE_SYMBOL));
+      handleRenderingBlankBar(true);
+      for (int i = 0; i < actionProgressBars.size(); i++)
+      {
+         actionProgressBars.get(i).renderOrientationError(dividedBarWidth, renderAsPlots);
+         sameLineExceptLast(i);
+      }
+      ImGui.spacing();
+
+      boolean containsFootstepAction = false;
+      for (RDXSingleActionProgressBars actionProgressBar : actionProgressBars)
+         if (actionProgressBar.getAction() instanceof RDXWalkAction || actionProgressBar.getAction() instanceof RDXFootstepPlanAction)
+            containsFootstepAction = true;
+      if (containsFootstepAction)
+      {
+         widgetAligner.text("Footstep completion:");
+         handleRenderingBlankBar(true);
+         for (int i = 0; i < actionProgressBars.size(); i++)
+         {
+            actionProgressBars.get(i).renderFootstepCompletion(dividedBarWidth, renderAsPlots);
+            sameLineExceptLast(i);
+         }
+         ImGui.spacing();
+      }
+
+      widgetAligner.text("Hand wrench linear (N?):");
+      handleRenderingBlankBar(true);
+      for (int i = 0; i < actionProgressBars.size(); i++)
+      {
+         actionProgressBars.get(i).renderHandForce(dividedBarWidth, renderAsPlots);
+         sameLineExceptLast(i);
+      }
+      ImGui.spacing();
+   }
+
+   private float computeDividedBarWidth()
+   {
       // We compute the bar width to show them all together,
       // but we need to account for the spacing between them.
       float barWidthToSubtract = 0.0f;
@@ -26,53 +89,7 @@ public class RDXMultipleActionProgressBars
          float totalInnerSpacing = ImGui.getStyle().getItemSpacingX() * barsPastOne;
          barWidthToSubtract = totalInnerSpacing / actionProgressBars.size();
       }
-      float dividedBarWidth = ImGui.getColumnWidth() / actionProgressBars.size() - barWidthToSubtract;
-
-      for (RDXSingleActionProgressBars actionProgressBar : actionProgressBars)
-      {
-         actionProgressBar.update();
-      }
-
-      emptyPlotIndex = 0;
-      handleRenderingBlankBar(false);
-      for (int i = 0; i < actionProgressBars.size(); i++)
-      {
-         actionProgressBars.get(i).renderElapsedTimeBar(dividedBarWidth);
-         sameLineExceptLast(i);
-      }
-      ImGui.spacing();
-      widgetAligner.text("Position error (m):");
-      handleRenderingBlankBar(true);
-      for (int i = 0; i < actionProgressBars.size(); i++)
-      {
-         actionProgressBars.get(i).renderPositionError(dividedBarWidth, renderAsPlots);
-         sameLineExceptLast(i);
-      }
-      ImGui.spacing();
-      widgetAligner.text("Orientation error (%s):".formatted(EuclidCoreMissingTools.DEGREE_SYMBOL));
-      handleRenderingBlankBar(true);
-      for (int i = 0; i < actionProgressBars.size(); i++)
-      {
-         actionProgressBars.get(i).renderOrientationError(dividedBarWidth, renderAsPlots);
-         sameLineExceptLast(i);
-      }
-      ImGui.spacing();
-      widgetAligner.text("Footstep completion:");
-      handleRenderingBlankBar(false);
-      for (int i = 0; i < actionProgressBars.size(); i++)
-      {
-         actionProgressBars.get(i).renderFootstepCompletion(dividedBarWidth, renderAsPlots);
-         sameLineExceptLast(i);
-      }
-      ImGui.spacing();
-      widgetAligner.text("Hand wrench linear (N?):");
-      handleRenderingBlankBar(true);
-      for (int i = 0; i < actionProgressBars.size(); i++)
-      {
-         actionProgressBars.get(i).renderHandForce(dividedBarWidth, renderAsPlots);
-         sameLineExceptLast(i);
-      }
-      ImGui.spacing();
+      return ImGui.getColumnWidth() / actionProgressBars.size() - barWidthToSubtract;
    }
 
    private void sameLineExceptLast(int i)
@@ -85,14 +102,7 @@ public class RDXMultipleActionProgressBars
    {
       if (actionProgressBars.isEmpty())
       {
-         if (renderAsPlots && supportsPlots)
-         {
-            ImPlotTools.renderEmptyPlotArea(labels.get("Empty Plot", emptyPlotIndex++), ImGui.getColumnWidth(), RDXSingleActionProgressBars.PLOT_HEIGHT);
-         }
-         else
-         {
-            ImGui.progressBar(Float.NaN, ImGui.getColumnWidth(), RDXSingleActionProgressBars.PROGRESS_BAR_HEIGHT, "");
-         }
+         RDXSingleActionProgressBars.renderBlankProgress(labels.get("Empty Plot", emptyPlotIndex++), ImGui.getColumnWidth(), renderAsPlots, supportsPlots);
       }
    }
 

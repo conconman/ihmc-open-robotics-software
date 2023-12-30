@@ -2,9 +2,7 @@ package us.ihmc.rdx.ui.behavior.sequence;
 
 import imgui.extension.implot.flag.ImPlotFlags;
 import imgui.internal.ImGui;
-import us.ihmc.rdx.imgui.ImGuiTools;
-import us.ihmc.rdx.imgui.ImPlotBasicDoublePlotLine;
-import us.ihmc.rdx.imgui.ImPlotPlot;
+import us.ihmc.rdx.imgui.*;
 import us.ihmc.rdx.ui.behavior.actions.RDXFootstepPlanAction;
 import us.ihmc.rdx.ui.behavior.actions.RDXHandPoseAction;
 import us.ihmc.rdx.ui.behavior.actions.RDXWalkAction;
@@ -15,10 +13,13 @@ public class RDXSingleActionProgressBars
    public static final float PLOT_HEIGHT = 40.0f;
 
    private RDXActionNode<?, ?> action;
+   private final ImGuiUniqueLabelMap labels = new ImGuiUniqueLabelMap(getClass());
    private final ImPlotPlot positionErrorPlot = new ImPlotPlot();
    private final ImPlotBasicDoublePlotLine currentPositionPlotLine = new ImPlotBasicDoublePlotLine();
    private final ImPlotPlot orientationErrorPlot = new ImPlotPlot();
    private final ImPlotBasicDoublePlotLine currentOrientationPlotLine = new ImPlotBasicDoublePlotLine();
+   private final ImPlotPlot footstepsRemainingPlot = new ImPlotPlot();
+   private final ImPlotBasicDoublePlotLine footstepsRemainingPlotLine = new ImPlotBasicDoublePlotLine();
    private final ImPlotPlot handForcePlot = new ImPlotPlot();
    private final ImPlotBasicDoublePlotLine handForcePlotLine = new ImPlotBasicDoublePlotLine();
    private double elapsedExecutionTime = -1.0;
@@ -33,6 +34,10 @@ public class RDXSingleActionProgressBars
       orientationErrorPlot.setFlags(orientationErrorPlot.getFlags() | ImPlotFlags.NoLegend);
       orientationErrorPlot.getPlotLines().add(currentOrientationPlotLine);
       orientationErrorPlot.setCustomBeforePlotLogic(() -> currentOrientationPlotLine.setLimitYMin(45.0));
+
+      footstepsRemainingPlot.setFlags(footstepsRemainingPlot.getFlags() | ImPlotFlags.NoLegend);
+      footstepsRemainingPlot.getPlotLines().add(footstepsRemainingPlotLine);
+      footstepsRemainingPlot.setCustomBeforePlotLogic(() -> footstepsRemainingPlotLine.setLimitYMin(1.0));
    }
 
    public void update()
@@ -40,6 +45,14 @@ public class RDXSingleActionProgressBars
       double newElapsedExecutionTime = action.getState().getElapsedExecutionTime();
       newlyExecuting = newElapsedExecutionTime < elapsedExecutionTime;
       elapsedExecutionTime = newElapsedExecutionTime;
+
+      if (newlyExecuting)
+      {
+         currentPositionPlotLine.clear();
+         currentOrientationPlotLine.clear();
+         footstepsRemainingPlotLine.clear();
+         handForcePlotLine.clear();
+      }
    }
 
    public void renderElapsedTimeBar(float dividedBarWidth)
@@ -63,10 +76,6 @@ public class RDXSingleActionProgressBars
 
       if (renderAsPlots)
       {
-         if (newlyExecuting)
-         {
-            currentPositionPlotLine.clear();
-         }
          if (action.getState().getIsExecuting())
          {
             currentPositionPlotLine.setDataColor(dataColor);
@@ -98,10 +107,6 @@ public class RDXSingleActionProgressBars
 
       if (renderAsPlots)
       {
-         if (newlyExecuting)
-         {
-            currentOrientationPlotLine.clear();
-         }
          if (action.getState().getIsExecuting())
          {
             currentOrientationPlotLine.setDataColor(dataColor);
@@ -120,7 +125,6 @@ public class RDXSingleActionProgressBars
       }
    }
 
-   // TODO: Put into RDXWalkAction
    public void renderFootstepCompletion(float dividedBarWidth, boolean renderAsPlots)
    {
       int incompleteFootsteps = 0;
@@ -141,12 +145,26 @@ public class RDXSingleActionProgressBars
       {
          percentLeft = incompleteFootsteps / (double) totalFootsteps;
          overlay = "%d / %d".formatted(incompleteFootsteps, totalFootsteps);
-      }
 
-      ImGui.progressBar((float) percentLeft, ImGui.getColumnWidth(), PROGRESS_BAR_HEIGHT, overlay);
+         if (renderAsPlots)
+         {
+            if (action.getState().getIsExecuting())
+            {
+               footstepsRemainingPlotLine.addValue(incompleteFootsteps);
+            }
+            footstepsRemainingPlot.render(dividedBarWidth, PLOT_HEIGHT);
+         }
+         else
+         {
+            ImGui.progressBar((float) percentLeft, dividedBarWidth, PROGRESS_BAR_HEIGHT, overlay);
+         }
+      }
+      else
+      {
+         renderBlankProgress(labels.get("Empty Footsteps"), dividedBarWidth, renderAsPlots, true);
+      }
    }
 
-   // TODO: Put into RDXHandPoseAction
    public void renderHandForce(float dividedBarWidth, boolean renderAsPlots)
    {
       if (action instanceof RDXHandPoseAction handPoseAction)
@@ -159,6 +177,18 @@ public class RDXSingleActionProgressBars
       else
       {
          ImGui.progressBar(Float.NaN, ImGui.getColumnWidth(), PROGRESS_BAR_HEIGHT, "N/A");
+      }
+   }
+
+   public static void renderBlankProgress(String emptyPlotLabel, float width, boolean renderAsPlots, boolean supportsPlots)
+   {
+      if (renderAsPlots && supportsPlots)
+      {
+         ImPlotTools.renderEmptyPlotArea(emptyPlotLabel, width, RDXSingleActionProgressBars.PLOT_HEIGHT);
+      }
+      else
+      {
+         ImGui.progressBar(Float.NaN, width, RDXSingleActionProgressBars.PROGRESS_BAR_HEIGHT, "");
       }
    }
 

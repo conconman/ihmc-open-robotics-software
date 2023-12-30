@@ -12,7 +12,7 @@ public class RDXActionProgressWidgets
    public static final float PROGRESS_BAR_HEIGHT = 18.0f;
    public static final float PLOT_HEIGHT = 40.0f;
 
-   private RDXActionNode<?, ?> action;
+   private final RDXActionNode<?, ?> action;
    private final ImGuiUniqueLabelMap labels = new ImGuiUniqueLabelMap(getClass());
    private final ImPlotPlot positionErrorPlot = new ImPlotPlot();
    private final ImPlotBasicDoublePlotLine currentPositionPlotLine = new ImPlotBasicDoublePlotLine();
@@ -25,19 +25,20 @@ public class RDXActionProgressWidgets
    private double elapsedExecutionTime = -1.0;
    private boolean newlyExecuting = false;
 
-   public RDXActionProgressWidgets()
+   public RDXActionProgressWidgets(RDXActionNode<?, ?> action)
    {
-      positionErrorPlot.setFlags(positionErrorPlot.getFlags() | ImPlotFlags.NoLegend);
-      positionErrorPlot.getPlotLines().add(currentPositionPlotLine);
-      positionErrorPlot.setCustomBeforePlotLogic(() -> currentPositionPlotLine.setLimitYMin(0.1));
+      this.action = action;
 
-      orientationErrorPlot.setFlags(orientationErrorPlot.getFlags() | ImPlotFlags.NoLegend);
-      orientationErrorPlot.getPlotLines().add(currentOrientationPlotLine);
-      orientationErrorPlot.setCustomBeforePlotLogic(() -> currentOrientationPlotLine.setLimitYMin(45.0));
+      setupPlot(positionErrorPlot, currentPositionPlotLine, 0.1);
+      setupPlot(orientationErrorPlot, currentOrientationPlotLine, 45.0);
+      setupPlot(footstepsRemainingPlot, footstepsRemainingPlotLine, 1.0);
+   }
 
-      footstepsRemainingPlot.setFlags(footstepsRemainingPlot.getFlags() | ImPlotFlags.NoLegend);
-      footstepsRemainingPlot.getPlotLines().add(footstepsRemainingPlotLine);
-      footstepsRemainingPlot.setCustomBeforePlotLogic(() -> footstepsRemainingPlotLine.setLimitYMin(1.0));
+   private void setupPlot(ImPlotPlot plot, ImPlotBasicDoublePlotLine plotLine, double limitYMin)
+   {
+      plot.setFlag(ImPlotFlags.NoLegend);
+      plot.getPlotLines().add(plotLine);
+      plot.setCustomBeforePlotLogic(() -> plotLine.setLimitYMin(limitYMin));
    }
 
    public void update()
@@ -74,13 +75,13 @@ public class RDXActionProgressWidgets
       int dataColor = currentPositionError < positionTolerance ? ImGuiTools.GREEN : ImGuiTools.RED;
       double percentLeft = currentPositionError / barEndValue;
 
+      if (action.getState().getIsExecuting())
+      {
+         currentPositionPlotLine.setDataColor(dataColor);
+         currentPositionPlotLine.addValue(currentPositionError);
+      }
       if (renderAsPlots)
       {
-         if (action.getState().getIsExecuting())
-         {
-            currentPositionPlotLine.setDataColor(dataColor);
-            currentPositionPlotLine.addValue(currentPositionError);
-         }
          positionErrorPlot.render(dividedBarWidth, PLOT_HEIGHT);
       }
       else
@@ -105,13 +106,13 @@ public class RDXActionProgressWidgets
       int dataColor = currentOrientationError < orientationTolerance ? ImGuiTools.GREEN : ImGuiTools.RED;
       double percentLeft = currentOrientationError / barEndValue;
 
+      if (action.getState().getIsExecuting())
+      {
+         currentOrientationPlotLine.setDataColor(dataColor);
+         currentOrientationPlotLine.addValue(Math.toDegrees(currentOrientationError));
+      }
       if (renderAsPlots)
       {
-         if (action.getState().getIsExecuting())
-         {
-            currentOrientationPlotLine.setDataColor(dataColor);
-            currentOrientationPlotLine.addValue(Math.toDegrees(currentOrientationError));
-         }
          orientationErrorPlot.render(dividedBarWidth, PLOT_HEIGHT);
       }
       else
@@ -146,12 +147,12 @@ public class RDXActionProgressWidgets
          percentLeft = incompleteFootsteps / (double) totalFootsteps;
          overlay = "%d / %d".formatted(incompleteFootsteps, totalFootsteps);
 
+         if (action.getState().getIsExecuting())
+         {
+            footstepsRemainingPlotLine.addValue(incompleteFootsteps);
+         }
          if (renderAsPlots)
          {
-            if (action.getState().getIsExecuting())
-            {
-               footstepsRemainingPlotLine.addValue(incompleteFootsteps);
-            }
             footstepsRemainingPlot.render(dividedBarWidth, PLOT_HEIGHT);
          }
          else
@@ -190,15 +191,5 @@ public class RDXActionProgressWidgets
       {
          ImGui.progressBar(Float.NaN, width, RDXActionProgressWidgets.PROGRESS_BAR_HEIGHT, "");
       }
-   }
-
-   public void setAction(RDXActionNode<?, ?> action)
-   {
-      this.action = action;
-   }
-
-   public RDXActionNode<?, ?> getAction()
-   {
-      return action;
    }
 }

@@ -22,6 +22,7 @@ public abstract class RDXActionNode<S extends ActionNodeState<D>,
    private final ImBoolean selected = new ImBoolean();
    private final ImBoolean expanded = new ImBoolean(true);
    private final ImString rejectionTooltip = new ImString();
+   private final RDXActionProgressWidgets progressWidgets = new RDXActionProgressWidgets(this);
    private final ImGuiHollowArrowRenderer hollowArrowRenderer = new ImGuiHollowArrowRenderer();
 
    public RDXActionNode(S state)
@@ -91,5 +92,10 @@ public abstract class RDXActionNode<S extends ActionNodeState<D>,
    public ImString getRejectionTooltip()
    {
       return rejectionTooltip;
+   }
+
+   public RDXActionProgressWidgets getProgressWidgets()
+   {
+      return progressWidgets;
    }
 }

@@ -1,68 +1,69 @@
 package us.ihmc.rdx.ui.behavior.sequence;
 
 import imgui.internal.ImGui;
-import us.ihmc.commons.lists.RecyclingArrayList;
 import us.ihmc.rdx.imgui.*;
 import us.ihmc.rdx.ui.behavior.actions.RDXFootstepPlanAction;
 import us.ihmc.rdx.ui.behavior.actions.RDXWalkAction;
 import us.ihmc.robotics.EuclidCoreMissingTools;
 
+import java.util.ArrayList;
+
 public class RDXActionProgressWidgetsManager
 {
    private final ImGuiUniqueLabelMap labels = new ImGuiUniqueLabelMap(getClass());
-   private final RecyclingArrayList<RDXActionProgressWidgets> actionProgressBars = new RecyclingArrayList<>(RDXActionProgressWidgets::new);
    private final ImGuiLabelledWidgetAligner widgetAligner = new ImGuiLabelledWidgetAligner();
+   private final ArrayList<RDXActionNode<?, ?>> actionNodesToRender = new ArrayList<>();
    private boolean renderAsPlots = false;
    private int emptyPlotIndex = 0;
 
    public void render()
    {
       emptyPlotIndex = 0;
-      float dividedBarWidth = computeDividedBarWidth();
 
-      for (RDXActionProgressWidgets actionProgressBar : actionProgressBars)
+      for (RDXActionNode<?, ?> action : actionNodesToRender)
       {
-         actionProgressBar.update();
+         action.getProgressWidgets().update();
       }
 
       widgetAligner.text("Expected time remaining:");
+      float dividedBarWidth = computeDividedBarWidth(); // Must be computed after above text
       handleRenderingBlankBar(false);
-      for (int i = 0; i < actionProgressBars.size(); i++)
+      for (int i = 0; i < actionNodesToRender.size(); i++)
       {
-         actionProgressBars.get(i).renderElapsedTimeBar(dividedBarWidth);
+         actionNodesToRender.get(i).getProgressWidgets().renderElapsedTimeBar(dividedBarWidth);
          sameLineExceptLast(i);
       }
       ImGui.spacing();
 
       widgetAligner.text("Position error (m):");
       handleRenderingBlankBar(true);
-      for (int i = 0; i < actionProgressBars.size(); i++)
+      for (int i = 0; i < actionNodesToRender.size(); i++)
       {
-         actionProgressBars.get(i).renderPositionError(dividedBarWidth, renderAsPlots);
+         actionNodesToRender.get(i).getProgressWidgets().renderPositionError(dividedBarWidth, renderAsPlots);
          sameLineExceptLast(i);
       }
       ImGui.spacing();
 
       widgetAligner.text("Orientation error (%s):".formatted(EuclidCoreMissingTools.DEGREE_SYMBOL));
       handleRenderingBlankBar(true);
-      for (int i = 0; i < actionProgressBars.size(); i++)
+      for (int i = 0; i < actionNodesToRender.size(); i++)
       {
-         actionProgressBars.get(i).renderOrientationError(dividedBarWidth, renderAsPlots);
+         actionNodesToRender.get(i).getProgressWidgets().renderOrientationError(dividedBarWidth, renderAsPlots);
          sameLineExceptLast(i);
       }
       ImGui.spacing();
 
       boolean containsFootstepAction = false;
-      for (RDXActionProgressWidgets actionProgressBar : actionProgressBars)
-         if (actionProgressBar.getAction() instanceof RDXWalkAction || actionProgressBar.getAction() instanceof RDXFootstepPlanAction)
+      for (RDXActionNode<?, ?> action : actionNodesToRender)
+         if (action instanceof RDXWalkAction || action instanceof RDXFootstepPlanAction)
             containsFootstepAction = true;
       if (containsFootstepAction)
       {
          widgetAligner.text("Footstep completion:");
          handleRenderingBlankBar(true);
-         for (int i = 0; i < actionProgressBars.size(); i++)
+         for (int i = 0; i < actionNodesToRender.size(); i++)
          {
-            actionProgressBars.get(i).renderFootstepCompletion(dividedBarWidth, renderAsPlots);
+            actionNodesToRender.get(i).getProgressWidgets().renderFootstepCompletion(dividedBarWidth, renderAsPlots);
             sameLineExceptLast(i);
          }
          ImGui.spacing();
@@ -70,9 +71,9 @@ public class RDXActionProgressWidgetsManager
 
       widgetAligner.text("Hand wrench linear (N?):");
       handleRenderingBlankBar(true);
-      for (int i = 0; i < actionProgressBars.size(); i++)
+      for (int i = 0; i < actionNodesToRender.size(); i++)
       {
-         actionProgressBars.get(i).renderHandForce(dividedBarWidth, renderAsPlots);
+         actionNodesToRender.get(i).getProgressWidgets().renderHandForce(dividedBarWidth, renderAsPlots);
          sameLineExceptLast(i);
       }
       ImGui.spacing();
@@ -83,32 +84,27 @@ public class RDXActionProgressWidgetsManager
       // We compute the bar width to show them all together,
       // but we need to account for the spacing between them.
       float barWidthToSubtract = 0.0f;
-      if (actionProgressBars.size() > 1)
+      if (actionNodesToRender.size() > 1)
       {
-         int barsPastOne = actionProgressBars.size() - 1;
+         int barsPastOne = actionNodesToRender.size() - 1;
          float totalInnerSpacing = ImGui.getStyle().getItemSpacingX() * barsPastOne;
-         barWidthToSubtract = totalInnerSpacing / actionProgressBars.size();
+         barWidthToSubtract = totalInnerSpacing / actionNodesToRender.size();
       }
-      return ImGui.getColumnWidth() / actionProgressBars.size() - barWidthToSubtract;
+      return ImGui.getColumnWidth() / actionNodesToRender.size() - barWidthToSubtract;
    }
 
    private void sameLineExceptLast(int i)
    {
-      if (i < actionProgressBars.size() - 1)
+      if (i < actionNodesToRender.size() - 1)
          ImGui.sameLine();
    }
 
    private void handleRenderingBlankBar(boolean supportsPlots)
    {
-      if (actionProgressBars.isEmpty())
+      if (actionNodesToRender.isEmpty())
       {
          RDXActionProgressWidgets.renderBlankProgress(labels.get("Empty Plot", emptyPlotIndex++), ImGui.getColumnWidth(), renderAsPlots, supportsPlots);
       }
-   }
-
-   public RecyclingArrayList<RDXActionProgressWidgets> getActionProgressBars()
-   {
-      return actionProgressBars;
    }
 
    public boolean getRenderAsPlots()
@@ -119,5 +115,10 @@ public class RDXActionProgressWidgetsManager
    public void setRenderAsPlots(boolean renderAsPlots)
    {
       this.renderAsPlots = renderAsPlots;
+   }
+
+   public ArrayList<RDXActionNode<?, ?>> getActionNodesToRender()
+   {
+      return actionNodesToRender;
    }
 }

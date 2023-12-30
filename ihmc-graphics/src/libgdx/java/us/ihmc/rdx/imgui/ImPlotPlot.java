@@ -5,7 +5,6 @@ import imgui.extension.implot.ImPlot;
 import imgui.extension.implot.ImPlotPoint;
 import imgui.extension.implot.flag.*;
 import imgui.ImGui;
-import imgui.flag.ImGuiCond;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -145,6 +144,11 @@ public class ImPlotPlot
    public void queueRemovePlotLine(ImPlotPlotLine plotLineToRemove)
    {
       removalQueue.add(plotLineToRemove);
+   }
+
+   public int getFlags()
+   {
+      return flags;
    }
 
    public void setFlags(int flags)

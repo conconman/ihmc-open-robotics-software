@@ -228,9 +228,15 @@ public class HandPoseActionExecutor extends ActionNodeExecutor<HandPoseActionSta
          state.setPositionDistanceToGoalTolerance(POSITION_TOLERANCE);
          state.setOrientationDistanceToGoalTolerance(ORIENTATION_TOLERANCE);
          state.setHandWrenchMagnitudeLinear(handWrenchCalculators.get(getDefinition().getSide()).getLinearWrenchMagnitude(true));
-         if (!state.getIsExecuting() && wasExecuting && !getDefinition().getJointspaceOnly() && !getDefinition().getHoldPoseInWorldLater())
+
+         if (!state.getIsExecuting() && wasExecuting)
          {
-            disengageHoldPoseInWorld();
+            completionCalculator.reset();
+
+            if (!getDefinition().getJointspaceOnly() && !getDefinition().getHoldPoseInWorldLater())
+            {
+               disengageHoldPoseInWorld();
+            }
          }
       }
    }

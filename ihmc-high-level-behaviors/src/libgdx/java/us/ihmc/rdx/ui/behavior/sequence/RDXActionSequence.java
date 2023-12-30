@@ -74,6 +74,15 @@ public class RDXActionSequence extends RDXBehaviorTreeNode<ActionSequenceState, 
    }
 
    @Override
+   public void renderContextMenuItems()
+   {
+      super.renderContextMenuItems();
+
+      if (ImGui.menuItem(labels.get("Render Progress Using Plots"), null, multipleActionProgressBars.getRenderAsPlots()))
+         multipleActionProgressBars.setRenderAsPlots(!multipleActionProgressBars.getRenderAsPlots());
+   }
+
+   @Override
    public void renderImGuiWidgets()
    {
       if (ImGui.button(labels.get("<")))

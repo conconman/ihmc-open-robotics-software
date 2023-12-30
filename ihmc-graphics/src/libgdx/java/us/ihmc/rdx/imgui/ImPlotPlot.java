@@ -93,13 +93,14 @@ public class ImPlotPlot
             ImPlotPoint plotMousePosition = ImPlot.getPlotMousePos(ImPlotTools.IMPLOT_AUTO);
             int bufferIndex = (int) Math.round(plotMousePosition.getX());
 
-            String tooltipText = "";
+            StringBuilder tooltipText = new StringBuilder();
             for (ImPlotPlotLine plotLine : plotLines)
             {
-               tooltipText += plotLine.getVariableName() + ": " + plotLine.getValueString(bufferIndex) + "\n";
+               if (!plotLine.getVariableName().isEmpty())
+                  tooltipText.append(plotLine.getVariableName()).append(": ");
+               tooltipText.append(plotLine.getValueString(bufferIndex)).append("\n");
             }
-            tooltipText.trim();
-            ImGui.setTooltip(tooltipText);
+            ImGui.setTooltip(tooltipText.toString().trim());
 
             plotMousePosition.destroy();
          }
@@ -156,6 +157,16 @@ public class ImPlotPlot
       this.flags = flags;
    }
 
+   public void setFlag(int flag)
+   {
+      flags |= flag;
+   }
+
+   public void clearFlag(int flag)
+   {
+      flags &= ~flag;
+   }
+
    public int getXFlags()
    {
       return xFlags;
@@ -166,6 +177,16 @@ public class ImPlotPlot
       this.xFlags = xFlags;
    }
 
+   public void setXFlag(int flag)
+   {
+      xFlags |= flag;
+   }
+
+   public void clearXFlag(int flag)
+   {
+      xFlags &= ~flag;
+   }
+
    public int getYFlags()
    {
       return yFlags;
@@ -174,6 +195,16 @@ public class ImPlotPlot
    public void setYFlags(int yFlags)
    {
       this.yFlags = yFlags;
+   }
+
+   public void setYFlag(int flag)
+   {
+      yFlags |= flag;
+   }
+
+   public void clearYFlag(int flag)
+   {
+      yFlags &= ~flag;
    }
 
    public void setCustomDuringPlotLogic(Runnable customDuringPlotLogic)

@@ -7,10 +7,10 @@ import us.ihmc.rdx.ui.behavior.actions.RDXFootstepPlanAction;
 import us.ihmc.rdx.ui.behavior.actions.RDXWalkAction;
 import us.ihmc.robotics.EuclidCoreMissingTools;
 
-public class RDXMultipleActionProgressBars
+public class RDXActionProgressWidgetsManager
 {
    private final ImGuiUniqueLabelMap labels = new ImGuiUniqueLabelMap(getClass());
-   private final RecyclingArrayList<RDXSingleActionProgressBars> actionProgressBars = new RecyclingArrayList<>(RDXSingleActionProgressBars::new);
+   private final RecyclingArrayList<RDXActionProgressWidgets> actionProgressBars = new RecyclingArrayList<>(RDXActionProgressWidgets::new);
    private final ImGuiLabelledWidgetAligner widgetAligner = new ImGuiLabelledWidgetAligner();
    private boolean renderAsPlots = false;
    private int emptyPlotIndex = 0;
@@ -20,7 +20,7 @@ public class RDXMultipleActionProgressBars
       emptyPlotIndex = 0;
       float dividedBarWidth = computeDividedBarWidth();
 
-      for (RDXSingleActionProgressBars actionProgressBar : actionProgressBars)
+      for (RDXActionProgressWidgets actionProgressBar : actionProgressBars)
       {
          actionProgressBar.update();
       }
@@ -53,7 +53,7 @@ public class RDXMultipleActionProgressBars
       ImGui.spacing();
 
       boolean containsFootstepAction = false;
-      for (RDXSingleActionProgressBars actionProgressBar : actionProgressBars)
+      for (RDXActionProgressWidgets actionProgressBar : actionProgressBars)
          if (actionProgressBar.getAction() instanceof RDXWalkAction || actionProgressBar.getAction() instanceof RDXFootstepPlanAction)
             containsFootstepAction = true;
       if (containsFootstepAction)
@@ -102,11 +102,11 @@ public class RDXMultipleActionProgressBars
    {
       if (actionProgressBars.isEmpty())
       {
-         RDXSingleActionProgressBars.renderBlankProgress(labels.get("Empty Plot", emptyPlotIndex++), ImGui.getColumnWidth(), renderAsPlots, supportsPlots);
+         RDXActionProgressWidgets.renderBlankProgress(labels.get("Empty Plot", emptyPlotIndex++), ImGui.getColumnWidth(), renderAsPlots, supportsPlots);
       }
    }
 
-   public RecyclingArrayList<RDXSingleActionProgressBars> getActionProgressBars()
+   public RecyclingArrayList<RDXActionProgressWidgets> getActionProgressBars()
    {
       return actionProgressBars;
    }

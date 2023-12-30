@@ -7,7 +7,7 @@ import us.ihmc.rdx.ui.behavior.actions.RDXFootstepPlanAction;
 import us.ihmc.rdx.ui.behavior.actions.RDXHandPoseAction;
 import us.ihmc.rdx.ui.behavior.actions.RDXWalkAction;
 
-public class RDXSingleActionProgressBars
+public class RDXActionProgressWidgets
 {
    public static final float PROGRESS_BAR_HEIGHT = 18.0f;
    public static final float PLOT_HEIGHT = 40.0f;
@@ -25,7 +25,7 @@ public class RDXSingleActionProgressBars
    private double elapsedExecutionTime = -1.0;
    private boolean newlyExecuting = false;
 
-   public RDXSingleActionProgressBars()
+   public RDXActionProgressWidgets()
    {
       positionErrorPlot.setFlags(positionErrorPlot.getFlags() | ImPlotFlags.NoLegend);
       positionErrorPlot.getPlotLines().add(currentPositionPlotLine);
@@ -184,11 +184,11 @@ public class RDXSingleActionProgressBars
    {
       if (renderAsPlots && supportsPlots)
       {
-         ImPlotTools.renderEmptyPlotArea(emptyPlotLabel, width, RDXSingleActionProgressBars.PLOT_HEIGHT);
+         ImPlotTools.renderEmptyPlotArea(emptyPlotLabel, width, RDXActionProgressWidgets.PLOT_HEIGHT);
       }
       else
       {
-         ImGui.progressBar(Float.NaN, width, RDXSingleActionProgressBars.PROGRESS_BAR_HEIGHT, "");
+         ImGui.progressBar(Float.NaN, width, RDXActionProgressWidgets.PROGRESS_BAR_HEIGHT, "");
       }
    }
 

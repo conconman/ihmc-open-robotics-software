@@ -31,7 +31,7 @@ public class RDXActionSequence extends RDXBehaviorTreeNode<ActionSequenceState, 
    private final Timer manualExecutionOverrideTimer = new Timer();
    private final ImGuiFlashingText executionRejectionTooltipText = new ImGuiFlashingText(Color.RED.toIntBits());
    private final List<RDXActionNode<?, ?>> currentlyExecutingActions = new ArrayList<>();
-   private final RDXMultipleActionProgressBars multipleActionProgressBars = new RDXMultipleActionProgressBars();
+   private final RDXActionProgressWidgetsManager multipleActionProgressBars = new RDXActionProgressWidgetsManager();
 
    public RDXActionSequence(long id, CRDTInfo crdtInfo, WorkspaceResourceDirectory saveFileDirectory)
    {
@@ -177,7 +177,7 @@ public class RDXActionSequence extends RDXBehaviorTreeNode<ActionSequenceState, 
          multipleActionProgressBars.getActionProgressBars().clear();
          for (RDXActionNode<?, ?> currentlyExecutingAction : currentlyExecutingActions)
          {
-            RDXSingleActionProgressBars actionProgressBars = multipleActionProgressBars.getActionProgressBars().add();
+            RDXActionProgressWidgets actionProgressBars = multipleActionProgressBars.getActionProgressBars().add();
             actionProgressBars.setAction(currentlyExecutingAction);
          }
       }

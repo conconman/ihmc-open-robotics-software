@@ -53,6 +53,15 @@ public class RDXActionProgressWidgetsManager
       }
       ImGui.spacing();
 
+      widgetAligner.text("Hand force (N):");
+      handleRenderingBlankBar(true);
+      for (int i = 0; i < actionNodesToRender.size(); i++)
+      {
+         actionNodesToRender.get(i).getProgressWidgets().renderHandForce(dividedBarWidth, renderAsPlots);
+         sameLineExceptLast(i);
+      }
+      ImGui.spacing();
+
       boolean containsFootstepAction = false;
       for (RDXActionNode<?, ?> action : actionNodesToRender)
          if (action instanceof RDXWalkAction || action instanceof RDXFootstepPlanAction)
@@ -68,15 +77,6 @@ public class RDXActionProgressWidgetsManager
          }
          ImGui.spacing();
       }
-
-      widgetAligner.text("Hand wrench linear (N?):");
-      handleRenderingBlankBar(true);
-      for (int i = 0; i < actionNodesToRender.size(); i++)
-      {
-         actionNodesToRender.get(i).getProgressWidgets().renderHandForce(dividedBarWidth, renderAsPlots);
-         sameLineExceptLast(i);
-      }
-      ImGui.spacing();
    }
 
    private float computeDividedBarWidth()

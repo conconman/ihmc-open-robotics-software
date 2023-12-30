@@ -32,6 +32,7 @@ public class RDXActionProgressWidgets
       setupPlot(positionErrorPlot, currentPositionPlotLine, 0.1);
       setupPlot(orientationErrorPlot, currentOrientationPlotLine, 45.0);
       setupPlot(footstepsRemainingPlot, footstepsRemainingPlotLine, 1.0);
+      setupPlot(handForcePlot, handForcePlotLine, 50.0);
    }
 
    private void setupPlot(ImPlotPlot plot, ImPlotBasicDoublePlotLine plotLine, double limitYMin)
@@ -126,6 +127,34 @@ public class RDXActionProgressWidgets
       }
    }
 
+   public void renderHandForce(float dividedBarWidth, boolean renderAsPlots)
+   {
+      if (action instanceof RDXHandPoseAction handPoseAction)
+      {
+         double limit = 20.0;
+         double force = handPoseAction.getState().getHandWrenchMagnitudeLinear();
+         int dataColor = force < limit ? ImGuiTools.GREEN : ImGuiTools.RED;
+
+         if (action.getState().getIsExecuting())
+         {
+            handForcePlotLine.setDataColor(dataColor);
+            handForcePlotLine.addValue(force);
+         }
+         if (renderAsPlots)
+         {
+            handForcePlot.render(dividedBarWidth, PLOT_HEIGHT);
+         }
+         else
+         {
+            ImGuiTools.markedProgressBar(PROGRESS_BAR_HEIGHT, dividedBarWidth, dataColor, force / limit, 0.5, "%.2f".formatted(force));
+         }
+      }
+      else
+      {
+         renderBlankProgress(labels.get("Empty Hand Force"), dividedBarWidth, renderAsPlots, true);
+      }
+   }
+
    public void renderFootstepCompletion(float dividedBarWidth, boolean renderAsPlots)
    {
       int incompleteFootsteps = 0;
@@ -163,21 +192,6 @@ public class RDXActionProgressWidgets
       else
       {
          renderBlankProgress(labels.get("Empty Footsteps"), dividedBarWidth, renderAsPlots, true);
-      }
-   }
-
-   public void renderHandForce(float dividedBarWidth, boolean renderAsPlots)
-   {
-      if (action instanceof RDXHandPoseAction handPoseAction)
-      {
-         double limit = 20.0;
-         double force = handPoseAction.getState().getHandWrenchMagnitudeLinear();
-         int barColor = force < limit ? ImGuiTools.GREEN : ImGuiTools.RED;
-         ImGuiTools.markedProgressBar(PROGRESS_BAR_HEIGHT, dividedBarWidth, barColor, force / limit, 0.5, "%.2f".formatted(force));
-      }
-      else
-      {
-         ImGui.progressBar(Float.NaN, ImGui.getColumnWidth(), PROGRESS_BAR_HEIGHT, "N/A");
       }
    }
 

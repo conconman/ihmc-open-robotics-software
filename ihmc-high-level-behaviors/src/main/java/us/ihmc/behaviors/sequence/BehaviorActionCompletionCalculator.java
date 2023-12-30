@@ -27,6 +27,7 @@ public class BehaviorActionCompletionCalculator
                              BehaviorActionCompletionComponent... components)
    {
       boolean timeIsUp = !executionTimer.isRunning(actionNominalDuration);
+      boolean hitTimeLimit = !executionTimer.isRunning(actionNominalDuration * 1.5); // Don't allow it to go more than 50% longer
       boolean desiredPoseAchieved = timeIsUp;
       for (BehaviorActionCompletionComponent component : components)
       {
@@ -45,7 +46,7 @@ public class BehaviorActionCompletionCalculator
             default -> throw new IllegalStateException("Unexpected value: " + component);
          }
       }
-      return desiredPoseAchieved;
+      return desiredPoseAchieved || hitTimeLimit;
    }
 
    /** Resetting prevent old values from being sent on next execution. */

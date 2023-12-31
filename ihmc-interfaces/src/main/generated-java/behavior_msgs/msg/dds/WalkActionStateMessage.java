@@ -16,19 +16,13 @@ public class WalkActionStateMessage extends Packet<WalkActionStateMessage> imple
             * Definition
             */
    public behavior_msgs.msg.dds.WalkActionDefinitionMessage definition_;
-   /**
-            * Total number of footsteps; used for walking actions
-            */
-   public int total_number_of_footsteps_;
-   /**
-            * Incomplete footsteps; used for walking actions
-            */
-   public int number_of_incomplete_footsteps_;
+   public behavior_msgs.msg.dds.FootstepPlanActionStateBasicsMessage footstep_plan_state_basics_;
 
    public WalkActionStateMessage()
    {
       state_ = new behavior_msgs.msg.dds.ActionNodeStateMessage();
       definition_ = new behavior_msgs.msg.dds.WalkActionDefinitionMessage();
+      footstep_plan_state_basics_ = new behavior_msgs.msg.dds.FootstepPlanActionStateBasicsMessage();
    }
 
    public WalkActionStateMessage(WalkActionStateMessage other)
@@ -41,10 +35,7 @@ public class WalkActionStateMessage extends Packet<WalkActionStateMessage> imple
    {
       behavior_msgs.msg.dds.ActionNodeStateMessagePubSubType.staticCopy(other.state_, state_);
       behavior_msgs.msg.dds.WalkActionDefinitionMessagePubSubType.staticCopy(other.definition_, definition_);
-      total_number_of_footsteps_ = other.total_number_of_footsteps_;
-
-      number_of_incomplete_footsteps_ = other.number_of_incomplete_footsteps_;
-
+      behavior_msgs.msg.dds.FootstepPlanActionStateBasicsMessagePubSubType.staticCopy(other.footstep_plan_state_basics_, footstep_plan_state_basics_);
    }
 
 
@@ -65,34 +56,10 @@ public class WalkActionStateMessage extends Packet<WalkActionStateMessage> imple
       return definition_;
    }
 
-   /**
-            * Total number of footsteps; used for walking actions
-            */
-   public void setTotalNumberOfFootsteps(int total_number_of_footsteps)
-   {
-      total_number_of_footsteps_ = total_number_of_footsteps;
-   }
-   /**
-            * Total number of footsteps; used for walking actions
-            */
-   public int getTotalNumberOfFootsteps()
-   {
-      return total_number_of_footsteps_;
-   }
 
-   /**
-            * Incomplete footsteps; used for walking actions
-            */
-   public void setNumberOfIncompleteFootsteps(int number_of_incomplete_footsteps)
+   public behavior_msgs.msg.dds.FootstepPlanActionStateBasicsMessage getFootstepPlanStateBasics()
    {
-      number_of_incomplete_footsteps_ = number_of_incomplete_footsteps;
-   }
-   /**
-            * Incomplete footsteps; used for walking actions
-            */
-   public int getNumberOfIncompleteFootsteps()
-   {
-      return number_of_incomplete_footsteps_;
+      return footstep_plan_state_basics_;
    }
 
 
@@ -115,10 +82,7 @@ public class WalkActionStateMessage extends Packet<WalkActionStateMessage> imple
 
       if (!this.state_.epsilonEquals(other.state_, epsilon)) return false;
       if (!this.definition_.epsilonEquals(other.definition_, epsilon)) return false;
-      if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.total_number_of_footsteps_, other.total_number_of_footsteps_, epsilon)) return false;
-
-      if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.number_of_incomplete_footsteps_, other.number_of_incomplete_footsteps_, epsilon)) return false;
-
+      if (!this.footstep_plan_state_basics_.epsilonEquals(other.footstep_plan_state_basics_, epsilon)) return false;
 
       return true;
    }
@@ -134,10 +98,7 @@ public class WalkActionStateMessage extends Packet<WalkActionStateMessage> imple
 
       if (!this.state_.equals(otherMyClass.state_)) return false;
       if (!this.definition_.equals(otherMyClass.definition_)) return false;
-      if(this.total_number_of_footsteps_ != otherMyClass.total_number_of_footsteps_) return false;
-
-      if(this.number_of_incomplete_footsteps_ != otherMyClass.number_of_incomplete_footsteps_) return false;
-
+      if (!this.footstep_plan_state_basics_.equals(otherMyClass.footstep_plan_state_basics_)) return false;
 
       return true;
    }
@@ -152,10 +113,8 @@ public class WalkActionStateMessage extends Packet<WalkActionStateMessage> imple
       builder.append(this.state_);      builder.append(", ");
       builder.append("definition=");
       builder.append(this.definition_);      builder.append(", ");
-      builder.append("total_number_of_footsteps=");
-      builder.append(this.total_number_of_footsteps_);      builder.append(", ");
-      builder.append("number_of_incomplete_footsteps=");
-      builder.append(this.number_of_incomplete_footsteps_);
+      builder.append("footstep_plan_state_basics=");
+      builder.append(this.footstep_plan_state_basics_);
       builder.append("}");
       return builder.toString();
    }

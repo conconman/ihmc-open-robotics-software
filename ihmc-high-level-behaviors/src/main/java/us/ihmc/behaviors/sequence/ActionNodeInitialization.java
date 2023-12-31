@@ -19,7 +19,7 @@ public class ActionNodeInitialization
       if (newAction instanceof WalkActionState walkAction)
       {
          MovingReferenceFrame parentFrame = syncedRobot.getReferenceFrames().getMidFeetZUpFrame();
-         walkAction.getDefinition().setParentFrameName(parentFrame.getName());
+         walkAction.getDefinition().getBasics().setParentFrameName(parentFrame.getName());
          walkAction.getState().update();
       }
       else if (newAction instanceof HandPoseActionState handPoseAction)
@@ -102,11 +102,11 @@ public class ActionNodeInitialization
          FootstepPlanActionState nextPreviousFootstepPlanAction = findNextPreviousAction(actionSequence, FootstepPlanActionState.class, indexOfInsertion, null);
          if (nextPreviousFootstepPlanAction != null)
          {
-            footstepPlanAction.getDefinition().setParentFrameName(nextPreviousFootstepPlanAction.getDefinition().getParentFrameName());
+            footstepPlanAction.getDefinition().getBasics().setParentFrameName(nextPreviousFootstepPlanAction.getDefinition().getBasics().getParentFrameName());
          }
          else // set to current robot's pelvis pose
          {
-            footstepPlanAction.getDefinition().setParentFrameName(ReferenceFrame.getWorldFrame().getName());
+            footstepPlanAction.getDefinition().getBasics().setParentFrameName(ReferenceFrame.getWorldFrame().getName());
          }
          footstepPlanAction.update();
       }
@@ -128,7 +128,7 @@ public class ActionNodeInitialization
 
       if (nextPreviousAction instanceof FootstepPlanActionState footstepPlanAction)
       {
-         return footstepPlanAction.getDefinition().getParentFrameName();
+         return footstepPlanAction.getDefinition().getBasics().getParentFrameName();
       }
       else if (nextPreviousAction instanceof HandPoseActionState handPoseAction)
       {
@@ -136,7 +136,7 @@ public class ActionNodeInitialization
       }
       else if (nextPreviousAction instanceof WalkActionState walkAction)
       {
-         return walkAction.getDefinition().getParentFrameName();
+         return walkAction.getDefinition().getBasics().getParentFrameName();
       }
 
       return ReferenceFrame.getWorldFrame().getName();

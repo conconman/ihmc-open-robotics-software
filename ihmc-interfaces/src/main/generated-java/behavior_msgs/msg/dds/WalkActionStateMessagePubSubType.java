@@ -15,7 +15,7 @@ public class WalkActionStateMessagePubSubType implements us.ihmc.pubsub.TopicDat
    @Override
    public final java.lang.String getDefinitionChecksum()
    {
-   		return "476c959fb0dc4e490158ee0ba0244340be0d475f28e77d831589e27d5d606753";
+   		return "8b0ebb9f044dc590308a4fa25b58e6f1cea277ae19f32625415c94176b4c9b3d";
    }
    
    @Override
@@ -56,9 +56,7 @@ public class WalkActionStateMessagePubSubType implements us.ihmc.pubsub.TopicDat
 
       current_alignment += behavior_msgs.msg.dds.WalkActionDefinitionMessagePubSubType.getMaxCdrSerializedSize(current_alignment);
 
-      current_alignment += 2 + us.ihmc.idl.CDR.alignment(current_alignment, 2);
-
-      current_alignment += 2 + us.ihmc.idl.CDR.alignment(current_alignment, 2);
+      current_alignment += behavior_msgs.msg.dds.FootstepPlanActionStateBasicsMessagePubSubType.getMaxCdrSerializedSize(current_alignment);
 
 
       return current_alignment - initial_alignment;
@@ -77,11 +75,7 @@ public class WalkActionStateMessagePubSubType implements us.ihmc.pubsub.TopicDat
 
       current_alignment += behavior_msgs.msg.dds.WalkActionDefinitionMessagePubSubType.getCdrSerializedSize(data.getDefinition(), current_alignment);
 
-      current_alignment += 2 + us.ihmc.idl.CDR.alignment(current_alignment, 2);
-
-
-      current_alignment += 2 + us.ihmc.idl.CDR.alignment(current_alignment, 2);
-
+      current_alignment += behavior_msgs.msg.dds.FootstepPlanActionStateBasicsMessagePubSubType.getCdrSerializedSize(data.getFootstepPlanStateBasics(), current_alignment);
 
 
       return current_alignment - initial_alignment;
@@ -91,20 +85,14 @@ public class WalkActionStateMessagePubSubType implements us.ihmc.pubsub.TopicDat
    {
       behavior_msgs.msg.dds.ActionNodeStateMessagePubSubType.write(data.getState(), cdr);
       behavior_msgs.msg.dds.WalkActionDefinitionMessagePubSubType.write(data.getDefinition(), cdr);
-      cdr.write_type_3(data.getTotalNumberOfFootsteps());
-
-      cdr.write_type_3(data.getNumberOfIncompleteFootsteps());
-
+      behavior_msgs.msg.dds.FootstepPlanActionStateBasicsMessagePubSubType.write(data.getFootstepPlanStateBasics(), cdr);
    }
 
    public static void read(behavior_msgs.msg.dds.WalkActionStateMessage data, us.ihmc.idl.CDR cdr)
    {
       behavior_msgs.msg.dds.ActionNodeStateMessagePubSubType.read(data.getState(), cdr);	
       behavior_msgs.msg.dds.WalkActionDefinitionMessagePubSubType.read(data.getDefinition(), cdr);	
-      data.setTotalNumberOfFootsteps(cdr.read_type_3());
-      	
-      data.setNumberOfIncompleteFootsteps(cdr.read_type_3());
-      	
+      behavior_msgs.msg.dds.FootstepPlanActionStateBasicsMessagePubSubType.read(data.getFootstepPlanStateBasics(), cdr);	
 
    }
 
@@ -115,8 +103,8 @@ public class WalkActionStateMessagePubSubType implements us.ihmc.pubsub.TopicDat
 
       ser.write_type_a("definition", new behavior_msgs.msg.dds.WalkActionDefinitionMessagePubSubType(), data.getDefinition());
 
-      ser.write_type_3("total_number_of_footsteps", data.getTotalNumberOfFootsteps());
-      ser.write_type_3("number_of_incomplete_footsteps", data.getNumberOfIncompleteFootsteps());
+      ser.write_type_a("footstep_plan_state_basics", new behavior_msgs.msg.dds.FootstepPlanActionStateBasicsMessagePubSubType(), data.getFootstepPlanStateBasics());
+
    }
 
    @Override
@@ -126,8 +114,8 @@ public class WalkActionStateMessagePubSubType implements us.ihmc.pubsub.TopicDat
 
       ser.read_type_a("definition", new behavior_msgs.msg.dds.WalkActionDefinitionMessagePubSubType(), data.getDefinition());
 
-      data.setTotalNumberOfFootsteps(ser.read_type_3("total_number_of_footsteps"));
-      data.setNumberOfIncompleteFootsteps(ser.read_type_3("number_of_incomplete_footsteps"));
+      ser.read_type_a("footstep_plan_state_basics", new behavior_msgs.msg.dds.FootstepPlanActionStateBasicsMessagePubSubType(), data.getFootstepPlanStateBasics());
+
    }
 
    public static void staticCopy(behavior_msgs.msg.dds.WalkActionStateMessage src, behavior_msgs.msg.dds.WalkActionStateMessage dest)

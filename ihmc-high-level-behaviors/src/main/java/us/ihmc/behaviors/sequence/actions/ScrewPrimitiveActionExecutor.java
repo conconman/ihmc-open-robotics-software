@@ -39,8 +39,6 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
    private final ROS2SyncedRobotModel syncedRobot;
    private final FramePose3D desiredHandControlPose = new FramePose3D();
    private final FramePose3D syncedHandControlPose = new FramePose3D();
-   private double startPositionDistanceToGoal;
-   private double startOrientationDistanceToGoal;
    private final BehaviorActionCompletionCalculator completionCalculator = new BehaviorActionCompletionCalculator();
    private final FramePose3D workPose = new FramePose3D();
    private final SideDependentList<ArmIKSolver> armIKSolvers = new SideDependentList<>();
@@ -145,8 +143,6 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
       if (getState().getScrewFrame().isChildOfWorld())
       {
          syncedHandControlPose.setFromReferenceFrame(syncedRobot.getFullRobotModel().getHandControlFrame(getDefinition().getSide()));
-         startPositionDistanceToGoal = syncedHandControlPose.getTranslation().differenceNorm(desiredHandControlPose.getTranslation());
-         startOrientationDistanceToGoal = syncedHandControlPose.getRotation().distance(desiredHandControlPose.getRotation(), true);
 
          handHybridTrajectoryMessage.setRobotSide(getDefinition().getSide().toByte());
          handHybridTrajectoryMessage.setForceExecution(true);
@@ -314,10 +310,6 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
 //         getState().setIsExecuting();
 
 
-         getState().setStartOrientationDistanceToGoal(startOrientationDistanceToGoal);
-         getState().setStartPositionDistanceToGoal(startPositionDistanceToGoal);
-         getState().setCurrentOrientationDistanceToGoal(completionCalculator.getRotationError());
-         getState().setCurrentPositionDistanceToGoal(completionCalculator.getTranslationError());
          getState().setPositionDistanceToGoalTolerance(POSITION_TOLERANCE);
          getState().setOrientationDistanceToGoalTolerance(ORIENTATION_TOLERANCE);
       }

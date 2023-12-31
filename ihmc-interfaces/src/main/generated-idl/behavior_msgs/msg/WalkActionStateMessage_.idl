@@ -2,6 +2,7 @@
 #define __behavior_msgs__msg__WalkActionStateMessage__idl__
 
 #include "behavior_msgs/msg/./ActionNodeStateMessage_.idl"
+#include "behavior_msgs/msg/./FootstepPlanActionStateBasicsMessage_.idl"
 #include "behavior_msgs/msg/./WalkActionDefinitionMessage_.idl"
 module behavior_msgs
 {
@@ -21,14 +22,7 @@ module behavior_msgs
          * Definition
          */
         behavior_msgs::msg::dds::WalkActionDefinitionMessage definition;
-        /**
-         * Total number of footsteps; used for walking actions
-         */
-        unsigned short total_number_of_footsteps;
-        /**
-         * Incomplete footsteps; used for walking actions
-         */
-        unsigned short number_of_incomplete_footsteps;
+        behavior_msgs::msg::dds::FootstepPlanActionStateBasicsMessage footstep_plan_state_basics;
       };
     };
   };

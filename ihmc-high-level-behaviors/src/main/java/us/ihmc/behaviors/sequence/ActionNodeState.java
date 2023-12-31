@@ -2,9 +2,7 @@ package us.ihmc.behaviors.sequence;
 
 import behavior_msgs.msg.dds.ActionNodeStateMessage;
 import us.ihmc.behaviors.behaviorTree.BehaviorTreeNodeState;
-import us.ihmc.communication.crdt.CRDTInfo;
-import us.ihmc.communication.crdt.CRDTUnidirectionalBoolean;
-import us.ihmc.communication.crdt.CRDTUnidirectionalDouble;
+import us.ihmc.communication.crdt.*;
 import us.ihmc.communication.ros2.ROS2ActorDesignation;
 
 public abstract class ActionNodeState<D extends ActionNodeDefinition> extends BehaviorTreeNodeState<D>
@@ -17,11 +15,9 @@ public abstract class ActionNodeState<D extends ActionNodeDefinition> extends Be
    private final CRDTUnidirectionalBoolean isExecuting;
    private final CRDTUnidirectionalDouble nominalExecutionDuration;
    private final CRDTUnidirectionalDouble elapsedExecutionTime;
-   private final CRDTUnidirectionalDouble currentPositionDistanceToGoal;
-   private final CRDTUnidirectionalDouble startPositionDistanceToGoal;
+   private final CRDTUnidirectionalSE3Trajectory desiredTrajectory;
+   private final CRDTUnidirectionalPose3D currentPose;
    private final CRDTUnidirectionalDouble positionDistanceToGoalTolerance;
-   private final CRDTUnidirectionalDouble currentOrientationDistanceToGoal;
-   private final CRDTUnidirectionalDouble startOrientationDistanceToGoal;
    private final CRDTUnidirectionalDouble orientationDistanceToGoalTolerance;
 
    public ActionNodeState(long id, D definition, CRDTInfo crdtInfo)
@@ -34,11 +30,9 @@ public abstract class ActionNodeState<D extends ActionNodeDefinition> extends Be
       isExecuting = new CRDTUnidirectionalBoolean(ROS2ActorDesignation.ROBOT, crdtInfo, false);
       nominalExecutionDuration = new CRDTUnidirectionalDouble(ROS2ActorDesignation.ROBOT, crdtInfo, Double.NaN);
       elapsedExecutionTime = new CRDTUnidirectionalDouble(ROS2ActorDesignation.ROBOT, crdtInfo, Double.NaN);
-      currentPositionDistanceToGoal = new CRDTUnidirectionalDouble(ROS2ActorDesignation.ROBOT, crdtInfo, Double.NaN);
-      startPositionDistanceToGoal = new CRDTUnidirectionalDouble(ROS2ActorDesignation.ROBOT, crdtInfo, Double.NaN);
+      desiredTrajectory = new CRDTUnidirectionalSE3Trajectory(ROS2ActorDesignation.ROBOT, crdtInfo);
+      currentPose = new CRDTUnidirectionalPose3D(ROS2ActorDesignation.ROBOT, crdtInfo);
       positionDistanceToGoalTolerance = new CRDTUnidirectionalDouble(ROS2ActorDesignation.ROBOT, crdtInfo, Double.NaN);
-      currentOrientationDistanceToGoal = new CRDTUnidirectionalDouble(ROS2ActorDesignation.ROBOT, crdtInfo, Double.NaN);
-      startOrientationDistanceToGoal = new CRDTUnidirectionalDouble(ROS2ActorDesignation.ROBOT, crdtInfo, Double.NaN);
       orientationDistanceToGoalTolerance = new CRDTUnidirectionalDouble(ROS2ActorDesignation.ROBOT, crdtInfo, Double.NaN);
    }
 
@@ -54,11 +48,9 @@ public abstract class ActionNodeState<D extends ActionNodeDefinition> extends Be
       message.setElapsedExecutionTime(elapsedExecutionTime.toMessage());
       message.setNominalExecutionDuration(nominalExecutionDuration.toMessage());
       message.setElapsedExecutionTime(elapsedExecutionTime.toMessage());
-      message.setCurrentPositionDistanceToGoal(currentPositionDistanceToGoal.toMessage());
-      message.setStartPositionDistanceToGoal(startPositionDistanceToGoal.toMessage());
+      desiredTrajectory.toMessage(message.getDesiredTrajectory());
+      currentPose.toMessage(message.getCurrentPose());
       message.setPositionDistanceToGoalTolerance(positionDistanceToGoalTolerance.toMessage());
-      message.setCurrentOrientationDistanceToGoal(currentOrientationDistanceToGoal.toMessage());
-      message.setStartOrientationDistanceToGoal(startOrientationDistanceToGoal.toMessage());
       message.setOrientationDistanceToGoalTolerance(orientationDistanceToGoalTolerance.toMessage());
    }
 
@@ -72,11 +64,9 @@ public abstract class ActionNodeState<D extends ActionNodeDefinition> extends Be
       isExecuting.fromMessage(message.getIsExecuting());
       nominalExecutionDuration.fromMessage(message.getNominalExecutionDuration());
       elapsedExecutionTime.fromMessage(message.getElapsedExecutionTime());
-      currentPositionDistanceToGoal.fromMessage(message.getCurrentPositionDistanceToGoal());
-      startPositionDistanceToGoal.fromMessage(message.getStartPositionDistanceToGoal());
+      desiredTrajectory.fromMessage(message.getDesiredTrajectory());
+      currentPose.fromMessage(message.getCurrentPose());
       positionDistanceToGoalTolerance.fromMessage(message.getPositionDistanceToGoalTolerance());
-      currentOrientationDistanceToGoal.fromMessage(message.getCurrentOrientationDistanceToGoal());
-      startOrientationDistanceToGoal.fromMessage(message.getStartOrientationDistanceToGoal());
       orientationDistanceToGoalTolerance.fromMessage(message.getOrientationDistanceToGoalTolerance());
    }
 
@@ -145,24 +135,14 @@ public abstract class ActionNodeState<D extends ActionNodeDefinition> extends Be
       return elapsedExecutionTime.getValue();
    }
 
-   public double getCurrentPositionDistanceToGoal()
+   public CRDTUnidirectionalSE3Trajectory getDesiredTrajectory()
    {
-      return currentPositionDistanceToGoal.getValue();
+      return desiredTrajectory;
    }
 
-   public void setCurrentPositionDistanceToGoal(double currentPositionDistanceToGoal)
+   public CRDTUnidirectionalPose3D getCurrentPose()
    {
-      this.currentPositionDistanceToGoal.setValue(currentPositionDistanceToGoal);
-   }
-
-   public double getStartPositionDistanceToGoal()
-   {
-      return startPositionDistanceToGoal.getValue();
-   }
-
-   public void setStartPositionDistanceToGoal(double startPositionDistanceToGoal)
-   {
-      this.startPositionDistanceToGoal.setValue(startPositionDistanceToGoal);
+      return currentPose;
    }
 
    public double getPositionDistanceToGoalTolerance()
@@ -173,26 +153,6 @@ public abstract class ActionNodeState<D extends ActionNodeDefinition> extends Be
    public void setPositionDistanceToGoalTolerance(double positionDistanceToGoalTolerance)
    {
       this.positionDistanceToGoalTolerance.setValue(positionDistanceToGoalTolerance);
-   }
-
-   public double getCurrentOrientationDistanceToGoal()
-   {
-      return currentOrientationDistanceToGoal.getValue();
-   }
-
-   public void setCurrentOrientationDistanceToGoal(double currentOrientationDistanceToGoal)
-   {
-      this.currentOrientationDistanceToGoal.setValue(currentOrientationDistanceToGoal);
-   }
-
-   public double getStartOrientationDistanceToGoal()
-   {
-      return startOrientationDistanceToGoal.getValue();
-   }
-
-   public void setStartOrientationDistanceToGoal(double startOrientationDistanceToGoal)
-   {
-      this.startOrientationDistanceToGoal.setValue(startOrientationDistanceToGoal);
    }
 
    public double getOrientationDistanceToGoalTolerance()

@@ -2,10 +2,16 @@ package us.ihmc.rdx.ui.behavior.sequence;
 
 import imgui.extension.implot.flag.ImPlotFlags;
 import imgui.internal.ImGui;
+import us.ihmc.behaviors.sequence.actions.FootstepPlanActionStateBasics;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.rdx.imgui.*;
 import us.ihmc.rdx.ui.behavior.actions.RDXFootstepPlanAction;
 import us.ihmc.rdx.ui.behavior.actions.RDXHandPoseAction;
 import us.ihmc.rdx.ui.behavior.actions.RDXWalkAction;
+import us.ihmc.robotics.math.trajectories.generators.MultipleWaypointsPositionTrajectoryGenerator;
+import us.ihmc.robotics.math.trajectories.trajectorypoints.interfaces.SE3TrajectoryPointReadOnly;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class RDXActionProgressWidgets
 {
@@ -15,7 +21,8 @@ public class RDXActionProgressWidgets
    private final RDXActionNode<?, ?> action;
    private final ImGuiUniqueLabelMap labels = new ImGuiUniqueLabelMap(getClass());
    private final ImPlotPlot positionErrorPlot = new ImPlotPlot();
-   private final ImPlotBasicDoublePlotLine currentPositionPlotLine = new ImPlotBasicDoublePlotLine();
+   private final ImPlotBasicDoublePlotLine currentPositionErrorPlotLine = new ImPlotBasicDoublePlotLine();
+   private final ImPlotBasicDoublePlotLine desiredPositionErrorPlotLine = new ImPlotBasicDoublePlotLine();
    private final ImPlotPlot orientationErrorPlot = new ImPlotPlot();
    private final ImPlotBasicDoublePlotLine currentOrientationPlotLine = new ImPlotBasicDoublePlotLine();
    private final ImPlotPlot footstepsRemainingPlot = new ImPlotPlot();
@@ -24,22 +31,33 @@ public class RDXActionProgressWidgets
    private final ImPlotBasicDoublePlotLine handForcePlotLine = new ImPlotBasicDoublePlotLine();
    private double elapsedExecutionTime = -1.0;
    private boolean newlyExecuting = false;
+   private final MultipleWaypointsPositionTrajectoryGenerator positionTrajectoryGenerator
+         = new MultipleWaypointsPositionTrajectoryGenerator("Position", 500, ReferenceFrame.getWorldFrame(), new YoRegistry("DummyParent"));
 
    public RDXActionProgressWidgets(RDXActionNode<?, ?> action)
    {
       this.action = action;
 
-      setupPlot(positionErrorPlot, currentPositionPlotLine, 0.1);
-      setupPlot(orientationErrorPlot, currentOrientationPlotLine, 45.0);
-      setupPlot(footstepsRemainingPlot, footstepsRemainingPlotLine, 1.0);
-      setupPlot(handForcePlot, handForcePlotLine, 50.0);
+      setupPlot(positionErrorPlot, 0.1, currentPositionErrorPlotLine, desiredPositionErrorPlotLine);
+      setupPlot(orientationErrorPlot, 45.0, currentOrientationPlotLine);
+      setupPlot(footstepsRemainingPlot, 1.0, footstepsRemainingPlotLine);
+      setupPlot(handForcePlot, 50.0, handForcePlotLine);
    }
 
-   private void setupPlot(ImPlotPlot plot, ImPlotBasicDoublePlotLine plotLine, double limitYMin)
+   private void setupPlot(ImPlotPlot plot, double limitYMin, ImPlotBasicDoublePlotLine... plotLines)
    {
       plot.setFlag(ImPlotFlags.NoLegend);
-      plot.getPlotLines().add(plotLine);
-      plot.setCustomBeforePlotLogic(() -> plotLine.setLimitYMin(limitYMin));
+      for (ImPlotBasicDoublePlotLine plotLine : plotLines)
+      {
+         plot.getPlotLines().add(plotLine);
+      }
+      plot.setCustomBeforePlotLogic(() ->
+      {
+         for (ImPlotBasicDoublePlotLine plotLine : plotLines)
+         {
+            plotLine.setLimitYMin(limitYMin);
+         }
+      });
    }
 
    public void update()
@@ -50,7 +68,8 @@ public class RDXActionProgressWidgets
 
       if (newlyExecuting)
       {
-         currentPositionPlotLine.clear();
+         currentPositionErrorPlotLine.clear();
+         desiredPositionErrorPlotLine.clear();
          currentOrientationPlotLine.clear();
          footstepsRemainingPlotLine.clear();
          handForcePlotLine.clear();
@@ -68,62 +87,97 @@ public class RDXActionProgressWidgets
 
    public void renderPositionError(float dividedBarWidth, boolean renderAsPlots)
    {
-      double currentPositionError = action.getState().getCurrentPositionDistanceToGoal();
-      double startPositionError = action.getState().getStartPositionDistanceToGoal();
-      double positionTolerance = action.getState().getPositionDistanceToGoalTolerance();
-      double barEndValue = Math.max(Math.min(startPositionError, currentPositionError), 2.0 * positionTolerance);
-      double toleranceMarkPercent = positionTolerance / barEndValue;
-      int dataColor = currentPositionError < positionTolerance ? ImGuiTools.GREEN : ImGuiTools.RED;
-      double percentLeft = currentPositionError / barEndValue;
+      if (!action.getState().getDesiredTrajectory().isEmpty())
+      {
+         positionTrajectoryGenerator.clear();
+         for (int i = 0; i < action.getState().getDesiredTrajectory().getSize(); i++)
+         {
+            positionTrajectoryGenerator.appendWaypoint(action.getState().getDesiredTrajectory().getValueReadOnly(i));
+         }
+         positionTrajectoryGenerator.initialize();
+         positionTrajectoryGenerator.compute(action.getState().getElapsedExecutionTime());
 
-      if (action.getState().getIsExecuting())
-      {
-         currentPositionPlotLine.setDataColor(dataColor);
-         currentPositionPlotLine.addValue(currentPositionError);
-      }
-      if (renderAsPlots)
-      {
-         positionErrorPlot.render(dividedBarWidth, PLOT_HEIGHT);
+         Point3DReadOnly initialPosition = action.getState().getDesiredTrajectory().getFirstValueReadOnly().getPosition();
+         Point3DReadOnly endPosition = action.getState().getDesiredTrajectory().getLastValueReadOnly().getPosition();
+         Point3DReadOnly currentPosition = action.getState().getCurrentPose().getValueReadOnly().getPosition();
+         Point3DReadOnly desiredPosition = positionTrajectoryGenerator.getPosition();
+
+         double initialToEnd = initialPosition.differenceNorm(endPosition);
+         double currentToEnd = currentPosition.differenceNorm(endPosition);
+         double desiredToEnd = desiredPosition.differenceNorm(endPosition);
+         double tolerance = action.getState().getPositionDistanceToGoalTolerance();
+         double error = Math.abs(currentToEnd - desiredToEnd);
+         int dataColor = error < tolerance ? ImGuiTools.GREEN : ImGuiTools.RED;
+
+         if (action.getState().getIsExecuting())
+         {
+            currentPositionErrorPlotLine.setDataColor(dataColor);
+            currentPositionErrorPlotLine.addValue(currentToEnd);
+            desiredPositionErrorPlotLine.setDataColor(ImGuiTools.GRAY);
+            desiredPositionErrorPlotLine.addValue(desiredToEnd);
+         }
+         if (renderAsPlots)
+         {
+            positionErrorPlot.render(dividedBarWidth, PLOT_HEIGHT);
+         }
+         else
+         {
+            double barEndValue = Math.max(Math.min(initialToEnd, currentToEnd), 2.0 * tolerance);
+            double toleranceMarkPercent = tolerance / barEndValue;
+            double percentLeft = currentToEnd / barEndValue;
+            ImGuiTools.markedProgressBar(PROGRESS_BAR_HEIGHT,
+                                         dividedBarWidth,
+                                         dataColor,
+                                         percentLeft,
+                                         toleranceMarkPercent,
+                                         "%.2f / %.2f".formatted(currentToEnd, initialToEnd));
+         }
       }
       else
       {
-         ImGuiTools.markedProgressBar(PROGRESS_BAR_HEIGHT,
-                                      dividedBarWidth,
-                                      dataColor,
-                                      percentLeft,
-                                      toleranceMarkPercent,
-                                      "%.2f / %.2f".formatted(currentPositionError, startPositionError));
+         renderBlankProgress("Empty Position Error", dividedBarWidth, renderAsPlots, true);
       }
    }
 
    public void renderOrientationError(float dividedBarWidth, boolean renderAsPlots)
    {
-      orientationErrorPlot.setCustomBeforePlotLogic(() -> currentOrientationPlotLine.setLimitYMin(45.0));
-      double currentOrientationError = action.getState().getCurrentOrientationDistanceToGoal();
-      double startOrientationError = action.getState().getStartOrientationDistanceToGoal();
-      double orientationTolerance = action.getState().getOrientationDistanceToGoalTolerance();
-      double barEndValue = Math.max(Math.min(startOrientationError, currentOrientationError), 2.0 * orientationTolerance);
-      double toleranceMarkPercent = orientationTolerance / barEndValue;
-      int dataColor = currentOrientationError < orientationTolerance ? ImGuiTools.GREEN : ImGuiTools.RED;
-      double percentLeft = currentOrientationError / barEndValue;
+      if (!action.getState().getDesiredTrajectory().isEmpty())
+      {
+         SE3TrajectoryPointReadOnly firstTrajectoryPoint = action.getState().getDesiredTrajectory().getFirstValueReadOnly();
+         SE3TrajectoryPointReadOnly lastTrajectoryPoint = action.getState().getDesiredTrajectory().getLastValueReadOnly();
 
-      if (action.getState().getIsExecuting())
-      {
-         currentOrientationPlotLine.setDataColor(dataColor);
-         currentOrientationPlotLine.addValue(Math.toDegrees(currentOrientationError));
-      }
-      if (renderAsPlots)
-      {
-         orientationErrorPlot.render(dividedBarWidth, PLOT_HEIGHT);
+         orientationErrorPlot.setCustomBeforePlotLogic(() -> currentOrientationPlotLine.setLimitYMin(45.0));
+         double startOrientationError = lastTrajectoryPoint.getOrientation().distance(firstTrajectoryPoint.getOrientation(), true);
+         double currentOrientationError = lastTrajectoryPoint.getOrientation()
+                                                             .distance(action.getState().getCurrentPose().getValueReadOnly().getOrientation(), true);
+         double orientationTolerance = action.getState().getOrientationDistanceToGoalTolerance();
+         double barEndValue = Math.max(Math.min(startOrientationError, currentOrientationError), 2.0 * orientationTolerance);
+         double toleranceMarkPercent = orientationTolerance / barEndValue;
+         int dataColor = currentOrientationError < orientationTolerance ? ImGuiTools.GREEN : ImGuiTools.RED;
+         double percentLeft = currentOrientationError / barEndValue;
+
+         if (action.getState().getIsExecuting())
+         {
+            currentOrientationPlotLine.setDataColor(dataColor);
+            currentOrientationPlotLine.addValue(Math.toDegrees(currentOrientationError));
+         }
+         if (renderAsPlots)
+         {
+            orientationErrorPlot.render(dividedBarWidth, PLOT_HEIGHT);
+         }
+         else
+         {
+            ImGuiTools.markedProgressBar(PROGRESS_BAR_HEIGHT,
+                                         dividedBarWidth,
+                                         dataColor,
+                                         percentLeft,
+                                         toleranceMarkPercent,
+                                         "%.2f / %.2f".formatted(Math.toDegrees(currentOrientationError), Math.toDegrees(startOrientationError)));
+         }
       }
       else
       {
-         ImGuiTools.markedProgressBar(PROGRESS_BAR_HEIGHT,
-                                      dividedBarWidth,
-                                      dataColor,
-                                      percentLeft,
-                                      toleranceMarkPercent,
-                                      "%.2f / %.2f".formatted(Math.toDegrees(currentOrientationError), Math.toDegrees(startOrientationError)));
+         renderBlankProgress("Empty Position Error", dividedBarWidth, renderAsPlots, true);
       }
    }
 
@@ -157,28 +211,20 @@ public class RDXActionProgressWidgets
 
    public void renderFootstepCompletion(float dividedBarWidth, boolean renderAsPlots)
    {
-      int incompleteFootsteps = 0;
-      int totalFootsteps = 0;
-      double percentLeft = Double.NaN;
-      String overlay = "N/A";
+      FootstepPlanActionStateBasics footstepPlanActionState = null;
       if (action instanceof RDXWalkAction walkAction)
-      {
-         incompleteFootsteps = walkAction.getState().getNumberOfIncompleteFootsteps();
-         totalFootsteps = walkAction.getState().getTotalNumberOfFootsteps();
-      }
+         footstepPlanActionState = walkAction.getState().getBasics();
       if (action instanceof RDXFootstepPlanAction footstepPlanAction)
+         footstepPlanActionState = footstepPlanAction.getState().getBasics();
+
+      if (footstepPlanActionState != null && footstepPlanActionState.getTotalNumberOfFootsteps() > 0)
       {
-         incompleteFootsteps = footstepPlanAction.getState().getNumberOfIncompleteFootsteps();
-         totalFootsteps = footstepPlanAction.getState().getTotalNumberOfFootsteps();
-      }
-      if (totalFootsteps > 0)
-      {
-         percentLeft = incompleteFootsteps / (double) totalFootsteps;
-         overlay = "%d / %d".formatted(incompleteFootsteps, totalFootsteps);
+         double percentLeft = footstepPlanActionState.getNumberOfIncompleteFootsteps() / (double) footstepPlanActionState.getTotalNumberOfFootsteps();
+         String overlay = "%d / %d".formatted(footstepPlanActionState.getNumberOfIncompleteFootsteps(), footstepPlanActionState.getTotalNumberOfFootsteps());
 
          if (action.getState().getIsExecuting())
          {
-            footstepsRemainingPlotLine.addValue(incompleteFootsteps);
+            footstepsRemainingPlotLine.addValue(footstepPlanActionState.getNumberOfIncompleteFootsteps());
          }
          if (renderAsPlots)
          {

@@ -2,7 +2,7 @@ package us.ihmc.communication.crdt;
 
 import us.ihmc.communication.ros2.ROS2ActorDesignation;
 import us.ihmc.euclid.geometry.Pose3D;
-import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
+import us.ihmc.euclid.geometry.interfaces.Pose3DReadOnly;
 
 /**
  * Represents a Pose3D that should only be modified by one actor type
@@ -16,7 +16,7 @@ public class CRDTUnidirectionalPose3D extends CRDTUnidirectionalMutableField<Pos
       super(sideThatCanModify, crdtInfo, Pose3D::new);
    }
 
-   public RigidBodyTransformReadOnly getValueReadOnly()
+   public Pose3DReadOnly getValueReadOnly()
    {
       return getValueInternal();
    }

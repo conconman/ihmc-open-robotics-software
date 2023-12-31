@@ -21,6 +21,21 @@ public class CRDTUnidirectionalSE3Trajectory extends CRDTUnidirectionalMutableFi
       return getValueInternal().get(index);
    }
 
+   public SE3TrajectoryPointReadOnly getFirstValueReadOnly()
+   {
+      return getValueInternal().get(0);
+   }
+
+   public SE3TrajectoryPointReadOnly getLastValueReadOnly()
+   {
+      return getValueInternal().get(getSize() - 1);
+   }
+
+   public boolean isEmpty()
+   {
+      return getValueInternal().isEmpty();
+   }
+
    public int getSize()
    {
       return getValueInternal().size();

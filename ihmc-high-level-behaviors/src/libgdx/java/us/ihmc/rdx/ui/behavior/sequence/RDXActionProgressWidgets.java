@@ -5,12 +5,13 @@ import imgui.internal.ImGui;
 import us.ihmc.behaviors.sequence.actions.FootstepPlanActionStateBasics;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.rdx.imgui.*;
 import us.ihmc.rdx.ui.behavior.actions.RDXFootstepPlanAction;
 import us.ihmc.rdx.ui.behavior.actions.RDXHandPoseAction;
 import us.ihmc.rdx.ui.behavior.actions.RDXWalkAction;
+import us.ihmc.robotics.math.trajectories.generators.MultipleWaypointsOrientationTrajectoryGenerator;
 import us.ihmc.robotics.math.trajectories.generators.MultipleWaypointsPositionTrajectoryGenerator;
-import us.ihmc.robotics.math.trajectories.trajectorypoints.interfaces.SE3TrajectoryPointReadOnly;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class RDXActionProgressWidgets
@@ -25,6 +26,7 @@ public class RDXActionProgressWidgets
    private final ImPlotBasicDoublePlotLine desiredPositionErrorPlotLine = new ImPlotBasicDoublePlotLine();
    private final ImPlotPlot orientationErrorPlot = new ImPlotPlot();
    private final ImPlotBasicDoublePlotLine currentOrientationPlotLine = new ImPlotBasicDoublePlotLine();
+   private final ImPlotBasicDoublePlotLine desiredOrientationPlotLine = new ImPlotBasicDoublePlotLine();
    private final ImPlotPlot footstepsRemainingPlot = new ImPlotPlot();
    private final ImPlotBasicDoublePlotLine footstepsRemainingPlotLine = new ImPlotBasicDoublePlotLine();
    private final ImPlotPlot handForcePlot = new ImPlotPlot();
@@ -33,13 +35,15 @@ public class RDXActionProgressWidgets
    private boolean newlyExecuting = false;
    private final MultipleWaypointsPositionTrajectoryGenerator positionTrajectoryGenerator
          = new MultipleWaypointsPositionTrajectoryGenerator("Position", 500, ReferenceFrame.getWorldFrame(), new YoRegistry("DummyParent"));
+   private final MultipleWaypointsOrientationTrajectoryGenerator orientationTrajectoryGenerator
+         = new MultipleWaypointsOrientationTrajectoryGenerator("Orientation", 500, ReferenceFrame.getWorldFrame(), new YoRegistry("DummyParent"));
 
    public RDXActionProgressWidgets(RDXActionNode<?, ?> action)
    {
       this.action = action;
 
       setupPlot(positionErrorPlot, 0.1, currentPositionErrorPlotLine, desiredPositionErrorPlotLine);
-      setupPlot(orientationErrorPlot, 45.0, currentOrientationPlotLine);
+      setupPlot(orientationErrorPlot, 45.0, currentOrientationPlotLine, desiredOrientationPlotLine);
       setupPlot(footstepsRemainingPlot, 1.0, footstepsRemainingPlotLine);
       setupPlot(handForcePlot, 50.0, handForcePlotLine);
    }
@@ -71,6 +75,7 @@ public class RDXActionProgressWidgets
          currentPositionErrorPlotLine.clear();
          desiredPositionErrorPlotLine.clear();
          currentOrientationPlotLine.clear();
+         desiredOrientationPlotLine.clear();
          footstepsRemainingPlotLine.clear();
          handForcePlotLine.clear();
       }
@@ -143,23 +148,32 @@ public class RDXActionProgressWidgets
    {
       if (!action.getState().getDesiredTrajectory().isEmpty())
       {
-         SE3TrajectoryPointReadOnly firstTrajectoryPoint = action.getState().getDesiredTrajectory().getFirstValueReadOnly();
-         SE3TrajectoryPointReadOnly lastTrajectoryPoint = action.getState().getDesiredTrajectory().getLastValueReadOnly();
+         orientationTrajectoryGenerator.clear();
+         for (int i = 0; i < action.getState().getDesiredTrajectory().getSize(); i++)
+         {
+            orientationTrajectoryGenerator.appendWaypoint(action.getState().getDesiredTrajectory().getValueReadOnly(i));
+         }
+         orientationTrajectoryGenerator.initialize();
+         orientationTrajectoryGenerator.compute(action.getState().getElapsedExecutionTime());
 
-         orientationErrorPlot.setCustomBeforePlotLogic(() -> currentOrientationPlotLine.setLimitYMin(45.0));
-         double startOrientationError = lastTrajectoryPoint.getOrientation().distance(firstTrajectoryPoint.getOrientation(), true);
-         double currentOrientationError = lastTrajectoryPoint.getOrientation()
-                                                             .distance(action.getState().getCurrentPose().getValueReadOnly().getOrientation(), true);
-         double orientationTolerance = action.getState().getOrientationDistanceToGoalTolerance();
-         double barEndValue = Math.max(Math.min(startOrientationError, currentOrientationError), 2.0 * orientationTolerance);
-         double toleranceMarkPercent = orientationTolerance / barEndValue;
-         int dataColor = currentOrientationError < orientationTolerance ? ImGuiTools.GREEN : ImGuiTools.RED;
-         double percentLeft = currentOrientationError / barEndValue;
+         QuaternionReadOnly initialOrientation = action.getState().getDesiredTrajectory().getFirstValueReadOnly().getOrientation();
+         QuaternionReadOnly endOrientation = action.getState().getDesiredTrajectory().getLastValueReadOnly().getOrientation();
+         QuaternionReadOnly currentOrientation = action.getState().getCurrentPose().getValueReadOnly().getOrientation();
+         QuaternionReadOnly desiredOrientation = orientationTrajectoryGenerator.getOrientation();
+
+         double initialToEnd = initialOrientation.distance(endOrientation, true);
+         double currentToEnd = currentOrientation.distance(endOrientation, true);
+         double desiredToEnd = desiredOrientation.distance(endOrientation, true);
+         double tolerance = action.getState().getOrientationDistanceToGoalTolerance();
+         double error = Math.abs(currentToEnd - desiredToEnd);
+         int dataColor = error < tolerance ? ImGuiTools.GREEN : ImGuiTools.RED;
 
          if (action.getState().getIsExecuting())
          {
             currentOrientationPlotLine.setDataColor(dataColor);
-            currentOrientationPlotLine.addValue(Math.toDegrees(currentOrientationError));
+            currentOrientationPlotLine.addValue(Math.toDegrees(currentToEnd));
+            desiredOrientationPlotLine.setDataColor(ImGuiTools.GRAY);
+            desiredOrientationPlotLine.addValue(Math.toDegrees(desiredToEnd));
          }
          if (renderAsPlots)
          {
@@ -167,17 +181,20 @@ public class RDXActionProgressWidgets
          }
          else
          {
+            double barEndValue = Math.max(Math.min(initialToEnd, currentToEnd), 2.0 * tolerance);
+            double toleranceMarkPercent = tolerance / barEndValue;
+            double percentLeft = currentToEnd / barEndValue;
             ImGuiTools.markedProgressBar(PROGRESS_BAR_HEIGHT,
                                          dividedBarWidth,
                                          dataColor,
                                          percentLeft,
                                          toleranceMarkPercent,
-                                         "%.2f / %.2f".formatted(Math.toDegrees(currentOrientationError), Math.toDegrees(startOrientationError)));
+                                         "%.2f / %.2f".formatted(Math.toDegrees(currentToEnd), Math.toDegrees(initialToEnd)));
          }
       }
       else
       {
-         renderBlankProgress("Empty Position Error", dividedBarWidth, renderAsPlots, true);
+         renderBlankProgress("Empty Orientation Error", dividedBarWidth, renderAsPlots, true);
       }
    }
 

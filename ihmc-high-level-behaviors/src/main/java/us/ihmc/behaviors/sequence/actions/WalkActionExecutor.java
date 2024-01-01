@@ -31,9 +31,8 @@ public class WalkActionExecutor extends ActionNodeExecutor<WalkActionState, Walk
    private final ROS2SyncedRobotModel syncedRobot;
    private final FootstepPlanningModule footstepPlanner;
    private final FootstepPlannerParametersBasics footstepPlannerParameters;
-   private final TypedNotification<FootstepPlan> footstepPlanNotification = new TypedNotification<>();
-   private boolean needToPlan = false;
    private final ResettableExceptionHandlingExecutorService footstepPlanningThread = MissingThreadTools.newSingleThreadExecutor("FootstepPlanning", true, 1);
+   private final TypedNotification<FootstepPlan> footstepPlanNotification = new TypedNotification<>();
    private final SideDependentList<FramePose3D> startFootPosesForThread = new SideDependentList<>(new FramePose3D(), new FramePose3D());
    private final SideDependentList<FramePose3D> goalFootPosesForThread = new SideDependentList<>(new FramePose3D(), new FramePose3D());
 
@@ -91,8 +90,7 @@ public class WalkActionExecutor extends ActionNodeExecutor<WalkActionState, Walk
    {
       if (state.getGoalFrame().isChildOfWorld())
       {
-         state.setIsExecuting(true);
-         needToPlan = true;
+         state.getExecutionState().setValue(WalkActionExecutionState.TRIGGERED);
       }
       else
       {
@@ -103,12 +101,12 @@ public class WalkActionExecutor extends ActionNodeExecutor<WalkActionState, Walk
    @Override
    public void updateCurrentlyExecuting()
    {
-      if (state.getGoalFrame().isChildOfWorld())
+      switch (state.getExecutionState().getValue())
       {
-         if (needToPlan && !footstepPlanningThread.isExecuting())
+         case TRIGGERED ->
          {
-            needToPlan = false;
-            footstepPlanNotification.poll(); // Make sure it's cleared
+            state.setIsExecuting(true);
+            state.getExecutionState().setValue(WalkActionExecutionState.FOOTSTEP_PLANNING);
 
             for (RobotSide side : RobotSide.values)
             {
@@ -116,6 +114,7 @@ public class WalkActionExecutor extends ActionNodeExecutor<WalkActionState, Walk
                goalFootPosesForThread.get(side).set(footstepPlanExecutorBasics.getGoalFeetPoses().get(side));
             }
 
+            footstepPlanNotification.poll(); // Make sure it's cleared
             footstepPlanningThread.execute(() ->
             {
                footstepPlannerParameters.setFinalTurnProximity(1.0);
@@ -174,14 +173,42 @@ public class WalkActionExecutor extends ActionNodeExecutor<WalkActionState, Walk
                FootstepPlannerLogger.deleteOldLogs();
             }, DefaultExceptionHandler.MESSAGE_AND_STACKTRACE);
          }
-
-         if (!needToPlan && footstepPlanNotification.poll())
+         case FOOTSTEP_PLANNING ->
          {
-            footstepPlanExecutorBasics.setFootstepPlanToExecute(footstepPlanNotification.read());
-            footstepPlanExecutorBasics.triggerActionExecution();
+            // TODO: Maybe report planning elapsed time or something
+            if (footstepPlanNotification.poll())
+            {
+               FootstepPlan footstepPlan = footstepPlanNotification.read();
+               if (footstepPlan.isEmpty())
+               {
+                  state.getExecutionState().setValue(WalkActionExecutionState.PLANNING_FAILED);
+               }
+               else
+               {
+                  state.getExecutionState().setValue(WalkActionExecutionState.PLANNING_SUCCEEDED);
+                  footstepPlanExecutorBasics.setFootstepPlanToExecute(footstepPlan);
+               }
+            }
          }
-
-         footstepPlanExecutorBasics.updateCurrentlyExecuting(state);
+         case PLANNING_FAILED ->
+         {
+            // TODO: Handle failure
+            state.setIsExecuting(false);
+            state.getExecutionState().setValue(WalkActionExecutionState.PLAN_EXECUTION_COMPLETE);
+         }
+         case PLANNING_SUCCEEDED ->
+         {
+            footstepPlanExecutorBasics.triggerActionExecution();
+            state.getExecutionState().setValue(WalkActionExecutionState.PLAN_COMMANDED);
+         }
+         case PLAN_COMMANDED ->
+         {
+            footstepPlanExecutorBasics.updateCurrentlyExecuting(state);
+            if (!state.getIsExecuting())
+            {
+               state.getExecutionState().setValue(WalkActionExecutionState.PLAN_EXECUTION_COMPLETE);
+            }
+         }
       }
    }
 }

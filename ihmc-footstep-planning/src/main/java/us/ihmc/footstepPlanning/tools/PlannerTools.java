@@ -286,7 +286,7 @@ public class PlannerTools
    {
       int numberOfSteps = footstepPlan.getNumberOfSteps();
       double planExecutionTime = 0.0;
-      for (int i = 0; i < numberOfFootstepsToAddUp + 1; i++)
+      for (int i = 0; i < numberOfFootstepsToAddUp; i++)
       {
          PlannedFootstep footstep = footstepPlan.getFootstep(i);
          double transferDuration = footstep.getTransferDuration();

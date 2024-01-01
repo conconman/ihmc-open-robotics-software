@@ -8,6 +8,12 @@ import us.ihmc.pubsub.TopicDataType;
 
 public class WalkActionStateMessage extends Packet<WalkActionStateMessage> implements Settable<WalkActionStateMessage>, EpsilonComparable<WalkActionStateMessage>
 {
+   public static final byte TRIGGERED = (byte) 0;
+   public static final byte FOOTSTEP_PLANNING = (byte) 1;
+   public static final byte PLANNING_FAILED = (byte) 2;
+   public static final byte PLANNING_SUCCEEDED = (byte) 3;
+   public static final byte PLAN_COMMANDED = (byte) 4;
+   public static final byte PLAN_EXECUTION_COMPLETE = (byte) 5;
    /**
             * Parent state fields
             */
@@ -16,6 +22,7 @@ public class WalkActionStateMessage extends Packet<WalkActionStateMessage> imple
             * Definition
             */
    public behavior_msgs.msg.dds.WalkActionDefinitionMessage definition_;
+   public byte execution_state_;
    public behavior_msgs.msg.dds.FootstepPlanActionStateBasicsMessage footstep_plan_state_basics_;
 
    public WalkActionStateMessage()
@@ -35,6 +42,8 @@ public class WalkActionStateMessage extends Packet<WalkActionStateMessage> imple
    {
       behavior_msgs.msg.dds.ActionNodeStateMessagePubSubType.staticCopy(other.state_, state_);
       behavior_msgs.msg.dds.WalkActionDefinitionMessagePubSubType.staticCopy(other.definition_, definition_);
+      execution_state_ = other.execution_state_;
+
       behavior_msgs.msg.dds.FootstepPlanActionStateBasicsMessagePubSubType.staticCopy(other.footstep_plan_state_basics_, footstep_plan_state_basics_);
    }
 
@@ -54,6 +63,15 @@ public class WalkActionStateMessage extends Packet<WalkActionStateMessage> imple
    public behavior_msgs.msg.dds.WalkActionDefinitionMessage getDefinition()
    {
       return definition_;
+   }
+
+   public void setExecutionState(byte execution_state)
+   {
+      execution_state_ = execution_state;
+   }
+   public byte getExecutionState()
+   {
+      return execution_state_;
    }
 
 
@@ -82,6 +100,8 @@ public class WalkActionStateMessage extends Packet<WalkActionStateMessage> imple
 
       if (!this.state_.epsilonEquals(other.state_, epsilon)) return false;
       if (!this.definition_.epsilonEquals(other.definition_, epsilon)) return false;
+      if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.execution_state_, other.execution_state_, epsilon)) return false;
+
       if (!this.footstep_plan_state_basics_.epsilonEquals(other.footstep_plan_state_basics_, epsilon)) return false;
 
       return true;
@@ -98,6 +118,8 @@ public class WalkActionStateMessage extends Packet<WalkActionStateMessage> imple
 
       if (!this.state_.equals(otherMyClass.state_)) return false;
       if (!this.definition_.equals(otherMyClass.definition_)) return false;
+      if(this.execution_state_ != otherMyClass.execution_state_) return false;
+
       if (!this.footstep_plan_state_basics_.equals(otherMyClass.footstep_plan_state_basics_)) return false;
 
       return true;
@@ -113,6 +135,8 @@ public class WalkActionStateMessage extends Packet<WalkActionStateMessage> imple
       builder.append(this.state_);      builder.append(", ");
       builder.append("definition=");
       builder.append(this.definition_);      builder.append(", ");
+      builder.append("execution_state=");
+      builder.append(this.execution_state_);      builder.append(", ");
       builder.append("footstep_plan_state_basics=");
       builder.append(this.footstep_plan_state_basics_);
       builder.append("}");

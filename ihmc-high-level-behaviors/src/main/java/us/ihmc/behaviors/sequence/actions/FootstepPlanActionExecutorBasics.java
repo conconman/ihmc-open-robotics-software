@@ -130,7 +130,7 @@ public class FootstepPlanActionExecutorBasics
 
    public void updateCurrentlyExecuting(ActionNodeState<?> actionNodeState)
    {
-      if (footstepPlanToExecute.getNumberOfSteps() > 0)
+      if (footstepPlanToExecute != null && footstepPlanToExecute.getNumberOfSteps() > 0)
       {
          boolean isComplete = true;
          for (RobotSide side : RobotSide.values)
@@ -157,15 +157,26 @@ public class FootstepPlanActionExecutorBasics
          {
             state.getCurrentFootPoses().get(side).getValue().set(syncedFeetPoses.get(side));
          }
-         actionNodeState.setPositionDistanceToGoalTolerance(POSITION_TOLERANCE);
-         actionNodeState.setOrientationDistanceToGoalTolerance(ORIENTATION_TOLERANCE);
+
+         footstepPlanToExecute.clear();
       }
       else
       {
          actionNodeState.setIsExecuting(false);
+         actionNodeState.setNominalExecutionDuration(0.0);
+         actionNodeState.setElapsedExecutionTime(0.0);
+         state.setTotalNumberOfFootsteps(0);
+         state.setNumberOfIncompleteFootsteps(0);
+         for (RobotSide side : RobotSide.values)
+         {
+            state.getCurrentFootPoses().get(side).getValue().set(syncedFeetPoses.get(side));
+            state.getDesiredFootPoses().get(side).getValue().clear();
+         }
          // TODO: Mark action failed and abort execution
       }
 
+      actionNodeState.setPositionDistanceToGoalTolerance(POSITION_TOLERANCE);
+      actionNodeState.setOrientationDistanceToGoalTolerance(ORIENTATION_TOLERANCE);
    }
 
    public SideDependentList<Integer> getIndexOfLastFoot()

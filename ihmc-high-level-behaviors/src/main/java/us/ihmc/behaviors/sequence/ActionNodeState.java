@@ -110,6 +110,7 @@ public abstract class ActionNodeState<D extends ActionNodeDefinition> extends Be
       return canExecute.getValue();
    }
 
+   /** Set from within {@link ActionNodeExecutor#updateCurrentlyExecuting} only. */
    public void setIsExecuting(boolean isExecuting)
    {
       this.isExecuting.setValue(isExecuting);

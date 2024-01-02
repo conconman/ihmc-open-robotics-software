@@ -48,6 +48,7 @@ public class RDXActionProgressWidgets
    private final ImPlotBasicDoublePlotLine handForcePlotLine = new ImPlotBasicDoublePlotLine();
    private final ImPlotPlot handTorquePlot = new ImPlotPlot();
    private final ImPlotBasicDoublePlotLine handTorquePlotLine = new ImPlotBasicDoublePlotLine();
+   private int emptyPlotIndex;
    private double elapsedExecutionTime = -1.0;
    private boolean newlyExecuting = false;
    private final MultipleWaypointsPositionTrajectoryGenerator positionTrajectoryGenerator
@@ -92,9 +93,10 @@ public class RDXActionProgressWidgets
 
    public void update()
    {
+      emptyPlotIndex = 0;
       double newElapsedExecutionTime = action.getState().getElapsedExecutionTime();
-      newlyExecuting = newElapsedExecutionTime < elapsedExecutionTime;
       elapsedExecutionTime = newElapsedExecutionTime;
+      newlyExecuting = newElapsedExecutionTime < elapsedExecutionTime;
 
       if (newlyExecuting)
       {
@@ -174,7 +176,7 @@ public class RDXActionProgressWidgets
       }
       else
       {
-         renderBlankProgress("Empty Position Error", dividedBarWidth, renderAsPlots, true);
+         renderBlankProgress(dividedBarWidth, renderAsPlots, true);
       }
    }
 
@@ -228,7 +230,7 @@ public class RDXActionProgressWidgets
       }
       else
       {
-         renderBlankProgress("Empty Orientation Error", dividedBarWidth, renderAsPlots, true);
+         renderBlankProgress(dividedBarWidth, renderAsPlots, true);
       }
    }
 
@@ -256,7 +258,7 @@ public class RDXActionProgressWidgets
       }
       else
       {
-         renderBlankProgress(labels.get("Empty Hand Force"), dividedBarWidth, renderAsPlots, true);
+         renderBlankProgress(dividedBarWidth, renderAsPlots, true);
       }
    }
 
@@ -284,7 +286,7 @@ public class RDXActionProgressWidgets
       }
       else
       {
-         renderBlankProgress(labels.get("Empty Hand Torque"), dividedBarWidth, renderAsPlots, true);
+         renderBlankProgress(dividedBarWidth, renderAsPlots, true);
       }
    }
 
@@ -316,7 +318,7 @@ public class RDXActionProgressWidgets
       }
       else
       {
-         renderBlankProgress(labels.get("Empty Footsteps"), dividedBarWidth, renderAsPlots, true);
+         renderBlankProgress(dividedBarWidth, renderAsPlots, true);
       }
    }
 
@@ -328,7 +330,7 @@ public class RDXActionProgressWidgets
       if (action instanceof RDXFootstepPlanAction footstepPlanAction)
          footstepPlanActionState = footstepPlanAction.getState().getBasics();
 
-      float halfDividedBarWidth = (dividedBarWidth / 2.0f) - ImGui.getStyle().getItemSpacingX();
+      float halfDividedBarWidth = dividedBarWidth / 2.0f - ImGui.getStyle().getItemSpacingX() / 2.0f;
 
       for (RobotSide side : RobotSide.values)
       {
@@ -378,7 +380,7 @@ public class RDXActionProgressWidgets
          }
          else
          {
-            renderBlankProgress(side.getPascalCaseName() + "Empty Foot Position Error", dividedBarWidth, renderAsPlots, true);
+            renderBlankProgress(dividedBarWidth, renderAsPlots, true);
          }
 
          if (side == RobotSide.LEFT)
@@ -394,7 +396,7 @@ public class RDXActionProgressWidgets
       if (action instanceof RDXFootstepPlanAction footstepPlanAction)
          footstepPlanActionState = footstepPlanAction.getState().getBasics();
 
-      float halfDividedBarWidth = (dividedBarWidth / 2.0f) - ImGui.getStyle().getItemSpacingX();
+      float halfDividedBarWidth = dividedBarWidth / 2.0f - ImGui.getStyle().getItemSpacingX() / 2.0f;
 
       for (RobotSide side : RobotSide.values)
       {
@@ -444,12 +446,17 @@ public class RDXActionProgressWidgets
          }
          else
          {
-            renderBlankProgress(side.getPascalCaseName() + "Empty Foot Orientation Error", dividedBarWidth, renderAsPlots, true);
+            renderBlankProgress(dividedBarWidth, renderAsPlots, true);
          }
 
          if (side == RobotSide.LEFT)
             ImGui.sameLine();
       }
+   }
+
+   public void renderBlankProgress(float width, boolean renderAsPlots, boolean supportsPlots)
+   {
+      renderBlankProgress(labels.get("Empty Plot", emptyPlotIndex++), width, renderAsPlots, supportsPlots);
    }
 
    public static void renderBlankProgress(String emptyPlotLabel, float width, boolean renderAsPlots, boolean supportsPlots)

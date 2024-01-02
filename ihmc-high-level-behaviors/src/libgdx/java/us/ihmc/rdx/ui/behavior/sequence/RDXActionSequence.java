@@ -173,19 +173,13 @@ public class RDXActionSequence extends RDXBehaviorTreeNode<ActionSequenceState, 
       }
 
       progressWidgetsManager.getActionNodesToRender().clear();
-      if (!currentlyExecutingActions.isEmpty())
+      for (RDXActionNode<?, ?> currentlyExecutingAction : currentlyExecutingActions)
       {
-         for (RDXActionNode<?, ?> currentlyExecutingAction : currentlyExecutingActions)
-         {
-            progressWidgetsManager.getActionNodesToRender().add(currentlyExecutingAction);
-         }
+         progressWidgetsManager.getActionNodesToRender().add(currentlyExecutingAction);
       }
-      else
+      for (RDXActionNode<?, ?> nextForExecutionAction : nextForExecutionActions)
       {
-         for (RDXActionNode<?, ?> nextForExecutionAction : nextForExecutionActions)
-         {
-            progressWidgetsManager.getActionNodesToRender().add(nextForExecutionAction);
-         }
+         progressWidgetsManager.getActionNodesToRender().add(nextForExecutionAction);
       }
       progressWidgetsManager.render();
    }

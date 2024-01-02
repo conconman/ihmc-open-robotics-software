@@ -9,18 +9,25 @@ import us.ihmc.rdx.ui.behavior.actions.RDXWalkAction;
 import us.ihmc.robotics.EuclidCoreMissingTools;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class RDXActionProgressWidgetsManager
 {
    private final ImGuiUniqueLabelMap labels = new ImGuiUniqueLabelMap(getClass());
    private final ImGuiLabelledWidgetAligner widgetAligner = new ImGuiLabelledWidgetAligner();
+   private final SortedSet<RDXActionNode<?, ?>> sortedActionNodesToRender = new TreeSet<>(Comparator.comparingInt(node -> node.getState().getActionIndex()));
    private final ArrayList<RDXActionNode<?, ?>> actionNodesToRender = new ArrayList<>();
    private boolean renderAsPlots = false;
-   private int emptyPlotIndex = 0;
+   private int emptyPlotIndex;
 
    public void render()
    {
       emptyPlotIndex = 0;
+
+      actionNodesToRender.clear();
+      actionNodesToRender.addAll(sortedActionNodesToRender);
 
       boolean containsFootsteps = false;
       boolean containsHandMovements = false;
@@ -140,8 +147,8 @@ public class RDXActionProgressWidgetsManager
       this.renderAsPlots = renderAsPlots;
    }
 
-   public ArrayList<RDXActionNode<?, ?>> getActionNodesToRender()
+   public SortedSet<RDXActionNode<?, ?>> getActionNodesToRender()
    {
-      return actionNodesToRender;
+      return sortedActionNodesToRender;
    }
 }

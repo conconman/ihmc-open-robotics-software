@@ -13,6 +13,7 @@ public abstract class ActionNodeState<D extends ActionNodeDefinition> extends Be
    private final CRDTUnidirectionalBoolean isToBeExecutedConcurrently;
    private final CRDTUnidirectionalBoolean canExecute;
    private final CRDTUnidirectionalBoolean isExecuting;
+   private final CRDTUnidirectionalBoolean failed;
    private final CRDTUnidirectionalDouble nominalExecutionDuration;
    private final CRDTUnidirectionalDouble elapsedExecutionTime;
    private final CRDTUnidirectionalSE3Trajectory desiredTrajectory;
@@ -28,6 +29,7 @@ public abstract class ActionNodeState<D extends ActionNodeDefinition> extends Be
       isToBeExecutedConcurrently = new CRDTUnidirectionalBoolean(ROS2ActorDesignation.ROBOT, crdtInfo, false);
       canExecute = new CRDTUnidirectionalBoolean(ROS2ActorDesignation.ROBOT, crdtInfo, true);
       isExecuting = new CRDTUnidirectionalBoolean(ROS2ActorDesignation.ROBOT, crdtInfo, false);
+      failed = new CRDTUnidirectionalBoolean(ROS2ActorDesignation.ROBOT, crdtInfo, false);
       nominalExecutionDuration = new CRDTUnidirectionalDouble(ROS2ActorDesignation.ROBOT, crdtInfo, Double.NaN);
       elapsedExecutionTime = new CRDTUnidirectionalDouble(ROS2ActorDesignation.ROBOT, crdtInfo, Double.NaN);
       desiredTrajectory = new CRDTUnidirectionalSE3Trajectory(ROS2ActorDesignation.ROBOT, crdtInfo);
@@ -44,6 +46,7 @@ public abstract class ActionNodeState<D extends ActionNodeDefinition> extends Be
       message.setIsToBeExecutedConcurrently(isToBeExecutedConcurrently.toMessage());
       message.setCanExecute(canExecute.toMessage());
       message.setIsExecuting(isExecuting.toMessage());
+      message.setFailed(failed.toMessage());
       message.setNominalExecutionDuration(nominalExecutionDuration.toMessage());
       message.setElapsedExecutionTime(elapsedExecutionTime.toMessage());
       message.setNominalExecutionDuration(nominalExecutionDuration.toMessage());
@@ -62,6 +65,7 @@ public abstract class ActionNodeState<D extends ActionNodeDefinition> extends Be
       isToBeExecutedConcurrently.fromMessage(message.getIsToBeExecutedConcurrently());
       canExecute.fromMessage(message.getCanExecute());
       isExecuting.fromMessage(message.getIsExecuting());
+      failed.fromMessage(message.getFailed());
       nominalExecutionDuration.fromMessage(message.getNominalExecutionDuration());
       elapsedExecutionTime.fromMessage(message.getElapsedExecutionTime());
       desiredTrajectory.fromMessage(message.getDesiredTrajectory());
@@ -114,6 +118,16 @@ public abstract class ActionNodeState<D extends ActionNodeDefinition> extends Be
    public void setIsExecuting(boolean isExecuting)
    {
       this.isExecuting.setValue(isExecuting);
+   }
+
+   public void setFailed(boolean failed)
+   {
+      this.failed.setValue(failed);
+   }
+
+   public boolean getFailed()
+   {
+      return failed.getValue();
    }
 
    public void setNominalExecutionDuration(double nominalExecutionDuration)

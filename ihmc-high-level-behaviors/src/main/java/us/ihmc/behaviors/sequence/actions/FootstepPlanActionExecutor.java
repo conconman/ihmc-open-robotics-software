@@ -58,6 +58,8 @@ public class FootstepPlanActionExecutor extends ActionNodeExecutor<FootstepPlanA
    @Override
    public void triggerActionExecution()
    {
+      super.triggerActionExecution();
+
       if (referenceFrameLibrary.containsFrame(state.getDefinition().getBasics().getParentFrameName()))
       {
          footstepPlanToExecute.clear();

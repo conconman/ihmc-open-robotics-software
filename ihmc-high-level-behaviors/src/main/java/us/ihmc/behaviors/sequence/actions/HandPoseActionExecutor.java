@@ -167,6 +167,8 @@ public class HandPoseActionExecutor extends ActionNodeExecutor<HandPoseActionSta
    @Override
    public void triggerActionExecution()
    {
+      super.triggerActionExecution();
+
       hasSentCommand = false;
 
       if (state.getPalmFrame().isChildOfWorld())
@@ -199,7 +201,7 @@ public class HandPoseActionExecutor extends ActionNodeExecutor<HandPoseActionSta
                                                            ORIENTATION_TOLERANCE,
                                                            getDefinition().getTrajectoryDuration(),
                                                            executionTimer,
-                                                           getExecutionFailedNotification(),
+                                                           getState(),
                                                            BehaviorActionCompletionComponent.TRANSLATION,
                                                            BehaviorActionCompletionComponent.ORIENTATION);
          }

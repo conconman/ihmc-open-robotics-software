@@ -88,6 +88,8 @@ public class WalkActionExecutor extends ActionNodeExecutor<WalkActionState, Walk
    @Override
    public void triggerActionExecution()
    {
+      super.triggerActionExecution();
+
       if (state.getGoalFrame().isChildOfWorld())
       {
          state.getExecutionState().setValue(WalkActionExecutionState.TRIGGERED);
@@ -192,10 +194,9 @@ public class WalkActionExecutor extends ActionNodeExecutor<WalkActionState, Walk
          }
          case PLANNING_FAILED ->
          {
-            // TODO: Handle failure
             state.setIsExecuting(false);
             state.getExecutionState().setValue(WalkActionExecutionState.PLAN_EXECUTION_COMPLETE);
-            getExecutionFailedNotification().set();
+            state.setFailed(true);
          }
          case PLANNING_SUCCEEDED ->
          {

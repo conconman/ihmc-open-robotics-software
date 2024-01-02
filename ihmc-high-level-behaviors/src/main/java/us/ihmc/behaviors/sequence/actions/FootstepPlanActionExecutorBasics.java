@@ -4,7 +4,6 @@ import controller_msgs.msg.dds.FootstepDataListMessage;
 import us.ihmc.avatar.drcRobot.ROS2SyncedRobotModel;
 import us.ihmc.avatar.ros2.ROS2ControllerHelper;
 import us.ihmc.behaviors.sequence.ActionNodeExecutor;
-import us.ihmc.behaviors.sequence.ActionNodeState;
 import us.ihmc.behaviors.sequence.BehaviorActionCompletionCalculator;
 import us.ihmc.behaviors.sequence.BehaviorActionCompletionComponent;
 import us.ihmc.behaviors.tools.walkingController.WalkingFootstepTracker;
@@ -143,7 +142,7 @@ public class FootstepPlanActionExecutorBasics
                                                           ORIENTATION_TOLERANCE,
                                                           nominalExecutionDuration,
                                                           executionTimer,
-                                                          actionNodeExecutor.getExecutionFailedNotification(),
+                                                          actionNodeExecutor.getState(),
                                                           BehaviorActionCompletionComponent.TRANSLATION,
                                                           BehaviorActionCompletionComponent.ORIENTATION);
          }

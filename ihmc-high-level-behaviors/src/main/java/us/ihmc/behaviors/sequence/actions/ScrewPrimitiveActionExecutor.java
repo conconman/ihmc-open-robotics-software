@@ -140,6 +140,8 @@ public class ScrewPrimitiveActionExecutor extends ActionNodeExecutor<ScrewPrimit
    @Override
    public void triggerActionExecution()
    {
+      super.triggerActionExecution();
+
       if (getState().getScrewFrame().isChildOfWorld())
       {
          syncedHandControlPose.setFromReferenceFrame(syncedRobot.getFullRobotModel().getHandControlFrame(getDefinition().getSide()));

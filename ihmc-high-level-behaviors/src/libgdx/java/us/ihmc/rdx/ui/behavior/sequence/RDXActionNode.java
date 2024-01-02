@@ -5,6 +5,7 @@ import imgui.type.ImBoolean;
 import imgui.type.ImString;
 import us.ihmc.behaviors.sequence.ActionNodeDefinition;
 import us.ihmc.behaviors.sequence.ActionNodeState;
+import us.ihmc.rdx.imgui.ImGuiFlashingText;
 import us.ihmc.rdx.imgui.ImGuiHollowArrowRenderer;
 import us.ihmc.rdx.imgui.ImGuiTools;
 import us.ihmc.rdx.imgui.ImGuiUniqueLabelMap;
@@ -25,6 +26,7 @@ public abstract class RDXActionNode<S extends ActionNodeState<D>,
    private final ImString rejectionTooltip = new ImString();
    private final RDXActionProgressWidgets progressWidgets = new RDXActionProgressWidgets(this);
    private final ImGuiHollowArrowRenderer hollowArrowRenderer = new ImGuiHollowArrowRenderer();
+   private final ImGuiFlashingText flashingDescriptionColor = new ImGuiFlashingText(ImGuiTools.RED);
 
    public RDXActionNode(S state)
    {
@@ -72,6 +74,12 @@ public abstract class RDXActionNode<S extends ActionNodeState<D>,
    public ImBoolean getExpanded()
    {
       return expanded;
+   }
+
+   @Override
+   public int getDescriptionColor()
+   {
+      return flashingDescriptionColor.getTextColor(getState().getFailed());
    }
 
    public ImString getRejectionTooltip()

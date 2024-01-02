@@ -155,20 +155,20 @@ public class RDXActionSequence extends RDXBehaviorTreeNode<ActionSequenceState, 
          {
             ImGui.text("End of sequence.");
          }
+      }
 
-         if (currentlyExecutingActions.isEmpty())
+      if (currentlyExecutingActions.isEmpty())
+      {
+         ImGui.text("Nothing executing.");
+      }
+      else
+      {
+         ImGui.text("Executing:");
+         for (RDXActionNode<?, ?> currentlyExecutingAction : currentlyExecutingActions)
          {
-            ImGui.text("Nothing executing.");
-         }
-         else
-         {
-            ImGui.text("Executing:");
-            for (RDXActionNode<?, ?> currentlyExecutingAction : currentlyExecutingActions)
-            {
-               ImGui.sameLine();
-               ImGui.text("%s (%s)".formatted(currentlyExecutingAction.getDefinition().getDescription(),
-                                                             currentlyExecutingAction.getActionTypeTitle()));
-            }
+            ImGui.sameLine();
+            ImGui.text("%s (%s)".formatted(currentlyExecutingAction.getDefinition().getDescription(),
+                                                          currentlyExecutingAction.getActionTypeTitle()));
          }
       }
 

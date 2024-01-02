@@ -87,14 +87,20 @@ public class ImPlotBasicDoublePlotLine implements ImPlotPlotLine
 
    public void setLimitYMin(double minLimitY)
    {
-      double limitY = minLimitY;
+      double plotMaxY = getMaxYValue();
+      ImPlot.setNextPlotLimitsY(0.0, Double.isNaN(plotMaxY) ? minLimitY : plotMaxY, ImGuiCond.Always);
+   }
+
+   public double getMaxYValue()
+   {
+      double max = Double.NaN;
       for (int i = 0; i < size; i++)
       {
          if (!Double.isNaN(yValues[i]))
          {
-            limitY = Math.max(yValues[i], limitY);
+            max = Double.isNaN(max) ? yValues[i] : Math.max(yValues[i], max);
          }
       }
-      ImPlot.setNextPlotLimitsY(0.0, limitY, ImGuiCond.Always);
+      return max;
    }
 }

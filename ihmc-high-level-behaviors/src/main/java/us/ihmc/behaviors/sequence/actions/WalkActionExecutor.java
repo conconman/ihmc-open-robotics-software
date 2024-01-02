@@ -33,6 +33,7 @@ public class WalkActionExecutor extends ActionNodeExecutor<WalkActionState, Walk
    private final FootstepPlannerParametersBasics footstepPlannerParameters;
    private final ResettableExceptionHandlingExecutorService footstepPlanningThread = MissingThreadTools.newSingleThreadExecutor("FootstepPlanning", true, 1);
    private final TypedNotification<FootstepPlan> footstepPlanNotification = new TypedNotification<>();
+   private final SideDependentList<FramePose3D> liveGoalFeetPoses = new SideDependentList<>(() -> new FramePose3D());
    private final SideDependentList<FramePose3D> startFootPosesForThread = new SideDependentList<>(new FramePose3D(), new FramePose3D());
    private final SideDependentList<FramePose3D> goalFootPosesForThread = new SideDependentList<>(new FramePose3D(), new FramePose3D());
 
@@ -76,11 +77,10 @@ public class WalkActionExecutor extends ActionNodeExecutor<WalkActionState, Walk
       {
          for (RobotSide side : RobotSide.values)
          {
-            footstepPlanExecutorBasics.getGoalFeetPoses()
-                                      .get(side)
-                                      .setIncludingFrame(state.getGoalFrame().getReferenceFrame(),
-                                                         getDefinition().getGoalFootstepToGoalTransform(side).getValueReadOnly());
-            footstepPlanExecutorBasics.getGoalFeetPoses().get(side).changeFrame(ReferenceFrame.getWorldFrame());
+            liveGoalFeetPoses.get(side)
+                             .setIncludingFrame(state.getGoalFrame().getReferenceFrame(),
+                                                getDefinition().getGoalFootstepToGoalTransform(side).getValueReadOnly());
+            liveGoalFeetPoses.get(side).changeFrame(ReferenceFrame.getWorldFrame());
          }
       }
    }
@@ -113,7 +113,7 @@ public class WalkActionExecutor extends ActionNodeExecutor<WalkActionState, Walk
             for (RobotSide side : RobotSide.values)
             {
                startFootPosesForThread.get(side).setFromReferenceFrame(syncedRobot.getReferenceFrames().getSoleFrame(side));
-               goalFootPosesForThread.get(side).set(footstepPlanExecutorBasics.getGoalFeetPoses().get(side));
+               goalFootPosesForThread.get(side).set(liveGoalFeetPoses.get(side));
             }
 
             footstepPlanNotification.poll(); // Make sure it's cleared

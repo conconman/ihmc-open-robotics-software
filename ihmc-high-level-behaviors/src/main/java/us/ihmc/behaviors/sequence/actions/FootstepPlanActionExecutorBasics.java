@@ -34,7 +34,7 @@ public class FootstepPlanActionExecutorBasics
    private final WalkingFootstepTracker footstepTracker;
    private final WalkingControllerParameters walkingControllerParameters;
    private FootstepPlan footstepPlanToExecute;
-   private final SideDependentList<FramePose3D> goalFeetPoses = new SideDependentList<>(() -> new FramePose3D());
+   private final SideDependentList<FramePose3D> commandedGoalFeetPoses = new SideDependentList<>(() -> new FramePose3D());
    private final SideDependentList<FramePose3D> syncedFeetPoses = new SideDependentList<>(() -> new FramePose3D());
    private final SideDependentList<Integer> indexOfLastFoot = new SideDependentList<>();
    private double nominalExecutionDuration;
@@ -103,11 +103,11 @@ public class FootstepPlanActionExecutorBasics
             int indexOfLastFootSide = indexOfLastFoot.get(side);
             if (indexOfLastFootSide >= 0)
             {
-               goalFeetPoses.get(side).setIncludingFrame(footstepPlanToExecute.getFootstep(indexOfLastFootSide).getFootstepPose());
+               commandedGoalFeetPoses.get(side).setIncludingFrame(footstepPlanToExecute.getFootstep(indexOfLastFootSide).getFootstepPose());
             }
             else
             {
-               goalFeetPoses.get(side).setIncludingFrame(syncedFeetPoses.get(side));
+               commandedGoalFeetPoses.get(side).setIncludingFrame(syncedFeetPoses.get(side));
             }
 
             state.getDesiredFootPoses().get(side).getValue().clear();
@@ -136,7 +136,7 @@ public class FootstepPlanActionExecutorBasics
          for (RobotSide side : RobotSide.values)
          {
             isComplete &= completionCalculator.get(side)
-                                              .isComplete(goalFeetPoses.get(side),
+                                              .isComplete(commandedGoalFeetPoses.get(side),
                                                           syncedFeetPoses.get(side),
                                                           POSITION_TOLERANCE,
                                                           ORIENTATION_TOLERANCE,
@@ -181,11 +181,6 @@ public class FootstepPlanActionExecutorBasics
    public SideDependentList<Integer> getIndexOfLastFoot()
    {
       return indexOfLastFoot;
-   }
-
-   public SideDependentList<FramePose3D> getGoalFeetPoses()
-   {
-      return goalFeetPoses;
    }
 
    public SideDependentList<FramePose3D> getSyncedFeetPoses()

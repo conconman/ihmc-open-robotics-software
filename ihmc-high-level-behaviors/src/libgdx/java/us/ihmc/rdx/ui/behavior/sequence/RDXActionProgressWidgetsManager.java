@@ -39,7 +39,10 @@ public class RDXActionProgressWidgetsManager
       handleRenderingBlankBar(true);
       for (int i = 0; i < actionNodesToRender.size(); i++)
       {
-         actionNodesToRender.get(i).getProgressWidgets().renderPositionError(dividedBarWidth, renderAsPlots);
+         if (actionNodesToRender.get(i) instanceof RDXWalkAction || actionNodesToRender.get(i) instanceof RDXFootstepPlanAction)
+            actionNodesToRender.get(i).getProgressWidgets().renderFootPositions(dividedBarWidth, renderAsPlots);
+         else
+            actionNodesToRender.get(i).getProgressWidgets().renderPositionError(dividedBarWidth, renderAsPlots);
          sameLineExceptLast(i);
       }
       ImGui.spacing();

@@ -150,7 +150,7 @@ public class FootstepPlanActionExecutorBasics
          int incompleteFootsteps = footstepTracker.getNumberOfIncompleteFootsteps();
          isComplete &= incompleteFootsteps == 0;
 
-         actionNodeExecutor.getState().setIsExecuting(isComplete);
+         actionNodeExecutor.getState().setIsExecuting(!isComplete);
          actionNodeExecutor.getState().setNominalExecutionDuration(nominalExecutionDuration);
          actionNodeExecutor.getState().setElapsedExecutionTime(executionTimer.getElapsedTime());
          state.setTotalNumberOfFootsteps(footstepPlanToExecute.getNumberOfSteps());
@@ -159,8 +159,6 @@ public class FootstepPlanActionExecutorBasics
          {
             state.getCurrentFootPoses().get(side).getValue().set(syncedFeetPoses.get(side));
          }
-
-         footstepPlanToExecute.clear();
       }
       else
       {

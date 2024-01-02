@@ -39,6 +39,11 @@ public class RDXActionProgressWidgets
                                                                                                                           new ImPlotBasicDoublePlotLine());
    private final SideDependentList<ImPlotBasicDoublePlotLine> desiredFootPositionErrorPlotLines = new SideDependentList<>(new ImPlotBasicDoublePlotLine(),
                                                                                                                           new ImPlotBasicDoublePlotLine());
+   private final SideDependentList<ImPlotPlot> footOrientationErrors = new SideDependentList<>(new ImPlotPlot(), new ImPlotPlot());
+   private final SideDependentList<ImPlotBasicDoublePlotLine> currentFootOrientationErrorPlotLines = new SideDependentList<>(new ImPlotBasicDoublePlotLine(),
+                                                                                                                             new ImPlotBasicDoublePlotLine());
+   private final SideDependentList<ImPlotBasicDoublePlotLine> desiredFootOrientationErrorPlotLines = new SideDependentList<>(new ImPlotBasicDoublePlotLine(),
+                                                                                                                             new ImPlotBasicDoublePlotLine());
    private final ImPlotPlot handForcePlot = new ImPlotPlot();
    private final ImPlotBasicDoublePlotLine handForcePlotLine = new ImPlotBasicDoublePlotLine();
    private final ImPlotPlot handTorquePlot = new ImPlotPlot();
@@ -60,6 +65,7 @@ public class RDXActionProgressWidgets
       for (RobotSide side : RobotSide.values)
       {
          setupPlot(footPositionErrors.get(side), 0.1, currentFootPositionErrorPlotLines.get(side), desiredFootPositionErrorPlotLines.get(side));
+         setupPlot(footOrientationErrors.get(side), 0.1, currentFootOrientationErrorPlotLines.get(side), desiredFootOrientationErrorPlotLines.get(side));
       }
       setupPlot(handForcePlot, 50.0, handForcePlotLine);
       setupPlot(handTorquePlot, 5.0, handTorquePlotLine);
@@ -101,6 +107,8 @@ public class RDXActionProgressWidgets
          {
             currentFootPositionErrorPlotLines.get(side).clear();
             desiredFootPositionErrorPlotLines.get(side).clear();
+            currentFootOrientationErrorPlotLines.get(side).clear();
+            desiredFootOrientationErrorPlotLines.get(side).clear();
          }
          handForcePlotLine.clear();
          handTorquePlotLine.clear();
@@ -371,6 +379,72 @@ public class RDXActionProgressWidgets
          else
          {
             renderBlankProgress(side.getPascalCaseName() + "Empty Foot Position Error", dividedBarWidth, renderAsPlots, true);
+         }
+
+         if (side == RobotSide.LEFT)
+            ImGui.sameLine();
+      }
+   }
+
+   public void renderFootOrientations(float dividedBarWidth, boolean renderAsPlots)
+   {
+      FootstepPlanActionStateBasics footstepPlanActionState = null;
+      if (action instanceof RDXWalkAction walkAction)
+         footstepPlanActionState = walkAction.getState().getBasics();
+      if (action instanceof RDXFootstepPlanAction footstepPlanAction)
+         footstepPlanActionState = footstepPlanAction.getState().getBasics();
+
+      float halfDividedBarWidth = (dividedBarWidth / 2.0f) - ImGui.getStyle().getItemSpacingX();
+
+      for (RobotSide side : RobotSide.values)
+      {
+         if (!footstepPlanActionState.getDesiredFootPoses().get(side).isEmpty())
+         {
+            int i = 0;
+            SE3TrajectoryPointReadOnly nextDesiredPoint = footstepPlanActionState.getDesiredFootPoses().get(side).getValueReadOnly(i++);
+            while (i < footstepPlanActionState.getDesiredFootPoses().get(side).getSize()
+                   && nextDesiredPoint.getTime() < action.getState().getElapsedExecutionTime())
+               nextDesiredPoint = footstepPlanActionState.getDesiredFootPoses().get(side).getValueReadOnly(i++);
+
+            QuaternionReadOnly initialOrientation = footstepPlanActionState.getDesiredFootPoses().get(side).getFirstValueReadOnly().getOrientation();
+            QuaternionReadOnly endOrientation = footstepPlanActionState.getDesiredFootPoses().get(side).getLastValueReadOnly().getOrientation();
+            QuaternionReadOnly currentOrientation = footstepPlanActionState.getCurrentFootPoses().get(side).getValueReadOnly().getOrientation();
+            QuaternionReadOnly desiredOrientation = nextDesiredPoint.getOrientation();
+
+            double initialToEnd = initialOrientation.distance(endOrientation, true);
+            double currentToEnd = currentOrientation.distance(endOrientation, true);
+            double desiredToEnd = desiredOrientation.distance(endOrientation, true);
+            double tolerance = action.getState().getOrientationDistanceToGoalTolerance();
+            double error = Math.abs(currentToEnd - desiredToEnd);
+            int dataColor = error < tolerance ? ImGuiTools.GREEN : ImGuiTools.RED;
+
+            if (action.getState().getIsExecuting())
+            {
+               currentFootOrientationErrorPlotLines.get(side).setDataColor(dataColor);
+               currentFootOrientationErrorPlotLines.get(side).addValue(currentToEnd);
+               desiredFootOrientationErrorPlotLines.get(side).setDataColor(ImGuiTools.GRAY);
+               desiredFootOrientationErrorPlotLines.get(side).addValue(desiredToEnd);
+            }
+            if (renderAsPlots)
+            {
+               footOrientationErrors.get(side).render(halfDividedBarWidth, PLOT_HEIGHT);
+            }
+            else
+            {
+               double barEndValue = Math.max(Math.min(initialToEnd, currentToEnd), 2.0 * tolerance);
+               double toleranceMarkPercent = tolerance / barEndValue;
+               double percentLeft = currentToEnd / barEndValue;
+               ImGuiTools.markedProgressBar(PROGRESS_BAR_HEIGHT,
+                                            halfDividedBarWidth,
+                                            dataColor,
+                                            percentLeft,
+                                            toleranceMarkPercent,
+                                            "%.2f / %.2f".formatted(currentToEnd, initialToEnd));
+            }
+         }
+         else
+         {
+            renderBlankProgress(side.getPascalCaseName() + "Empty Foot Orientation Error", dividedBarWidth, renderAsPlots, true);
          }
 
          if (side == RobotSide.LEFT)

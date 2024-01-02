@@ -3,6 +3,8 @@ package us.ihmc.rdx.ui.behavior.sequence;
 import imgui.internal.ImGui;
 import us.ihmc.rdx.imgui.*;
 import us.ihmc.rdx.ui.behavior.actions.RDXFootstepPlanAction;
+import us.ihmc.rdx.ui.behavior.actions.RDXHandPoseAction;
+import us.ihmc.rdx.ui.behavior.actions.RDXScrewPrimitiveAction;
 import us.ihmc.rdx.ui.behavior.actions.RDXWalkAction;
 import us.ihmc.robotics.EuclidCoreMissingTools;
 
@@ -20,9 +22,16 @@ public class RDXActionProgressWidgetsManager
    {
       emptyPlotIndex = 0;
 
+      boolean containsFootsteps = false;
+      boolean containsHandMovements = false;
       for (RDXActionNode<?, ?> action : actionNodesToRender)
       {
          action.getProgressWidgets().update();
+
+         if (action instanceof RDXWalkAction || action instanceof RDXFootstepPlanAction)
+            containsFootsteps = true;
+         if (action instanceof RDXHandPoseAction || action instanceof RDXScrewPrimitiveAction)
+            containsHandMovements = true;
       }
 
       widgetAligner.text("Expected time remaining:");
@@ -34,6 +43,18 @@ public class RDXActionProgressWidgetsManager
          sameLineExceptLast(i);
       }
       ImGui.spacing();
+
+      if (containsFootsteps)
+      {
+         widgetAligner.text("Footstep completion:");
+         handleRenderingBlankBar(true);
+         for (int i = 0; i < actionNodesToRender.size(); i++)
+         {
+            actionNodesToRender.get(i).getProgressWidgets().renderFootstepCompletion(dividedBarWidth, renderAsPlots);
+            sameLineExceptLast(i);
+         }
+         ImGui.spacing();
+      }
 
       widgetAligner.text("Position error (m):");
       handleRenderingBlankBar(true);
@@ -51,40 +72,30 @@ public class RDXActionProgressWidgetsManager
       handleRenderingBlankBar(true);
       for (int i = 0; i < actionNodesToRender.size(); i++)
       {
-         actionNodesToRender.get(i).getProgressWidgets().renderOrientationError(dividedBarWidth, renderAsPlots);
+         if (actionNodesToRender.get(i) instanceof RDXWalkAction || actionNodesToRender.get(i) instanceof RDXFootstepPlanAction)
+            actionNodesToRender.get(i).getProgressWidgets().renderFootOrientations(dividedBarWidth, renderAsPlots);
+         else
+            actionNodesToRender.get(i).getProgressWidgets().renderOrientationError(dividedBarWidth, renderAsPlots);
          sameLineExceptLast(i);
       }
       ImGui.spacing();
 
-      widgetAligner.text("Hand force (N):");
-      handleRenderingBlankBar(true);
-      for (int i = 0; i < actionNodesToRender.size(); i++)
+      if (containsHandMovements)
       {
-         actionNodesToRender.get(i).getProgressWidgets().renderHandForce(dividedBarWidth, renderAsPlots);
-         sameLineExceptLast(i);
-      }
-      ImGui.spacing();
-
-      widgetAligner.text("Hand torque (Nm):");
-      handleRenderingBlankBar(true);
-      for (int i = 0; i < actionNodesToRender.size(); i++)
-      {
-         actionNodesToRender.get(i).getProgressWidgets().renderHandTorque(dividedBarWidth, renderAsPlots);
-         sameLineExceptLast(i);
-      }
-      ImGui.spacing();
-
-      boolean containsFootstepAction = false;
-      for (RDXActionNode<?, ?> action : actionNodesToRender)
-         if (action instanceof RDXWalkAction || action instanceof RDXFootstepPlanAction)
-            containsFootstepAction = true;
-      if (containsFootstepAction)
-      {
-         widgetAligner.text("Footstep completion:");
+         widgetAligner.text("Hand force (N):");
          handleRenderingBlankBar(true);
          for (int i = 0; i < actionNodesToRender.size(); i++)
          {
-            actionNodesToRender.get(i).getProgressWidgets().renderFootstepCompletion(dividedBarWidth, renderAsPlots);
+            actionNodesToRender.get(i).getProgressWidgets().renderHandForce(dividedBarWidth, renderAsPlots);
+            sameLineExceptLast(i);
+         }
+         ImGui.spacing();
+
+         widgetAligner.text("Hand torque (Nm):");
+         handleRenderingBlankBar(true);
+         for (int i = 0; i < actionNodesToRender.size(); i++)
+         {
+            actionNodesToRender.get(i).getProgressWidgets().renderHandTorque(dividedBarWidth, renderAsPlots);
             sameLineExceptLast(i);
          }
          ImGui.spacing();

@@ -101,6 +101,7 @@ public class ChestOrientationActionExecutor extends ActionNodeExecutor<ChestOrie
                                                                ORIENTATION_TOLERANCE,
                                                                getDefinition().getTrajectoryDuration(),
                                                                executionTimer,
+                                                               getExecutionFailedNotification(),
                                                                BehaviorActionCompletionComponent.ORIENTATION));
 
          state.setNominalExecutionDuration(getDefinition().getTrajectoryDuration());

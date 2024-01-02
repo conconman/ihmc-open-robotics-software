@@ -62,6 +62,15 @@ public class RDXActionProgressWidgetsManager
       }
       ImGui.spacing();
 
+      widgetAligner.text("Hand torque (Nm):");
+      handleRenderingBlankBar(true);
+      for (int i = 0; i < actionNodesToRender.size(); i++)
+      {
+         actionNodesToRender.get(i).getProgressWidgets().renderHandTorque(dividedBarWidth, renderAsPlots);
+         sameLineExceptLast(i);
+      }
+      ImGui.spacing();
+
       boolean containsFootstepAction = false;
       for (RDXActionNode<?, ?> action : actionNodesToRender)
          if (action instanceof RDXWalkAction || action instanceof RDXFootstepPlanAction)

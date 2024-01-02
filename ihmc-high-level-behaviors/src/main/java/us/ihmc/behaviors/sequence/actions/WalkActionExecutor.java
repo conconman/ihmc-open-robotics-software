@@ -204,7 +204,7 @@ public class WalkActionExecutor extends ActionNodeExecutor<WalkActionState, Walk
          }
          case PLAN_COMMANDED ->
          {
-            footstepPlanExecutorBasics.updateCurrentlyExecuting(state);
+            footstepPlanExecutorBasics.updateCurrentlyExecuting(this);
             if (!state.getIsExecuting())
             {
                state.getExecutionState().setValue(WalkActionExecutionState.PLAN_EXECUTION_COMPLETE);

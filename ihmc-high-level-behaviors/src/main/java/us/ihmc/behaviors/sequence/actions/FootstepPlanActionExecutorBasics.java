@@ -3,6 +3,7 @@ package us.ihmc.behaviors.sequence.actions;
 import controller_msgs.msg.dds.FootstepDataListMessage;
 import us.ihmc.avatar.drcRobot.ROS2SyncedRobotModel;
 import us.ihmc.avatar.ros2.ROS2ControllerHelper;
+import us.ihmc.behaviors.sequence.ActionNodeExecutor;
 import us.ihmc.behaviors.sequence.ActionNodeState;
 import us.ihmc.behaviors.sequence.BehaviorActionCompletionCalculator;
 import us.ihmc.behaviors.sequence.BehaviorActionCompletionComponent;
@@ -128,7 +129,7 @@ public class FootstepPlanActionExecutorBasics
       }
    }
 
-   public void updateCurrentlyExecuting(ActionNodeState<?> actionNodeState)
+   public void updateCurrentlyExecuting(ActionNodeExecutor<?, ?> actionNodeExecutor)
    {
       if (footstepPlanToExecute != null && footstepPlanToExecute.getNumberOfSteps() > 0)
       {
@@ -142,15 +143,16 @@ public class FootstepPlanActionExecutorBasics
                                                           ORIENTATION_TOLERANCE,
                                                           nominalExecutionDuration,
                                                           executionTimer,
+                                                          actionNodeExecutor.getExecutionFailedNotification(),
                                                           BehaviorActionCompletionComponent.TRANSLATION,
                                                           BehaviorActionCompletionComponent.ORIENTATION);
          }
          int incompleteFootsteps = footstepTracker.getNumberOfIncompleteFootsteps();
          isComplete &= incompleteFootsteps == 0;
 
-         actionNodeState.setIsExecuting(isComplete);
-         actionNodeState.setNominalExecutionDuration(nominalExecutionDuration);
-         actionNodeState.setElapsedExecutionTime(executionTimer.getElapsedTime());
+         actionNodeExecutor.getState().setIsExecuting(isComplete);
+         actionNodeExecutor.getState().setNominalExecutionDuration(nominalExecutionDuration);
+         actionNodeExecutor.getState().setElapsedExecutionTime(executionTimer.getElapsedTime());
          state.setTotalNumberOfFootsteps(footstepPlanToExecute.getNumberOfSteps());
          state.setNumberOfIncompleteFootsteps(incompleteFootsteps);
          for (RobotSide side : RobotSide.values)
@@ -162,9 +164,9 @@ public class FootstepPlanActionExecutorBasics
       }
       else
       {
-         actionNodeState.setIsExecuting(false);
-         actionNodeState.setNominalExecutionDuration(0.0);
-         actionNodeState.setElapsedExecutionTime(0.0);
+         actionNodeExecutor.getState().setIsExecuting(false);
+         actionNodeExecutor.getState().setNominalExecutionDuration(0.0);
+         actionNodeExecutor.getState().setElapsedExecutionTime(0.0);
          state.setTotalNumberOfFootsteps(0);
          state.setNumberOfIncompleteFootsteps(0);
          for (RobotSide side : RobotSide.values)
@@ -175,8 +177,8 @@ public class FootstepPlanActionExecutorBasics
          // TODO: Mark action failed and abort execution
       }
 
-      actionNodeState.setPositionDistanceToGoalTolerance(POSITION_TOLERANCE);
-      actionNodeState.setOrientationDistanceToGoalTolerance(ORIENTATION_TOLERANCE);
+      actionNodeExecutor.getState().setPositionDistanceToGoalTolerance(POSITION_TOLERANCE);
+      actionNodeExecutor.getState().setOrientationDistanceToGoalTolerance(ORIENTATION_TOLERANCE);
    }
 
    public SideDependentList<Integer> getIndexOfLastFoot()

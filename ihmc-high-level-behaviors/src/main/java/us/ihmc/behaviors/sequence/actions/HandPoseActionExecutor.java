@@ -199,6 +199,7 @@ public class HandPoseActionExecutor extends ActionNodeExecutor<HandPoseActionSta
                                                            ORIENTATION_TOLERANCE,
                                                            getDefinition().getTrajectoryDuration(),
                                                            executionTimer,
+                                                           getExecutionFailedNotification(),
                                                            BehaviorActionCompletionComponent.TRANSLATION,
                                                            BehaviorActionCompletionComponent.ORIENTATION);
          }
@@ -216,7 +217,8 @@ public class HandPoseActionExecutor extends ActionNodeExecutor<HandPoseActionSta
          state.getCurrentPose().getValue().set(syncedHandControlPose);
          state.setPositionDistanceToGoalTolerance(POSITION_TOLERANCE);
          state.setOrientationDistanceToGoalTolerance(ORIENTATION_TOLERANCE);
-         state.setForce(syncedRobot.getHandWrenchCalculators().get(getDefinition().getSide()).getLinearWrenchMagnitude(true));
+         state.getForce().getValue().set(syncedRobot.getHandWrenchCalculators().get(getDefinition().getSide()).getFilteredWrench().getLinearPart());
+         state.getTorque().getValue().set(syncedRobot.getHandWrenchCalculators().get(getDefinition().getSide()).getFilteredWrench().getAngularPart());
 
          if (!state.getIsExecuting() && wasExecuting)
          {

@@ -80,6 +80,6 @@ public class FootstepPlanActionExecutor extends ActionNodeExecutor<FootstepPlanA
    @Override
    public void updateCurrentlyExecuting()
    {
-      footstepPlanExecutorBasics.updateCurrentlyExecuting(state);
+      footstepPlanExecutorBasics.updateCurrentlyExecuting(this);
    }
 }

@@ -31,6 +31,8 @@ public class RDXActionProgressWidgets
    private final ImPlotBasicDoublePlotLine footstepsRemainingPlotLine = new ImPlotBasicDoublePlotLine();
    private final ImPlotPlot handForcePlot = new ImPlotPlot();
    private final ImPlotBasicDoublePlotLine handForcePlotLine = new ImPlotBasicDoublePlotLine();
+   private final ImPlotPlot handTorquePlot = new ImPlotPlot();
+   private final ImPlotBasicDoublePlotLine handTorquePlotLine = new ImPlotBasicDoublePlotLine();
    private double elapsedExecutionTime = -1.0;
    private boolean newlyExecuting = false;
    private final MultipleWaypointsPositionTrajectoryGenerator positionTrajectoryGenerator
@@ -46,6 +48,7 @@ public class RDXActionProgressWidgets
       setupPlot(orientationErrorPlot, 45.0, currentOrientationPlotLine, desiredOrientationPlotLine);
       setupPlot(footstepsRemainingPlot, 1.0, footstepsRemainingPlotLine);
       setupPlot(handForcePlot, 50.0, handForcePlotLine);
+      setupPlot(handTorquePlot, 5.0, handTorquePlotLine);
    }
 
    private void setupPlot(ImPlotPlot plot, double limitYMin, ImPlotBasicDoublePlotLine... plotLines)
@@ -203,7 +206,7 @@ public class RDXActionProgressWidgets
       if (action instanceof RDXHandPoseAction handPoseAction)
       {
          double limit = 20.0;
-         double force = handPoseAction.getState().getHandWrenchMagnitudeLinear();
+         double force = handPoseAction.getState().getForce().getValueReadOnly().norm();
          int dataColor = force < limit ? ImGuiTools.GREEN : ImGuiTools.RED;
 
          if (action.getState().getIsExecuting())
@@ -223,6 +226,34 @@ public class RDXActionProgressWidgets
       else
       {
          renderBlankProgress(labels.get("Empty Hand Force"), dividedBarWidth, renderAsPlots, true);
+      }
+   }
+
+   public void renderHandTorque(float dividedBarWidth, boolean renderAsPlots)
+   {
+      if (action instanceof RDXHandPoseAction handPoseAction)
+      {
+         double limit = 20.0;
+         double torque = handPoseAction.getState().getTorque().getValueReadOnly().norm();
+         int dataColor = torque < limit ? ImGuiTools.GREEN : ImGuiTools.RED;
+
+         if (action.getState().getIsExecuting())
+         {
+            handTorquePlotLine.setDataColor(dataColor);
+            handTorquePlotLine.addValue(torque);
+         }
+         if (renderAsPlots)
+         {
+            handTorquePlot.render(dividedBarWidth, PLOT_HEIGHT);
+         }
+         else
+         {
+            ImGuiTools.markedProgressBar(PROGRESS_BAR_HEIGHT, dividedBarWidth, dataColor, torque / limit, 0.5, "%.2f".formatted(torque));
+         }
+      }
+      else
+      {
+         renderBlankProgress(labels.get("Empty Hand Torque"), dividedBarWidth, renderAsPlots, true);
       }
    }
 

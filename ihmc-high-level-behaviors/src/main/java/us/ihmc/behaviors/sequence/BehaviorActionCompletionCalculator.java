@@ -1,5 +1,6 @@
 package us.ihmc.behaviors.sequence;
 
+import us.ihmc.commons.thread.Notification;
 import us.ihmc.euclid.referenceFrame.interfaces.FramePose3DReadOnly;
 import us.ihmc.tools.NonWallTimer;
 
@@ -24,10 +25,15 @@ public class BehaviorActionCompletionCalculator
                              double rotationTolerance,
                              double actionNominalDuration,
                              NonWallTimer executionTimer,
+                             Notification executionFailedNotification,
                              BehaviorActionCompletionComponent... components)
    {
       boolean timeIsUp = !executionTimer.isRunning(actionNominalDuration);
-      boolean hitTimeLimit = !executionTimer.isRunning(actionNominalDuration * 1.5); // Don't allow it to go more than 50% longer
+      // Don't allow it to go more than 50% longer
+      boolean hitTimeLimit = !executionTimer.isRunning(actionNominalDuration * 1.5);
+      if (hitTimeLimit)
+         executionFailedNotification.set(); // This is a failure which should abort automatic execution
+
       boolean desiredPoseAchieved = timeIsUp;
       for (BehaviorActionCompletionComponent component : components)
       {

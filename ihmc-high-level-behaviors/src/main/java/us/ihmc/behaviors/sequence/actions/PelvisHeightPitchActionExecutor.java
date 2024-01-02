@@ -111,6 +111,7 @@ public class PelvisHeightPitchActionExecutor extends ActionNodeExecutor<PelvisHe
                                                                Double.NaN,
                                                                definition.getTrajectoryDuration(),
                                                                executionTimer,
+                                                               getExecutionFailedNotification(),
                                                                BehaviorActionCompletionComponent.TRANSLATION));
 
          state.setNominalExecutionDuration(definition.getTrajectoryDuration());

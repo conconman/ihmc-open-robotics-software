@@ -173,13 +173,16 @@ public class RDXActionSequence extends RDXBehaviorTreeNode<ActionSequenceState, 
       }
 
       progressWidgetsManager.getActionNodesToRender().clear();
+      int lastIndex = 0;
       for (RDXActionNode<?, ?> currentlyExecutingAction : currentlyExecutingActions)
       {
          progressWidgetsManager.getActionNodesToRender().add(currentlyExecutingAction);
+         lastIndex = Math.max(lastIndex, currentlyExecutingAction.getState().getActionIndex());
       }
       for (RDXActionNode<?, ?> nextForExecutionAction : nextForExecutionActions)
       {
-         progressWidgetsManager.getActionNodesToRender().add(nextForExecutionAction);
+         if (currentlyExecutingActions.isEmpty() || nextForExecutionAction.getState().getActionIndex() < lastIndex)
+            progressWidgetsManager.getActionNodesToRender().add(nextForExecutionAction);
       }
       progressWidgetsManager.render();
    }

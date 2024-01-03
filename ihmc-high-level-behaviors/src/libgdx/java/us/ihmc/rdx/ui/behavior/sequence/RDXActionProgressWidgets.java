@@ -55,6 +55,7 @@ public class RDXActionProgressWidgets
          = new MultipleWaypointsPositionTrajectoryGenerator("Position", 500, ReferenceFrame.getWorldFrame(), new YoRegistry("DummyParent"));
    private final MultipleWaypointsOrientationTrajectoryGenerator orientationTrajectoryGenerator
          = new MultipleWaypointsOrientationTrajectoryGenerator("Orientation", 500, ReferenceFrame.getWorldFrame(), new YoRegistry("DummyParent"));
+   private boolean elapsedTimeIsValid;
 
    public RDXActionProgressWidgets(RDXActionNode<?, ?> action)
    {
@@ -97,6 +98,7 @@ public class RDXActionProgressWidgets
       double newElapsedExecutionTime = action.getState().getElapsedExecutionTime();
       elapsedExecutionTime = newElapsedExecutionTime;
       newlyExecuting = newElapsedExecutionTime < elapsedExecutionTime;
+      elapsedTimeIsValid = !Double.isNaN(elapsedExecutionTime);
 
       if (newlyExecuting)
       {
@@ -119,29 +121,31 @@ public class RDXActionProgressWidgets
 
    public void renderElapsedTimeBar(float dividedBarWidth)
    {
-      double elapsedTime = action.getState().getElapsedExecutionTime();
       double nominalDuration = action.getState().getNominalExecutionDuration();
-      double percentComplete = elapsedTime / nominalDuration;
+      double percentComplete = elapsedExecutionTime / nominalDuration;
       double percentLeft = 1.0 - percentComplete;
-      ImGui.progressBar((float) percentLeft, dividedBarWidth, PROGRESS_BAR_HEIGHT, "%.2f / %.2f".formatted(elapsedTime, nominalDuration));
+      ImGui.progressBar((float) percentLeft, dividedBarWidth, PROGRESS_BAR_HEIGHT, "%.2f / %.2f".formatted(elapsedExecutionTime, nominalDuration));
    }
 
    public void renderPositionError(float dividedBarWidth, boolean renderAsPlots)
    {
       if (!action.getState().getDesiredTrajectory().isEmpty())
       {
-         positionTrajectoryGenerator.clear();
-         for (int i = 0; i < action.getState().getDesiredTrajectory().getSize(); i++)
+         if (elapsedTimeIsValid)
          {
-            positionTrajectoryGenerator.appendWaypoint(action.getState().getDesiredTrajectory().getValueReadOnly(i));
+            positionTrajectoryGenerator.clear();
+            for (int i = 0; i < action.getState().getDesiredTrajectory().getSize(); i++)
+            {
+               positionTrajectoryGenerator.appendWaypoint(action.getState().getDesiredTrajectory().getValueReadOnly(i));
+            }
+            positionTrajectoryGenerator.initialize();
+            positionTrajectoryGenerator.compute(elapsedExecutionTime);
          }
-         positionTrajectoryGenerator.initialize();
-         positionTrajectoryGenerator.compute(action.getState().getElapsedExecutionTime());
 
          Point3DReadOnly initialPosition = action.getState().getDesiredTrajectory().getFirstValueReadOnly().getPosition();
          Point3DReadOnly endPosition = action.getState().getDesiredTrajectory().getLastValueReadOnly().getPosition();
          Point3DReadOnly currentPosition = action.getState().getCurrentPose().getValueReadOnly().getPosition();
-         Point3DReadOnly desiredPosition = positionTrajectoryGenerator.getPosition();
+         Point3DReadOnly desiredPosition = elapsedTimeIsValid ? positionTrajectoryGenerator.getPosition() : endPosition;
 
          double initialToEnd = initialPosition.differenceNorm(endPosition);
          double currentToEnd = currentPosition.differenceNorm(endPosition);
@@ -184,18 +188,21 @@ public class RDXActionProgressWidgets
    {
       if (!action.getState().getDesiredTrajectory().isEmpty())
       {
-         orientationTrajectoryGenerator.clear();
-         for (int i = 0; i < action.getState().getDesiredTrajectory().getSize(); i++)
+         if (elapsedTimeIsValid)
          {
-            orientationTrajectoryGenerator.appendWaypoint(action.getState().getDesiredTrajectory().getValueReadOnly(i));
+            orientationTrajectoryGenerator.clear();
+            for (int i = 0; i < action.getState().getDesiredTrajectory().getSize(); i++)
+            {
+               orientationTrajectoryGenerator.appendWaypoint(action.getState().getDesiredTrajectory().getValueReadOnly(i));
+            }
+            orientationTrajectoryGenerator.initialize();
+            orientationTrajectoryGenerator.compute(elapsedExecutionTime);
          }
-         orientationTrajectoryGenerator.initialize();
-         orientationTrajectoryGenerator.compute(action.getState().getElapsedExecutionTime());
 
          QuaternionReadOnly initialOrientation = action.getState().getDesiredTrajectory().getFirstValueReadOnly().getOrientation();
          QuaternionReadOnly endOrientation = action.getState().getDesiredTrajectory().getLastValueReadOnly().getOrientation();
          QuaternionReadOnly currentOrientation = action.getState().getCurrentPose().getValueReadOnly().getOrientation();
-         QuaternionReadOnly desiredOrientation = orientationTrajectoryGenerator.getOrientation();
+         QuaternionReadOnly desiredOrientation = elapsedTimeIsValid ? orientationTrajectoryGenerator.getOrientation(): endOrientation;
 
          double initialToEnd = initialOrientation.distance(endOrientation, true);
          double currentToEnd = currentOrientation.distance(endOrientation, true);
@@ -339,7 +346,7 @@ public class RDXActionProgressWidgets
             int i = 0;
             SE3TrajectoryPointReadOnly nextDesiredPoint = footstepPlanActionState.getDesiredFootPoses().get(side).getValueReadOnly(i++);
             while (i < footstepPlanActionState.getDesiredFootPoses().get(side).getSize()
-                && nextDesiredPoint.getTime() < action.getState().getElapsedExecutionTime())
+                && nextDesiredPoint.getTime() < elapsedExecutionTime)
                nextDesiredPoint = footstepPlanActionState.getDesiredFootPoses().get(side).getValueReadOnly(i++);
 
             Point3DReadOnly initialPosition = footstepPlanActionState.getDesiredFootPoses().get(side).getFirstValueReadOnly().getPosition();
@@ -405,7 +412,7 @@ public class RDXActionProgressWidgets
             int i = 0;
             SE3TrajectoryPointReadOnly nextDesiredPoint = footstepPlanActionState.getDesiredFootPoses().get(side).getValueReadOnly(i++);
             while (i < footstepPlanActionState.getDesiredFootPoses().get(side).getSize()
-                   && nextDesiredPoint.getTime() < action.getState().getElapsedExecutionTime())
+                   && nextDesiredPoint.getTime() < elapsedExecutionTime)
                nextDesiredPoint = footstepPlanActionState.getDesiredFootPoses().get(side).getValueReadOnly(i++);
 
             QuaternionReadOnly initialOrientation = footstepPlanActionState.getDesiredFootPoses().get(side).getFirstValueReadOnly().getOrientation();

@@ -1,15 +1,10 @@
 package us.ihmc.rdx.simulation.bullet;
 
-import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.*;
 import com.badlogic.gdx.physics.bullet.dynamics.*;
 import com.badlogic.gdx.physics.bullet.linearmath.btMotionState;
-import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.Pool;
-import imgui.type.ImBoolean;
-import imgui.type.ImFloat;
 
 import java.util.ArrayList;
 
@@ -27,8 +22,6 @@ public class RDXBulletPhysicsManager
    private final ArrayList<btRigidBody> rigidBodies = new ArrayList<>();
    private final ArrayList<btMultiBody> multiBodies = new ArrayList<>();
    private final ArrayList<btCollisionObject> collisionObjects = new ArrayList<>(); // static, massless
-   private final ImBoolean simulate = new ImBoolean(false);
-   private final ImFloat simulationRate = new ImFloat(1.0f);
    /**
     * Say we call bullet simulate and wait around for a while before calling it again.
     * The next time we call Bullet, it is going to try to catch back up by performing
@@ -37,8 +30,6 @@ public class RDXBulletPhysicsManager
     * more than like 1/4 of a second.
     */
    private final ArrayList<Runnable> postTickRunnables = new ArrayList<>();
-
-   private RDXBulletPhysicsDebugger debugger;
 
    public void create()
    {
@@ -49,7 +40,6 @@ public class RDXBulletPhysicsManager
       multiBodyDynamicsWorld = new btMultiBodyDynamicsWorld(collisionDispatcher, broadphase, solver, collisionConfiguration);
       Vector3 gravity = new Vector3(0.0f, 0.0f, -9.81f);
       multiBodyDynamicsWorld.setGravity(gravity);
-      debugger = new RDXBulletPhysicsDebugger(multiBodyDynamicsWorld);
 
       // Note: Apparently you can't have both pre- and post-tick callbacks, so we'll just do with post
       new InternalTickCallback(multiBodyDynamicsWorld, false)
@@ -149,11 +139,6 @@ public class RDXBulletPhysicsManager
       multiBodies.remove(btMultiBody);
    }
 
-   public void getVirtualRenderables(Array<Renderable> renderables, Pool<Renderable> pool)
-   {
-      debugger.getVirtualRenderables(renderables, pool);
-   }
-
    public void destroy()
    {
       postTickRunnables.clear();
@@ -171,18 +156,8 @@ public class RDXBulletPhysicsManager
       }
    }
 
-   public ImBoolean getSimulate()
-   {
-      return simulate;
-   }
-
    public btMultiBodyDynamicsWorld getMultiBodyDynamicsWorld()
    {
       return multiBodyDynamicsWorld;
-   }
-
-   public ImFloat getSimulationRate()
-   {
-      return simulationRate;
    }
 }

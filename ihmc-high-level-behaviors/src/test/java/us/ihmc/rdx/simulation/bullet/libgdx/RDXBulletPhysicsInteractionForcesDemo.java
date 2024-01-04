@@ -26,7 +26,6 @@ import us.ihmc.rdx.simulation.environment.object.objects.RDXMediumCinderBlockRou
 import us.ihmc.rdx.tools.RDXModelBuilder;
 import us.ihmc.rdx.tools.LibGDXTools;
 import us.ihmc.rdx.ui.RDXBaseUI;
-import us.ihmc.rdx.ui.yo.ImPlotYoPlot;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoInteger;
@@ -59,19 +58,15 @@ public class RDXBulletPhysicsInteractionForcesDemo
          private RDXMediumCinderBlockRoughed sittingBlock;
          private final YoRegistry yoRegistry = new YoRegistry("InteractionForcesDemo");
          private final YoInteger numberOfContactPoints = new YoInteger("numberOfContactPoints", yoRegistry);
-         private final ImPlotYoPlot numberOfContactPointsPlot = new ImPlotYoPlot(numberOfContactPoints);
          private final YoDouble pointAX = new YoDouble("pointAX", yoRegistry);
          private final YoDouble pointAY = new YoDouble("pointAY", yoRegistry);
          private final YoDouble pointAZ = new YoDouble("pointAZ", yoRegistry);
-         private final ImPlotYoPlot pointAPlot = new ImPlotYoPlot(pointAX, pointAY, pointAZ);
          private final YoDouble pointBX = new YoDouble("pointBX", yoRegistry);
          private final YoDouble pointBY = new YoDouble("pointBY", yoRegistry);
          private final YoDouble pointBZ = new YoDouble("pointBZ", yoRegistry);
-         private final ImPlotYoPlot pointBPlot = new ImPlotYoPlot(pointBX, pointBY, pointBZ);
          private final YoDouble normalX = new YoDouble("normalX", yoRegistry);
          private final YoDouble normalY = new YoDouble("normalY", yoRegistry);
          private final YoDouble normalZ = new YoDouble("normalZ", yoRegistry);
-         private final ImPlotYoPlot normalPlot = new ImPlotYoPlot(normalX, normalY, normalZ);
          private final YoDouble distance = new YoDouble("distance", yoRegistry);
          private final YoDouble appliedImpulse = new YoDouble("appliedImpulse", yoRegistry);
          private final YoDouble appliedImpulseLateral1 = new YoDouble("appliedImpulseLateral1", yoRegistry);
@@ -95,25 +90,6 @@ public class RDXBulletPhysicsInteractionForcesDemo
          private final YoDouble lateralFrictionDirection2Y = new YoDouble("lateralFrictionDirection2Y", yoRegistry);
          private final YoDouble lateralFrictionDirection2Z = new YoDouble("lateralFrictionDirection2Z", yoRegistry);
          private final YoInteger lifeTime = new YoInteger("lifeTime", yoRegistry);
-         private final ImPlotYoPlot distancePlot = new ImPlotYoPlot(distance);
-         private final ImPlotYoPlot appliedImpulsePlot = new ImPlotYoPlot(appliedImpulse);
-         private final ImPlotYoPlot appliedImpulseLateral1Plot = new ImPlotYoPlot(appliedImpulseLateral1);
-         private final ImPlotYoPlot appliedImpulseLateral2Plot = new ImPlotYoPlot(appliedImpulseLateral2);
-         private final ImPlotYoPlot combinedContactDamping1Plot = new ImPlotYoPlot(combinedContactDamping1);
-         private final ImPlotYoPlot combinedFrictionPlot = new ImPlotYoPlot(combinedFriction);
-         private final ImPlotYoPlot combinedRestitutionPlot = new ImPlotYoPlot(combinedRestitution);
-         private final ImPlotYoPlot combinedRollingFrictionPlot = new ImPlotYoPlot(combinedRollingFriction);
-         private final ImPlotYoPlot combinedSpinningFrictionPlot = new ImPlotYoPlot(combinedSpinningFriction);
-         private final ImPlotYoPlot contactCFMPlot = new ImPlotYoPlot(contactCFM);
-         private final ImPlotYoPlot contactERPPlot = new ImPlotYoPlot(contactERP);
-         private final ImPlotYoPlot contactMotion1Plot = new ImPlotYoPlot(contactMotion1);
-         private final ImPlotYoPlot contactMotion2Plot = new ImPlotYoPlot(contactMotion2);
-         private final ImPlotYoPlot contactPointFlagsPlot = new ImPlotYoPlot(contactPointFlags);
-         private final ImPlotYoPlot distance1Plot = new ImPlotYoPlot(distance1);
-         private final ImPlotYoPlot frictionCFMPlot = new ImPlotYoPlot(frictionCFM);
-         private final ImPlotYoPlot lateralFrictionDirection1Plot = new ImPlotYoPlot(lateralFrictionDirection1X, lateralFrictionDirection1Y, lateralFrictionDirection1Z);
-         private final ImPlotYoPlot lateralFrictionDirection2Plot = new ImPlotYoPlot(lateralFrictionDirection2X, lateralFrictionDirection2Y, lateralFrictionDirection2Z);
-         private final ImPlotYoPlot lifeTimePlot = new ImPlotYoPlot(lifeTime);
 
          @Override
          public void create()
@@ -268,34 +244,10 @@ public class RDXBulletPhysicsInteractionForcesDemo
                }
                ImGui.sliderFloat("Block transparency", blockTransparency.getData(), 0.0f, 1.0f);
                LibGDXTools.setOpacity(fallingBlock.getRealisticModelInstance(), blockTransparency.get());
-               numberOfContactPointsPlot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               pointAPlot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               pointBPlot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               normalPlot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               distancePlot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               appliedImpulsePlot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               appliedImpulseLateral1Plot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               appliedImpulseLateral2Plot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               combinedContactDamping1Plot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               combinedFrictionPlot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               combinedRestitutionPlot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               combinedRollingFrictionPlot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               combinedSpinningFrictionPlot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               contactCFMPlot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               contactERPPlot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               contactMotion1Plot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               contactMotion2Plot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               contactPointFlagsPlot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               distance1Plot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               frictionCFMPlot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               lateralFrictionDirection1Plot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               lateralFrictionDirection2Plot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
-               lifeTimePlot.render(environmentBuilder.getBulletPhysicsManager().getSimulate().get());
             });
             baseUI.getImGuiPanelManager().addPanel(experimentPanel);
 
             baseUI.getPrimary3DPanel().getCamera3D().changeCameraPosition(2.0, 1.0, 1.0);
-            environmentBuilder.getBulletPhysicsManager().getSimulationRate().set(0.1f);
          }
 
          public void recreateAndPlace()

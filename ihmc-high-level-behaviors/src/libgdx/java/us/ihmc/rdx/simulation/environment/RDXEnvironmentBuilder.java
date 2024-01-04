@@ -186,11 +186,6 @@ public class RDXEnvironmentBuilder extends RDXPanel
    {
       for (RDXEnvironmentObject allObject : allObjects)
       {
-         if (bulletPhysicsManager.getSimulate().get())
-         {
-            allObject.copyBulletTransformToThisMultiBody();
-            allObject.afterSimulate(bulletPhysicsManager);
-         }
          allObject.update(bulletPhysicsManager);
       }
    }
@@ -300,7 +295,6 @@ public class RDXEnvironmentBuilder extends RDXPanel
    {
       loadedFilesOnce = true;
       selectedEnvironmentFile = environmentFileName;
-      bulletPhysicsManager.getSimulate().set(false);
       for (RDXEnvironmentObject object : allObjects.toArray(new RDXEnvironmentObject[0]))
       {
          removeObject(object);
@@ -449,7 +443,6 @@ public class RDXEnvironmentBuilder extends RDXPanel
          {
             intersectedObject.getCollisionMeshRenderables(renderables, pool);
          }
-         bulletPhysicsManager.getVirtualRenderables(renderables, pool);
       }
    }
 

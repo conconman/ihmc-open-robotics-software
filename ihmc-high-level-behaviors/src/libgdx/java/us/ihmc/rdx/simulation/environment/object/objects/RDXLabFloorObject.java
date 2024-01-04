@@ -35,7 +35,6 @@ public class RDXLabFloorObject extends RDXEnvironmentObject
    public void addToBullet(RDXBulletPhysicsManager bulletPhysicsManager)
    {
       super.addToBullet(bulletPhysicsManager);
-      bulletPhysicsManager.setKinematicObject(getBtRigidBody(), true); // has to be a massive kinematics object to collide with multi bodies
    }
 
    @Override

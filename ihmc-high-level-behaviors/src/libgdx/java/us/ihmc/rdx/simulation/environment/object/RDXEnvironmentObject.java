@@ -126,11 +126,6 @@ public class RDXEnvironmentObject extends RDXSimpleObject
    public void addToBullet(RDXBulletPhysicsManager bulletPhysicsManager)
    {
       this.bulletPhysicsManager = bulletPhysicsManager;
-      if (btCollisionShape != null)
-      {
-         if (btRigidBody == null)
-            btRigidBody = bulletPhysicsManager.addRigidBody(btCollisionShape, mass, getBulletMotionState());
-      }
    }
 
    public void addConstraint(RDXBulletPhysicsManager bulletPhysicsManager, btTypedConstraint constraint)
@@ -147,14 +142,6 @@ public class RDXEnvironmentObject extends RDXSimpleObject
 
    public void removeFromBullet()
    {
-      if (btRigidBody != null)
-      {
-         bulletPhysicsManager.removeCollisionObject(btRigidBody);
-      }
-      for (btCollisionObject addedCollisionObject : addedCollisionObjects)
-      {
-         bulletPhysicsManager.removeCollisionObject(addedCollisionObject);
-      }
       addedCollisionObjects.clear();
       for (btTypedConstraint addedConstraint : addedConstraints)
       {
@@ -222,9 +209,5 @@ public class RDXEnvironmentObject extends RDXSimpleObject
    public void setSelected(boolean selected)
    {
       isSelected = selected;
-      if (btRigidBody != null)
-      {
-         bulletPhysicsManager.setKinematicObject(btRigidBody, selected);
-      }
    }
 }

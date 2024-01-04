@@ -71,9 +71,6 @@ public class RDXLibGDXBulletPhysicsDemo3
                LibGDXTools.toLibGDX(boxTransform, boxModelInstance.transform);
 
                tempVector.set(boxSizeX / 2.0f, boxSizeY / 2.0f, boxSizeZ / 2.0f);
-               btBoxShape boxShape = new btBoxShape(tempVector);
-               float mass = 0.2f;
-               bulletPhysicsManager.addRigidBody(boxShape, mass, boxModelInstance.transform);
                baseUI.getPrimaryScene().addModelInstance(boxModelInstance);
             }
 

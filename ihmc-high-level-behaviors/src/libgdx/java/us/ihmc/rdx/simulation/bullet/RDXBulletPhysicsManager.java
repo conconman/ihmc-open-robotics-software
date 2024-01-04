@@ -4,7 +4,6 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.*;
 import com.badlogic.gdx.physics.bullet.dynamics.*;
-import com.badlogic.gdx.physics.bullet.linearmath.btMotionState;
 
 import java.util.ArrayList;
 
@@ -19,7 +18,6 @@ public class RDXBulletPhysicsManager
    private btBroadphaseInterface broadphase;
    private btMultiBodyConstraintSolver solver;
    private btMultiBodyDynamicsWorld multiBodyDynamicsWorld;
-   private final ArrayList<btRigidBody> rigidBodies = new ArrayList<>();
    private final ArrayList<btCollisionObject> collisionObjects = new ArrayList<>(); // static, massless
    /**
     * Say we call bullet simulate and wait around for a while before calling it again.
@@ -63,67 +61,12 @@ public class RDXBulletPhysicsManager
       collisionObjects.add(staticObject);
    }
 
-   public void addRigidBody(btCollisionShape collisionShape, float mass, Matrix4 transformToWorld)
-   {
-      btMotionState motionState = new btMotionState()
-      {
-         @Override
-         public void getWorldTransform(Matrix4 worldTrans)
-         {
-            worldTrans.set(transformToWorld);
-         }
-
-         @Override
-         public void setWorldTransform(Matrix4 worldTrans)
-         {
-            transformToWorld.set(worldTrans);
-         }
-      };
-      addRigidBody(collisionShape, mass, motionState);
-   }
-
-   public btRigidBody addRigidBody(btCollisionShape collisionShape, float mass, btMotionState motionState)
-   {
-      Vector3 localInertia = new Vector3();
-      collisionShape.calculateLocalInertia(mass, localInertia);
-      btRigidBody rigidBody = new btRigidBody(mass, motionState, collisionShape, localInertia);
-      int collisionGroup = 1; // group 1 is rigid and static bodies
-      int collisionGroupMask = 1 + 2; // Allow interaction with group 2, which is multi bodies
-      multiBodyDynamicsWorld.addRigidBody(rigidBody, collisionGroup, collisionGroupMask);
-      rigidBodies.add(rigidBody);
-      return rigidBody;
-   }
-
-   public void setKinematicObject(btRigidBody btRigidBody, boolean isKinematicObject)
-   {
-      if (isKinematicObject)
-      {
-         btRigidBody.setCollisionFlags(btRigidBody.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
-         btRigidBody.setActivationState(CollisionConstants.DISABLE_DEACTIVATION);
-      }
-      else
-      {
-         btRigidBody.setCollisionFlags(btRigidBody.getCollisionFlags() & ~btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
-         btRigidBody.setActivationState(CollisionConstants.WANTS_DEACTIVATION);
-      }
-   }
-
-   public void removeCollisionObject(btCollisionObject collisionObject)
-   {
-      multiBodyDynamicsWorld.removeCollisionObject(collisionObject);
-      rigidBodies.remove(collisionObject);
-   }
-
    public void destroy()
    {
       postTickRunnables.clear();
       for (btCollisionObject collisionObject : collisionObjects)
       {
          multiBodyDynamicsWorld.removeCollisionObject(collisionObject);
-      }
-      for (btRigidBody rigidBody : rigidBodies)
-      {
-         multiBodyDynamicsWorld.removeRigidBody(rigidBody);
       }
    }
 

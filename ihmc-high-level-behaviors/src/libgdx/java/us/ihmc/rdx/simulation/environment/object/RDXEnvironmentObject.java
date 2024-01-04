@@ -5,7 +5,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btMultiBody;
-import com.badlogic.gdx.physics.bullet.dynamics.btMultiBodyLinkCollider;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.dynamics.btTypedConstraint;
 import com.badlogic.gdx.physics.bullet.linearmath.btMotionState;
@@ -134,20 +133,6 @@ public class RDXEnvironmentObject extends RDXSimpleObject
       }
    }
 
-   public void addBtMultiBody(RDXBulletPhysicsManager bulletPhysicsManager, btMultiBody btMultiBody)
-   {
-      this.bulletPhysicsManager = bulletPhysicsManager;
-      this.btMultiBody = btMultiBody;
-      bulletPhysicsManager.addMultiBody(btMultiBody);
-   }
-
-   public void addMultiBodyCollisionShape(RDXBulletPhysicsManager bulletPhysicsManager, btMultiBodyLinkCollider collisionObject)
-   {
-      this.bulletPhysicsManager = bulletPhysicsManager;
-      addedCollisionObjects.add(collisionObject);
-      bulletPhysicsManager.addMultiBodyCollisionShape(collisionObject);
-   }
-
    public void addConstraint(RDXBulletPhysicsManager bulletPhysicsManager, btTypedConstraint constraint)
    {
       this.bulletPhysicsManager = bulletPhysicsManager;
@@ -165,10 +150,6 @@ public class RDXEnvironmentObject extends RDXSimpleObject
       if (btRigidBody != null)
       {
          bulletPhysicsManager.removeCollisionObject(btRigidBody);
-      }
-      if (btMultiBody != null)
-      {
-         bulletPhysicsManager.removeMultiBody(btMultiBody);
       }
       for (btCollisionObject addedCollisionObject : addedCollisionObjects)
       {

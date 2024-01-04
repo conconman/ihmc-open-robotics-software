@@ -20,7 +20,6 @@ public class RDXBulletPhysicsManager
    private btMultiBodyConstraintSolver solver;
    private btMultiBodyDynamicsWorld multiBodyDynamicsWorld;
    private final ArrayList<btRigidBody> rigidBodies = new ArrayList<>();
-   private final ArrayList<btMultiBody> multiBodies = new ArrayList<>();
    private final ArrayList<btCollisionObject> collisionObjects = new ArrayList<>(); // static, massless
    /**
     * Say we call bullet simulate and wait around for a while before calling it again.
@@ -95,24 +94,6 @@ public class RDXBulletPhysicsManager
       return rigidBody;
    }
 
-   public void addMultiBody(btMultiBody multiBody)
-   {
-      multiBodyDynamicsWorld.addMultiBody(multiBody);
-      multiBodies.add(multiBody);
-   }
-
-   public void addMultiBodyCollisionShape(btMultiBodyLinkCollider collisionShape)
-   {
-      int collisionGroup = 2; // Multi bodies need to be in a separate collision group
-      int collisionGroupMask = 1 + 2; // But allowed to interact with group 1, which is rigid and static bodies
-      multiBodyDynamicsWorld.addCollisionObject(collisionShape, collisionGroup, collisionGroupMask);
-   }
-
-   public void addPostTickRunnable(Runnable postTickRunnable)
-   {
-      postTickRunnables.add(postTickRunnable);
-   }
-
    public void setKinematicObject(btRigidBody btRigidBody, boolean isKinematicObject)
    {
       if (isKinematicObject)
@@ -133,12 +114,6 @@ public class RDXBulletPhysicsManager
       rigidBodies.remove(collisionObject);
    }
 
-   public void removeMultiBody(btMultiBody btMultiBody)
-   {
-      multiBodyDynamicsWorld.removeMultiBody(btMultiBody);
-      multiBodies.remove(btMultiBody);
-   }
-
    public void destroy()
    {
       postTickRunnables.clear();
@@ -149,10 +124,6 @@ public class RDXBulletPhysicsManager
       for (btRigidBody rigidBody : rigidBodies)
       {
          multiBodyDynamicsWorld.removeRigidBody(rigidBody);
-      }
-      for (btMultiBody multiBody : multiBodies)
-      {
-         multiBodyDynamicsWorld.removeMultiBody(multiBody);
       }
    }
 

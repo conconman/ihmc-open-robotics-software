@@ -75,7 +75,6 @@ public class RDXMultiBodySnakeObject extends RDXEnvironmentObject
       LibGDXTools.toLibGDX(rigidBodyTransform, worldTransform);
       baseCollider.setWorldTransform(worldTransform);
       baseCollider.setFriction(1.0f);
-      addMultiBodyCollisionShape(bulletPhysicsManager, baseCollider);
       multiBody.setBaseCollider(baseCollider);
 
       for (int i = 0; i < numberOfLinks; i++)
@@ -100,7 +99,6 @@ public class RDXMultiBodySnakeObject extends RDXEnvironmentObject
          linkCollider.setCollisionShape(linkBox);
          linkCollider.setWorldTransform(worldTransform);
          linkCollider.setFriction(1.0f);
-         addMultiBodyCollisionShape(bulletPhysicsManager, linkCollider);
          multiBody.getLink(linkIndex).setCollider(linkCollider);
          linkColliders.add(linkCollider);
 
@@ -108,7 +106,6 @@ public class RDXMultiBodySnakeObject extends RDXEnvironmentObject
       }
 
       multiBody.finalizeMultiDof();
-      addBtMultiBody(bulletPhysicsManager, multiBody);
    }
 
    @Override

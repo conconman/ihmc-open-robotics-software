@@ -390,7 +390,6 @@ public class RDXEnvironmentBuilder extends RDXPanel
    public void removeObject(RDXEnvironmentObject environmentObject)
    {
       allObjects.remove(environmentObject);
-      environmentObject.removeFromBullet();
 
       if (environmentObject instanceof RDXPointLightObject)
       {

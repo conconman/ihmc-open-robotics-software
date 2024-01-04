@@ -71,7 +71,6 @@ public class RDXDoorObject extends RDXEnvironmentObject
       LibGDXTools.toLibGDX(rigidBodyTransform, worldTransform);
       frameCollider.setWorldTransform(worldTransform);
       frameCollider.setFriction(1.0f);
-      addMultiBodyCollisionShape(bulletPhysicsManager, frameCollider); // TODO: Store and remove
       multiBody.setBaseCollider(frameCollider);
 
       int linkIndex = 0;
@@ -99,7 +98,6 @@ public class RDXDoorObject extends RDXEnvironmentObject
       panelCollider.setCollisionShape(doorPanelObject.getBtCollisionShape());
       panelCollider.setWorldTransform(worldTransform);
       panelCollider.setFriction(1.0f);
-      addMultiBodyCollisionShape(bulletPhysicsManager, panelCollider);
       multiBody.getLink(0).setCollider(panelCollider);
 
       linkIndex = 1;
@@ -124,11 +122,9 @@ public class RDXDoorObject extends RDXEnvironmentObject
       leverCollider.setCollisionShape(doorLeverObject.getBtCollisionShape());
       leverCollider.setWorldTransform(worldTransform);
       leverCollider.setFriction(1.0f);
-      addMultiBodyCollisionShape(bulletPhysicsManager, leverCollider);
       multiBody.getLink(1).setCollider(leverCollider);
 
       multiBody.finalizeMultiDof();
-      addBtMultiBody(bulletPhysicsManager, multiBody);
    }
 
    @Override

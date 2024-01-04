@@ -128,14 +128,6 @@ public class RDXDoorObject extends RDXEnvironmentObject
    }
 
    @Override
-   public void copyBulletTransformToThisMultiBody()
-   {
-      doorFrameObject.copyBulletTransformToThis(frameCollider.getWorldTransform());
-      doorPanelObject.copyBulletTransformToThis(panelCollider.getWorldTransform());
-      doorLeverObject.copyBulletTransformToThis(leverCollider.getWorldTransform());
-   }
-
-   @Override
    public void copyThisTransformToBulletMultiBodyParentOnly()
    {
       doorFrameObject.getThisTransformForCopyToBullet(tempGDXTransform);

@@ -20,7 +20,6 @@ public class RDXRockHingeObject extends RDXEnvironmentObject
    public static final RDXEnvironmentObjectFactory FACTORY = new RDXEnvironmentObjectFactory(NAME, RDXMultiBodySnakeObject.class);
    private final RDXRockObject rockParentObject;
    private final RDXRockObject rockChildObject;
-   private btHingeConstraint rockHingeConstraint;
 
    public RDXRockHingeObject()
    {
@@ -35,25 +34,12 @@ public class RDXRockHingeObject extends RDXEnvironmentObject
    {
       rockParentObject.addToBullet(bulletPhysicsManager);
       rockChildObject.addToBullet(bulletPhysicsManager);
-      rockParentObject.getBtRigidBody().setActivationState(4);
-      rockChildObject.getBtRigidBody().setActivationState(4);
-
-      Vector3 axisA = new Vector3(0.0f, 0.2f, 0.0f); 
-      Vector3 axisB = new Vector3(0.0f, 0.0f, 0.0f); 
-      Vector3 pivotA = new Vector3(-0.2f, 0.0f, -0.2f);
-      Vector3 pivotB = new Vector3(0.2f, 0.0f, 0.2f);
-
-      rockHingeConstraint = new btHingeConstraint(rockParentObject.getBtRigidBody(), rockChildObject.getBtRigidBody(), pivotA, pivotB, axisA, axisB, true);
-
-      rockHingeConstraint.setLimit(-1.0f, 1.0f);
-      addConstraint(bulletPhysicsManager, rockHingeConstraint);
    }
 
    @Override
    public void removeFromBullet()
    {
       super.removeFromBullet();
-      rockHingeConstraint.dispose();
       rockParentObject.removeFromBullet();
       rockChildObject.removeFromBullet();
 

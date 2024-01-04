@@ -109,16 +109,6 @@ public class RDXMultiBodySnakeObject extends RDXEnvironmentObject
    }
 
    @Override
-   public void copyBulletTransformToThisMultiBody()
-   {
-      setTransformToWorld(baseCollider.getWorldTransform());
-      for (int i = 0; i < numberOfLinks; i++)
-      {
-         linkModelInstances.get(i).transform.set(linkColliders.get(i).getWorldTransform());
-      }
-   }
-
-   @Override
    public void copyThisTransformToBulletMultiBodyParentOnly()
    {
       getThisTransformForCopyToBullet(tempGDXTransform);

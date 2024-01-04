@@ -184,10 +184,6 @@ public class RDXEnvironmentBuilder extends RDXPanel
 
    public void update()
    {
-      for (RDXEnvironmentObject allObject : allObjects)
-      {
-         allObject.update(bulletPhysicsManager);
-      }
    }
 
    public void renderImGuiWidgets()

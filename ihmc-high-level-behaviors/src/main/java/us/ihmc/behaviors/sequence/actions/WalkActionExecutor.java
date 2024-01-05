@@ -77,9 +77,8 @@ public class WalkActionExecutor extends ActionNodeExecutor<WalkActionState, Walk
       {
          for (RobotSide side : RobotSide.values)
          {
-            liveGoalFeetPoses.get(side)
-                             .setIncludingFrame(state.getGoalFrame().getReferenceFrame(),
-                                                getDefinition().getGoalFootstepToGoalTransform(side).getValueReadOnly());
+            liveGoalFeetPoses.get(side).setIncludingFrame(state.getGoalFrame().getReferenceFrame(),
+                                                          getDefinition().getGoalFootstepToGoalTransform(side).getValueReadOnly());
             liveGoalFeetPoses.get(side).changeFrame(ReferenceFrame.getWorldFrame());
          }
       }
@@ -195,8 +194,8 @@ public class WalkActionExecutor extends ActionNodeExecutor<WalkActionState, Walk
          case PLANNING_FAILED ->
          {
             state.setIsExecuting(false);
-            state.getExecutionState().setValue(WalkActionExecutionState.PLAN_EXECUTION_COMPLETE);
             state.setFailed(true);
+            state.getExecutionState().setValue(WalkActionExecutionState.PLAN_EXECUTION_COMPLETE);
          }
          case PLANNING_SUCCEEDED ->
          {

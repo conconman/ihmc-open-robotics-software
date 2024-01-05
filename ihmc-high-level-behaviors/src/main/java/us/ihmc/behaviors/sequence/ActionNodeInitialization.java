@@ -85,7 +85,7 @@ public class ActionNodeInitialization
          {
             pelvisHeightPitchAction.getDefinition().setParentFrameName(nextPreviousAction.getDefinition().getParentFrameName());
             pelvisHeightPitchAction.getDefinition().getPelvisToParentTransform().getValue()
-                                  .set(nextPreviousAction.getDefinition().getPelvisToParentTransform().getValueReadOnly());
+                                   .set(nextPreviousAction.getDefinition().getPelvisToParentTransform().getValueReadOnly());
          }
          else
          {
